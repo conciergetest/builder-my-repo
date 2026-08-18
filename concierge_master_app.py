@@ -781,6 +781,72 @@ let value='';const out=document.getElementById('display');function draw(){out.te
     )
 
 
+def render_letter() -> None:
+    reservation = st.session_state.get("selected_reservation")
+    st.subheader("Carta de despedida")
+    render_back_link()
+    if not reservation:
+        st.error("Selecciona una reserva de la tabla antes de crear la carta.")
+        return
+
+    guest_name = str(reservation.get("name", "")).strip()
+    if not guest_name:
+        st.error("La reserva seleccionada no tiene un nombre de huésped.")
+        return
+
+    template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plantilla_despedida.docx")
+    if not os.path.exists(template_path):
+        st.warning("No se encontró `plantilla_despedida.docx` junto a este archivo.")
+        st.info("Crea esa plantilla Word y usa `{{NOMBRE}}` donde debe aparecer el nombre del huésped.")
+        return
+
+    try:
+        from docx import Document
+    except ImportError:
+        st.error("Falta `python-docx`. Instálalo con el archivo requirements_streamlit.txt actualizado.")
+        return
+
+    try:
+        document = Document(template_path)
+        replacements = 0
+
+        def replace_paragraph(paragraph) -> None:
+            nonlocal replacements
+            if "{{NOMBRE}}" not in paragraph.text:
+                return
+            text = paragraph.text.replace("{{NOMBRE}}", guest_name)
+            for run in paragraph.runs:
+                run.text = ""
+            if paragraph.runs:
+                paragraph.runs[0].text = text
+            else:
+                paragraph.add_run(text)
+            replacements += 1
+
+        for paragraph in document.paragraphs:
+            replace_paragraph(paragraph)
+        for table in document.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        replace_paragraph(paragraph)
+
+        output = BytesIO()
+        document.save(output)
+        output.seek(0)
+        safe_name = "".join(char if char.isalnum() or char in "_-" else "_" for char in guest_name)
+        st.success(f"Carta preparada para {guest_name}. Placeholders sustituidos: {replacements}.")
+        st.download_button(
+            "DESCARGAR CARTA DE DESPEDIDA",
+            data=output,
+            file_name=f"Carta_Despedida_{safe_name}_{datetime.now():%Y%m%d_%H%M}.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            use_container_width=True,
+        )
+    except Exception as exc:
+        st.error(f"No se pudo generar la carta: {exc}")
+
+
 def render_delete() -> None:
     reservation = st.session_state.get("selected_reservation")
     st.subheader("Eliminar reservación")
@@ -992,8 +1058,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
         name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "—"))
         st.markdown(f'<div class="selection-banner"><b>● RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
         st.markdown(
-            '<div class="action-links" style="grid-template-columns:repeat(3,minmax(110px,1fr));max-width:520px">'
+            '<div class="action-links" style="grid-template-columns:repeat(4,minmax(110px,1fr));max-width:700px">'
             f'<a class="action-link" href="{url_with(action="editar")}" style="background:#D97706">EDITAR</a>'
+            f'<a class="action-link" href="{url_with(action="carta")}" style="background:#7C3AED">CARTA</a>'
             f'<a class="action-link" href="{url_with(action="cancelar")}" style="background:#E11D48">BORRAR</a>'
             '<a class="action-link" href="?" style="background:#475569">DESELECCIONAR</a>'
             '</div>',
@@ -1023,6 +1090,8 @@ elif action == "reporte":
     render_report(reservations)
 elif action == "calculadora":
     render_calculator()
+elif action == "carta":
+    render_letter()
 elif action == "cancelar":
     render_delete()
 else:
