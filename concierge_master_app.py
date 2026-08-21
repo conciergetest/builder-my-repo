@@ -1,8 +1,8 @@
-"""Concierge Master â€” Streamlit + Supabase.
+"""Concierge Master” Streamlit + Supabase.
 
-InstalaciÃ³n:
+Instalación:
     pip install -r requirements_streamlit.txt
-EjecuciÃ³n:
+Ejecución:
     streamlit run concierge_master_app.py
 
 Secrets requeridos en .streamlit/secrets.toml:
@@ -34,7 +34,7 @@ except ImportError:
 
 
 # -----------------------------------------------------------------------------
-# ConfiguraciÃ³n
+# Configuración
 # -----------------------------------------------------------------------------
 
 st.set_page_config(
@@ -1072,7 +1072,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 f'<a class="quick-link" href="{url_with(checkout_filtro=stored)}" style="background:#{"0F766E" if offset % 2 == 0 else "155E75"}">{date:%b %d}: {count}</a>'
             )
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
-        st.markdown('<div style="margin-top:7px"><a class="action-link" href="?" style="background:#334155">â†» VER TODAS</a></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-top:7px"><a class="action-link" href="?" style="background:#334155">» VER TODAS</a></div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
         selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date(), key="arrival_date")
@@ -1091,11 +1091,11 @@ def render_dashboard(df: pd.DataFrame) -> None:
     render_quick_links()
     st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
     search_left, search_right = st.columns([1, 5], gap="small")
-    search_left.markdown("<div style='padding-top:8px;color:#8ca4ba;font-size:10px;text-align:right'>BÃšSQUEDA RÃPIDA</div>", unsafe_allow_html=True)
+    search_left.markdown("<div style='padding-top:8px;color:#8ca4ba;font-size:10px;text-align:right'>BÚSQUEDA RÁPIDA</div>", unsafe_allow_html=True)
     search_right.text_input(
-        "BÃºsqueda rÃ¡pida",
+        "Búsqueda rápida",
         key="global_search",
-        placeholder="Buscar por nombre, telÃ©fono, reserva, VIP, Relaxuryâ€¦",
+        placeholder="Buscar por nombre, teléfono, reserva, VIP, Relaxury",
         label_visibility="collapsed",
     )
     filtered, filters = apply_filters(df)
