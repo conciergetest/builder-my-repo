@@ -229,12 +229,22 @@ function ReservationTable({ reservations, selectedId, onSelect }: { reservations
 }
 
 function QuickLinks() {
+  const navigateSameTab = (url: string) => {
+    window.location.assign(url);
+  };
+
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
       {quickLinks.map((link) => (
-        <a key={link.label} href={link.href} className="rounded-lg px-2 py-2 text-center text-[10px] font-black tracking-[.04em] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.16),0_4px_10px_rgba(0,0,0,.2)] transition hover:-translate-y-px hover:brightness-110" style={{ backgroundColor: link.color }}>
+        <button
+          key={link.label}
+          type="button"
+          onClick={() => navigateSameTab(link.href)}
+          className="rounded-lg px-2 py-2 text-center text-[10px] font-black tracking-[.04em] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.16),0_4px_10px_rgba(0,0,0,.2)] transition hover:-translate-y-px hover:brightness-110"
+          style={{ backgroundColor: link.color }}
+        >
           {link.label}
-        </a>
+        </button>
       ))}
     </div>
   );
