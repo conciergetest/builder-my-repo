@@ -1053,7 +1053,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         f'<div class="summary-grid">'
         f'<div class="summary-card"><div class="summary-label">TOTAL RESERVAS <span></span></div><div class="summary-value">{len(df)}</div></div>'
         f'<div class="summary-card gold"><div class="summary-label">VIP ARRIVALS <span></span></div><div class="summary-value">{vip_count}</div></div>'
-        f'<div class="summary-card pink"><div class="summary-label">RELAXURY <span>â–£</span></div><div class="summary-value">{relaxury_count}</div></div>'
+        f'<div class="summary-card pink"><div class="summary-label">RELAXURY <span></span></div><div class="summary-value">{relaxury_count}</div></div>'
         f'<div class="summary-card purple"><div class="summary-label">NOCHES RESERVADAS <span>”</span></div><div class="summary-value">{nights_count}</div></div>'
         '</div>',
         unsafe_allow_html=True,
