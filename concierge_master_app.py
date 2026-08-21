@@ -1072,7 +1072,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 f'<a class="quick-link" href="{url_with(checkout_filtro=stored)}" style="background:#{"0F766E" if offset % 2 == 0 else "155E75"}">{date:%b %d}: {count}</a>'
             )
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
-        st.markdown('<div style="margin-top:7px"><a class="action-link" href="?" style="background:#334155">» VER TODAS</a></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-top:7px"><a class="action-link" href="?" style="background:#334155">«» VER TODAS</a></div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
         selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date(), key="arrival_date")
