@@ -65,7 +65,7 @@ CATEGORY_COLORS = {
     "TEAM MEMBER": "#FACC15",
 }
 
-# Los enlaces son URL proporcionadas por el usuario. Abren una pestaña nueva.
+# Enlaces operativos proporcionados por el usuario; navegan en la pestaña actual.
 QUICK_LINKS = [
     (
         "ALICE",
@@ -146,11 +146,27 @@ st.markdown(
     .panel-title { color:#00e5ff; font-size:11px; font-weight:800; letter-spacing:.7px; text-transform:uppercase; margin-bottom:8px; }
     .total-strip { border:1px solid #00e5ff; color:#dffcff; background:linear-gradient(90deg,#0b2130,#0d1420); border-radius:8px; padding:7px 12px; text-align:center; font-size:12px; }
     .total-strip strong { color:#00e5ff; font-size:17px; margin-left:6px; }
+    .summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:8px 0; }
+    .summary-card { min-height:57px; background:#0d1723; border:1px solid #1e3348; border-radius:8px; padding:8px 10px; }
+    .summary-label { display:flex; align-items:center; justify-content:space-between; color:#71879a; font-size:9px; font-weight:800; letter-spacing:.7px; text-transform:uppercase; }
+    .summary-value { margin-top:5px; color:#00e5ff; font-size:20px; line-height:1; font-weight:900; }
+    .summary-card.gold .summary-value { color:#d4af37; }
+    .summary-card.pink .summary-value { color:#f472b6; }
+    .summary-card.purple .summary-value { color:#a78bfa; }
+    .category-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+    .category-card { min-height:29px; border-radius:5px; padding:5px 7px 4px; }
+    .category-card-head { display:flex; justify-content:space-between; gap:5px; color:var(--category-color); font-size:8px; font-weight:900; text-transform:uppercase; }
+    .category-card-track { height:3px; margin-top:5px; border-radius:3px; background:rgba(0,0,0,.25); overflow:hidden; }
+    .category-card-fill { height:100%; border-radius:3px; background:var(--category-color); }
     .category-row { display:flex; align-items:center; gap:8px; margin:6px 0; }
     .category-label { color:#b9cad8; font-size:10px; width:92px; text-align:right; white-space:nowrap; }
     .category-track { flex:1; height:13px; background:#172331; border-radius:5px; overflow:hidden; }
     .category-fill { height:100%; border-radius:5px; }
     .category-value { color:#e8f8ff; font-size:11px; font-weight:700; width:22px; }
+    @media (max-width: 980px) {
+        .summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .category-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
     .selection-banner { margin: 8px 0; padding:8px 11px; background:#062233; border:1px solid #00e5ff; color:#edfaff; border-radius:8px; font-size:12px; }
     .selection-banner b { color:#00e5ff; }
     .stButton > button, .stDownloadButton > button, [data-testid="stFormSubmitButton"] > button {
@@ -543,23 +559,21 @@ def apply_filters(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
 
 
 def render_category_chart(df: pd.DataFrame) -> None:
-    counts: list[tuple[str, int, str]] = []
     info = df["info"].fillna("").astype(str).str.upper() if "info" in df.columns else pd.Series(dtype=str)
+    cards = []
     for category, color in CATEGORY_COLORS.items():
-        counts.append((category, int(info.str.contains(category, na=False).sum()), color))
-    categorized = sum(value for _, value, _ in counts)
-    counts.append(("LEISURE", max(0, len(df) - categorized), "#3B82F6"))
-    maximum = max((value for _, value, _ in counts), default=1) or 1
-
-    content = '<div class="panel"><div class="panel-title">Guest categories</div>'
-    for label, value, color in sorted(counts, key=lambda item: item[1], reverse=True):
-        width = value / maximum * 100
-        content += (
-            f'<div class="category-row"><div class="category-label">{label}</div>'
-            f'<div class="category-track"><div class="category-fill" style="width:{width:.1f}%;background:{color}"></div></div>'
-            f'<div class="category-value">{value}</div></div>'
+        count = int(info.str.contains(category, na=False).sum())
+        width = count / max(len(df), 1) * 100
+        cards.append(
+            f'<div class="category-card" style="--category-color:{color};background:{color}22">'
+            f'<div class="category-card-head"><span>{category}</span><span>{count}</span></div>'
+            f'<div class="category-card-track"><div class="category-card-fill" style="width:{width:.1f}%"></div></div></div>'
         )
-    st.markdown(content + "</div>", unsafe_allow_html=True)
+    st.markdown(
+        '<div class="panel"><div class="panel-title">Guest categories</div>'
+        '<div class="category-grid">' + "".join(cards) + '</div></div>',
+        unsafe_allow_html=True,
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -1032,10 +1046,20 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
 # -----------------------------------------------------------------------------
 
 def render_dashboard(df: pd.DataFrame) -> None:
-    st.markdown(f'<div class="total-strip">TOTAL RESERVAS <strong>{len(df)}</strong></div>', unsafe_allow_html=True)
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    vip_count = int(df["info"].fillna("").astype(str).str.upper().str.contains("VIP", na=False).sum())
+    relaxury_count = int(df.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
+    nights_count = int(pd.to_numeric(df["nights"], errors="coerce").fillna(0).sum())
+    st.markdown(
+        f'<div class="summary-grid">'
+        f'<div class="summary-card"><div class="summary-label">TOTAL RESERVAS <span>▣</span></div><div class="summary-value">{len(df)}</div></div>'
+        f'<div class="summary-card gold"><div class="summary-label">VIP ARRIVALS <span>♛</span></div><div class="summary-value">{vip_count}</div></div>'
+        f'<div class="summary-card pink"><div class="summary-label">RELAXURY <span>▣</span></div><div class="summary-value">{relaxury_count}</div></div>'
+        f'<div class="summary-card purple"><div class="summary-label">NOCHES RESERVADAS <span>◔</span></div><div class="summary-value">{nights_count}</div></div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
-    left, right = st.columns([1.35, 5.65], gap="medium")
+    left, right = st.columns([1.35, 5.65], gap="small")
     with left:
         st.markdown('<div class="panel"><div class="panel-title">Checking out rooms</div>', unsafe_allow_html=True)
         today = datetime.now()
@@ -1045,36 +1069,36 @@ def render_dashboard(df: pd.DataFrame) -> None:
             stored = date.strftime("%B %d, %Y")
             count = int((df["check_out"] == stored).sum())
             checkout_links.append(
-                f'<a class="quick-link" href="{url_with(checkout_filtro=stored)}" style="background:#{"0F766E" if offset % 2 == 0 else "155E75"}">{date:%d-%b}: {count}</a>'
+                f'<a class="quick-link" href="{url_with(checkout_filtro=stored)}" style="background:#{"0F766E" if offset % 2 == 0 else "155E75"}">{date:%b %d}: {count}</a>'
             )
-        st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
-        st.markdown('<div style="margin-top:8px"><a class="action-link" href="?" style="background:#334155">VER TODAS</a></div>', unsafe_allow_html=True)
+        st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
+        st.markdown('<div style="margin-top:7px"><a class="action-link" href="?" style="background:#334155">↻ VER TODAS</a></div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
-
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
-        selected_date = st.date_input("Filtrar por check-in", value=(filter_default or datetime.now()).date(), key="arrival_date")
+        selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date(), key="arrival_date")
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(
-            f'<a class="action-link" href="{date_link}" style="background:#0891B2;margin-top:6px">APLICAR FECHA</a>',
-            unsafe_allow_html=True,
-        )
-        st.markdown('<a class="action-link" href="?" style="background:#475569;margin-top:6px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="action-link" href="{date_link}" style="background:#0891B2;margin-top:5px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown('<a class="action-link" href="?" style="background:#475569;margin-top:5px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with right:
-        search_left, search_right = st.columns([1, 4])
-        search_left.markdown("<div style='padding-top:8px;color:#8ca4ba;font-size:12px;text-align:right'>Búsqueda rápida</div>", unsafe_allow_html=True)
-        search_right.text_input(
-            "Búsqueda rápida",
-            key="global_search",
-            placeholder="Nombre, teléfono, reserva, categoría…",
-            label_visibility="collapsed",
-        )
         filtered, filters = apply_filters(df)
         render_category_chart(filtered)
         relaxury = int(filtered.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
         st.markdown(f'<div class="total-strip" style="border-color:#f472b6">RELAXURY <strong style="color:#f472b6">{relaxury}</strong></div>', unsafe_allow_html=True)
-        render_action_links()
-        render_quick_links()
+
+    st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+    render_action_links()
+    render_quick_links()
+    st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
+    search_left, search_right = st.columns([1, 5], gap="small")
+    search_left.markdown("<div style='padding-top:8px;color:#8ca4ba;font-size:10px;text-align:right'>BÚSQUEDA RÁPIDA</div>", unsafe_allow_html=True)
+    search_right.text_input(
+        "Búsqueda rápida",
+        key="global_search",
+        placeholder="Buscar por nombre, teléfono, reserva, VIP, Relaxury…",
+        label_visibility="collapsed",
+    )
+    filtered, filters = apply_filters(df)
 
     if filters:
         captions = []
@@ -1086,7 +1110,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
             captions.append("Búsqueda: " + safe_text(filters["search"]))
         st.caption(" · ".join(captions))
 
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True)
     render_reservations_grid(filtered)
 
     selected = st.session_state.get("selected_reservation")
