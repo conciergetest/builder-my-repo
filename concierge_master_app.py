@@ -140,8 +140,8 @@ st.markdown(
     .brand-name { color:#d4af37; font-size:11px; font-weight:800; letter-spacing:1.7px; }
     .brand-place { color:#6f879a; font-size:9px; letter-spacing:1px; margin-top:2px; }
     .brand-product { color:#00e5ff; font-size:14px; font-weight:800; margin-top:3px; }
-    .clock { color:#00e5ff; font-size:14px; font-weight:800; text-align:right; text-shadow:0 0 12px rgba(0,229,255,.45); }
-    .clock-date { color:#7e9aae; font-size:10px; font-weight:600; margin-top:3px; }
+    .clock { color:#00e5ff; font-size:16px; font-weight:800; text-align:right; text-shadow:0 0 12px rgba(0,229,255,.45); }
+    .clock-date { color:#00e5ff; font-size:14px; font-weight:700; margin-top:4px; }
     .panel { background:#0d1420; border:1px solid #1e3348; border-radius:10px; padding:12px; }
     .panel-title { color:#00e5ff; font-size:11px; font-weight:800; letter-spacing:.7px; text-transform:uppercase; margin-bottom:8px; }
     .total-strip { border:1px solid #00e5ff; color:#dffcff; background:linear-gradient(90deg,#0b2130,#0d1420); border-radius:8px; padding:7px 12px; text-align:center; font-size:12px; }
@@ -437,28 +437,64 @@ def exportar_reporte_excel(data: dict[str, pd.DataFrame], report_date: datetime)
 # -----------------------------------------------------------------------------
 
 def show_header() -> None:
-    now = datetime.now()
-    st.markdown(
-        f"""
+    import streamlit.components.v1 as components
+
+    header_left, header_right = st.columns([1.6, 1])
+    with header_left:
+        st.markdown(
+            """
 <div class="page-title">
   <div class="brand">
     <div class="brand-mark">WA</div>
     <div>
       <div class="brand-name">WALDORF ASTORIA</div>
       <div class="brand-place">COSTA RICA · PUNTA CACIQUE</div>
-      <div class="brand-product">Concierge Master</div>
+      <div class="brand-product">Concierge Master <span style="color:#6f879a">v5.1</span></div>
     </div>
   </div>
-  <div class="clock">{now.strftime('%I:%M %p').lstrip('0')}<div class="clock-date">{now.strftime('%A, %B %d, %Y')}</div></div>
 </div>
-        """,
-        unsafe_allow_html=True,
-    )
+            """,
+            unsafe_allow_html=True,
+        )
+    with header_right:
+        components.html(
+            """
+<!doctype html>
+<html>
+<head>
+<style>
+  body { margin:0; background:transparent; font-family:Segoe UI,sans-serif; text-align:right; }
+  #local-clock { color:#00e5ff; font-size:16px; font-weight:800; line-height:1.2; text-shadow:0 0 12px rgba(0,229,255,.45); }
+  #local-date { color:#00e5ff; font-size:14px; font-weight:700; margin-top:5px; text-transform:capitalize; }
+</style>
+</head>
+<body>
+  <div id="local-clock">--:--:--</div>
+  <div id="local-date">Loading date…</div>
+<script>
+  const clock = document.getElementById('local-clock');
+  const date = document.getElementById('local-date');
+  const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  const dateFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  function updateLocalClock() {
+    const now = new Date();
+    clock.textContent = timeFormatter.format(now);
+    date.textContent = dateFormatter.format(now);
+  }
+  updateLocalClock();
+  setInterval(updateLocalClock, 1000);
+</script>
+</body>
+</html>
+            """,
+            height=54,
+            scrolling=False,
+        )
 
 
 def render_quick_links() -> None:
     links = "".join(
-        f'<a class="quick-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="background:{color}">{label}</a>'
+        f'<a class="quick-link" href="{html.escape(url, quote=True)}" style="background:{color}">{label}</a>'
         for label, url, color in QUICK_LINKS
     )
     st.markdown(f'<div class="quick-links">{links}</div>', unsafe_allow_html=True)
