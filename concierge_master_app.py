@@ -1,8 +1,8 @@
-"""Concierge Master — Streamlit + Supabase.
+"""Concierge Master â€” Streamlit + Supabase.
 
-Instalación:
+InstalaciÃ³n:
     pip install -r requirements_streamlit.txt
-Ejecución:
+EjecuciÃ³n:
     streamlit run concierge_master_app.py
 
 Secrets requeridos en .streamlit/secrets.toml:
@@ -34,12 +34,12 @@ except ImportError:
 
 
 # -----------------------------------------------------------------------------
-# Configuración
+# ConfiguraciÃ³n
 # -----------------------------------------------------------------------------
 
 st.set_page_config(
     page_title="Concierge Master",
-    page_icon="✦",
+    page_icon="âœ¦",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -65,7 +65,7 @@ CATEGORY_COLORS = {
     "TEAM MEMBER": "#FACC15",
 }
 
-# Enlaces operativos proporcionados por el usuario; navegan en la pestaña actual.
+# Enlaces operativos proporcionados por el usuario; navegan en la pestaÃ±a actual.
 QUICK_LINKS = [
     (
         "ALICE",
@@ -344,7 +344,7 @@ def exportar_excel_por_categorias(df: pd.DataFrame) -> BytesIO:
     border = Border(*(Side(style="thin", color="D6DEE4") for _ in range(4)))
 
     groups = [
-        ("CUMPLEAÑOS", ("BIRTHDAY", "CUMPLE", "BDAY")),
+        ("CUMPLEAÃ‘OS", ("BIRTHDAY", "CUMPLE", "BDAY")),
         ("VIP", ("VIP",)),
         ("HONEYMOON", ("HONEYMOON", "LUNA DE MIEL")),
         ("ANNIVERSARY", ("ANNIVERSARY", "ANIVERSARIO")),
@@ -418,17 +418,17 @@ def exportar_reporte_excel(data: dict[str, pd.DataFrame], report_date: datetime)
     white = Font(color="FFFFFF", bold=True)
 
     overview.merge_cells("A1:D1")
-    overview["A1"] = f"REPORTE DE OCUPACIÓN — {report_date.strftime('%B %d, %Y').upper()}"
+    overview["A1"] = f"REPORTE DE OCUPACIÃ“N â€” {report_date.strftime('%B %d, %Y').upper()}"
     overview["A1"].fill, overview["A1"].font = cyan, Font(color="FFFFFF", bold=True, size=14)
     overview["A1"].alignment = Alignment(horizontal="center")
     overview.append([])
-    overview.append(["Métrica", "Reservas", "VIPs", "Habitaciones"])
+    overview.append(["MÃ©trica", "Reservas", "VIPs", "Habitaciones"])
     for cell in overview[3]:
         cell.fill, cell.font = dark, white
 
     for title, frame in data.items():
         vip_count = frame["info"].fillna("").astype(str).str.upper().str.contains("VIP").sum()
-        rooms = ", ".join(frame["room"].dropna().astype(str).replace("", pd.NA).dropna().tolist()) or "—"
+        rooms = ", ".join(frame["room"].dropna().astype(str).replace("", pd.NA).dropna().tolist()) or "â€”"
         overview.append([title, len(frame), int(vip_count), rooms])
 
         sheet_name = title[:31]
@@ -449,7 +449,7 @@ def exportar_reporte_excel(data: dict[str, pd.DataFrame], report_date: datetime)
 
 
 # -----------------------------------------------------------------------------
-# Interfaz común
+# Interfaz comÃºn
 # -----------------------------------------------------------------------------
 
 def show_header() -> None:
@@ -464,7 +464,7 @@ def show_header() -> None:
     <div class="brand-mark">WA</div>
     <div>
       <div class="brand-name">WALDORF ASTORIA</div>
-      <div class="brand-place">COSTA RICA · PUNTA CACIQUE</div>
+      <div class="brand-place">COSTA RICA Â· PUNTA CACIQUE</div>
       <div class="brand-product">Concierge Master <span style="color:#6f879a">v5.1</span></div>
     </div>
   </div>
@@ -486,7 +486,7 @@ def show_header() -> None:
 </head>
 <body>
   <div id="local-clock">--:--:--</div>
-  <div id="local-date">Loading date…</div>
+  <div id="local-date">Loading dateâ€¦</div>
 <script>
   const clock = document.getElementById('local-clock');
   const date = document.getElementById('local-date');
@@ -582,38 +582,38 @@ def render_category_chart(df: pd.DataFrame) -> None:
 
 def render_back_link() -> None:
     st.markdown(
-        '<a class="action-link" href="?" style="background:#334155;max-width:185px">← REGRESAR A LA TABLA</a>',
+        '<a class="action-link" href="?" style="background:#334155;max-width:185px">â† REGRESAR A LA TABLA</a>',
         unsafe_allow_html=True,
     )
 
 
 def render_new_reservation() -> None:
-    st.subheader("Nueva reservación")
+    st.subheader("Nueva reservaciÃ³n")
     render_back_link()
     with st.form("new_reservation", clear_on_submit=True):
         first = st.columns(4)
         eta = first[0].text_input("ETA", value=datetime.now().strftime("%I:%M %p").lstrip("0"))
         name = first[1].text_input("Nombre *")
-        qty = first[2].number_input("Huéspedes", min_value=0, value=1)
-        room = first[3].text_input("Habitación")
+        qty = first[2].number_input("HuÃ©spedes", min_value=0, value=1)
+        room = first[3].text_input("HabitaciÃ³n")
         second = st.columns(4)
         email = second[0].text_input("Email")
         check_in = second[1].date_input("Check-in")
         check_out = second[2].date_input("Check-out", value=datetime.now().date() + timedelta(days=1))
         res_number = second[3].text_input("Reservation #")
         third = st.columns(4)
-        phone = third[0].text_input("Teléfono")
+        phone = third[0].text_input("TelÃ©fono")
         info = third[1].text_input("Information")
         ird = third[2].text_input("IRD")
         hsk = third[3].text_input("HSK")
         fourth = st.columns(2)
         rate = fourth[0].text_input("Rate")
         trans = fourth[1].text_input("Transportation")
-        submitted = st.form_submit_button("GUARDAR RESERVACIÓN", use_container_width=True)
+        submitted = st.form_submit_button("GUARDAR RESERVACIÃ“N", use_container_width=True)
 
     if submitted:
         if not name.strip():
-            st.error("El nombre del huésped es obligatorio.")
+            st.error("El nombre del huÃ©sped es obligatorio.")
             return
         if check_out < check_in:
             st.error("La fecha de check-out no puede ser anterior al check-in.")
@@ -625,7 +625,7 @@ def render_new_reservation() -> None:
             "phone": phone.strip(), "info": info.strip(), "ird": ird.strip(), "hsk": hsk.strip(),
             "rate": rate.strip(), "trans": trans.strip(),
         })
-        st.success("Reservación guardada correctamente.")
+        st.success("ReservaciÃ³n guardada correctamente.")
         st.query_params.clear()
         st.rerun()
 
@@ -637,7 +637,7 @@ def render_edit_reservation() -> None:
         render_back_link()
         return
 
-    st.subheader(f"Editar reservación · {safe_text(reservation.get('name', ''))}")
+    st.subheader(f"Editar reservaciÃ³n Â· {safe_text(reservation.get('name', ''))}")
     render_back_link()
     check_in_default = parse_fecha(reservation.get("check_in")) or datetime.now()
     check_out_default = parse_fecha(reservation.get("check_out")) or datetime.now() + timedelta(days=1)
@@ -648,15 +648,15 @@ def render_edit_reservation() -> None:
         first = st.columns(4)
         eta = first[0].text_input("ETA", value=str(reservation.get("eta", "")))
         name = first[1].text_input("Nombre *", value=str(reservation.get("name", "")))
-        qty = first[2].number_input("Huéspedes", min_value=0, value=qty_default)
-        room = first[3].text_input("Habitación", value=str(reservation.get("room", "")))
+        qty = first[2].number_input("HuÃ©spedes", min_value=0, value=qty_default)
+        room = first[3].text_input("HabitaciÃ³n", value=str(reservation.get("room", "")))
         second = st.columns(4)
         email = second[0].text_input("Email", value=str(reservation.get("email", "")))
         check_in = second[1].date_input("Check-in", value=check_in_default.date())
         check_out = second[2].date_input("Check-out", value=check_out_default.date())
         res_number = second[3].text_input("Reservation #", value=str(reservation.get("res_number", "")))
         third = st.columns(4)
-        phone = third[0].text_input("Teléfono", value=str(reservation.get("phone", "")))
+        phone = third[0].text_input("TelÃ©fono", value=str(reservation.get("phone", "")))
         info = third[1].text_input("Information", value=str(reservation.get("info", "")))
         ird = third[2].text_input("IRD", value=str(reservation.get("ird", "")))
         hsk = third[3].text_input("HSK", value=str(reservation.get("hsk", "")))
@@ -667,7 +667,7 @@ def render_edit_reservation() -> None:
 
     if submitted:
         if not name.strip():
-            st.error("El nombre del huésped es obligatorio.")
+            st.error("El nombre del huÃ©sped es obligatorio.")
             return
         if check_out < check_in:
             st.error("La fecha de check-out no puede ser anterior al check-in.")
@@ -706,7 +706,7 @@ def render_import() -> None:
     preview = frame[IMPORT_COLUMNS].copy()
     preview["check_in"] = preview["check_in"].map(normalizar_fecha)
     preview["check_out"] = preview["check_out"].map(normalizar_fecha)
-    st.success(f"Archivo válido: {len(preview)} reservaciones detectadas.")
+    st.success(f"Archivo vÃ¡lido: {len(preview)} reservaciones detectadas.")
     st.dataframe(preview, use_container_width=True, hide_index=True, height=300)
 
     if st.button("IMPORTAR A BASE DE DATOS", type="primary", use_container_width=True):
@@ -727,14 +727,14 @@ def render_import() -> None:
             insertar_lote(records)
             st.success(f"{len(records)} reservaciones importadas correctamente.")
         except Exception as exc:
-            st.error(f"No se completó la importación: {exc}")
+            st.error(f"No se completÃ³ la importaciÃ³n: {exc}")
 
 
 def render_export(df: pd.DataFrame) -> None:
     st.subheader("Exportar reservaciones a Excel")
     render_back_link()
     filtered, _ = apply_filters(df)
-    st.info(f"Se exportarán {len(filtered)} reservaciones, organizadas por categoría.")
+    st.info(f"Se exportarÃ¡n {len(filtered)} reservaciones, organizadas por categorÃ­a.")
     st.dataframe(filtered[DISPLAY_COLUMNS], use_container_width=True, hide_index=True, height=300)
     if not filtered.empty:
         st.download_button(
@@ -765,7 +765,7 @@ def render_agenda(df: pd.DataFrame) -> None:
 
 
 def render_report(df: pd.DataFrame) -> None:
-    st.subheader("Reporte de ocupación diario")
+    st.subheader("Reporte de ocupaciÃ³n diario")
     render_back_link()
     today = datetime.now()
     tomorrow = today + timedelta(days=1)
@@ -782,9 +782,9 @@ def render_report(df: pd.DataFrame) -> None:
     report_data = {
         "En casa": in_house,
         "Salen hoy": departures_today,
-        "Salen mañana": departures_tomorrow,
+        "Salen maÃ±ana": departures_tomorrow,
         "Llegan hoy": arrivals_today,
-        "Llegan mañana": arrivals_tomorrow,
+        "Llegan maÃ±ana": arrivals_tomorrow,
     }
     metrics = st.columns(5)
     for column, (label, frame) in zip(metrics, report_data.items()):
@@ -792,7 +792,7 @@ def render_report(df: pd.DataFrame) -> None:
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     st.dataframe(
         pd.DataFrame([
-            {"Categoría": label, "Reservas": len(frame), "Habitaciones": ", ".join(frame["room"].dropna().astype(str).tolist()) or "—"}
+            {"CategorÃ­a": label, "Reservas": len(frame), "Habitaciones": ", ".join(frame["room"].dropna().astype(str).tolist()) or "â€”"}
             for label, frame in report_data.items()
         ]),
         use_container_width=True,
@@ -818,11 +818,11 @@ body{margin:0;background:#080b12;font-family:Segoe UI,sans-serif;display:grid;pl
 #display{background:#061c2b;border:1px solid #00e5ff;border-radius:10px;color:#00e5ff;font:700 30px monospace;padding:14px;text-align:right;overflow:hidden;margin-bottom:11px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}button{border:0;border-radius:8px;padding:13px 6px;background:#203449;color:#eafaff;font-weight:800;font-size:16px;cursor:pointer}button:hover{filter:brightness(1.2)}.op{background:#7c3aed}.equal{background:#00c6df;color:#01171d}.clear{background:#e11d48}
 </style></head><body><div class="calculator"><div id="display">0</div><div class="grid">
-<button class="clear" onclick="clearAll()">C</button><button onclick="backspace()">⌫</button><button class="op" onclick="add('/')">÷</button><button class="op" onclick="add('*')">×</button>
-<button onclick="add('7')">7</button><button onclick="add('8')">8</button><button onclick="add('9')">9</button><button class="op" onclick="add('-')">−</button>
+<button class="clear" onclick="clearAll()">C</button><button onclick="backspace()">âŒ«</button><button class="op" onclick="add('/')">Ã·</button><button class="op" onclick="add('*')">Ã—</button>
+<button onclick="add('7')">7</button><button onclick="add('8')">8</button><button onclick="add('9')">9</button><button class="op" onclick="add('-')">âˆ’</button>
 <button onclick="add('4')">4</button><button onclick="add('5')">5</button><button onclick="add('6')">6</button><button class="op" onclick="add('+')">+</button>
 <button onclick="add('1')">1</button><button onclick="add('2')">2</button><button onclick="add('3')">3</button><button onclick="add('.')">.</button>
-<button onclick="add('0')">0</button><button onclick="add('%')">%</button><button onclick="toggleSign()">±</button><button class="equal" onclick="calculate()">=</button>
+<button onclick="add('0')">0</button><button onclick="add('%')">%</button><button onclick="toggleSign()">Â±</button><button class="equal" onclick="calculate()">=</button>
 </div></div><script>
 let value='';const out=document.getElementById('display');function draw(){out.textContent=value||'0'}function add(v){if('0123456789.'.includes(v)&&out.textContent==='Error')value='';value+=v;draw()}function clearAll(){value='';draw()}function backspace(){value=value.slice(0,-1);draw()}function toggleSign(){value=value.startsWith('-')?value.slice(1):'-'+value;draw()}function calculate(){try{if(!/^[0-9+*/.()% -]+$/.test(value))throw Error();value=String(Function('return ('+value+')')());draw()}catch(e){value='';out.textContent='Error'}}document.addEventListener('keydown',e=>{if('0123456789.+-*/%'.includes(e.key))add(e.key);else if(e.key==='Enter')calculate();else if(e.key==='Backspace')backspace();else if(e.key==='Escape')clearAll()});
 </script></body></html>
@@ -841,19 +841,19 @@ def render_letter() -> None:
 
     guest_name = str(reservation.get("name", "")).strip()
     if not guest_name:
-        st.error("La reserva seleccionada no tiene un nombre de huésped.")
+        st.error("La reserva seleccionada no tiene un nombre de huÃ©sped.")
         return
 
     template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plantilla_despedida.docx")
     if not os.path.exists(template_path):
-        st.warning("No se encontró `plantilla_despedida.docx` junto a este archivo.")
-        st.info("Crea esa plantilla Word y usa `{{NOMBRE}}` donde debe aparecer el nombre del huésped.")
+        st.warning("No se encontrÃ³ `plantilla_despedida.docx` junto a este archivo.")
+        st.info("Crea esa plantilla Word y usa `{{NOMBRE}}` donde debe aparecer el nombre del huÃ©sped.")
         return
 
     try:
         from docx import Document
     except ImportError:
-        st.error("Falta `python-docx`. Instálalo con el archivo requirements_streamlit.txt actualizado.")
+        st.error("Falta `python-docx`. InstÃ¡lalo con el archivo requirements_streamlit.txt actualizado.")
         return
 
     try:
@@ -899,14 +899,14 @@ def render_letter() -> None:
 
 def render_delete() -> None:
     reservation = st.session_state.get("selected_reservation")
-    st.subheader("Eliminar reservación")
+    st.subheader("Eliminar reservaciÃ³n")
     render_back_link()
     if not reservation:
         st.error("Selecciona una reserva antes de solicitar el borrado.")
         return
-    st.warning(f"Se eliminará permanentemente la reserva de {reservation.get('name', 'este huésped')}.")
+    st.warning(f"Se eliminarÃ¡ permanentemente la reserva de {reservation.get('name', 'este huÃ©sped')}.")
     with st.form("delete_reservation"):
-        password = st.text_input("Clave de autorización", type="password")
+        password = st.text_input("Clave de autorizaciÃ³n", type="password")
         confirmed = st.form_submit_button("CONFIRMAR Y BORRAR", type="primary")
     if confirmed:
         expected_password = st.secrets.get("DELETE_PASSWORD", "")
@@ -1027,7 +1027,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         selected = selected.to_dict("records")
     if selected:
         selected_id = selected[0].get("id")
-        # AgGrid recibe una vista sin `id`; la buscamos con una combinación estable de datos.
+        # AgGrid recibe una vista sin `id`; la buscamos con una combinaciÃ³n estable de datos.
         candidate = df[
             (df["name"].astype(str) == str(selected[0].get("name", "")))
             & (df["res_number"].astype(str) == str(selected[0].get("res_number", "")))
@@ -1051,10 +1051,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
     nights_count = int(pd.to_numeric(df["nights"], errors="coerce").fillna(0).sum())
     st.markdown(
         f'<div class="summary-grid">'
-        f'<div class="summary-card"><div class="summary-label">TOTAL RESERVAS <span>▣</span></div><div class="summary-value">{len(df)}</div></div>'
-        f'<div class="summary-card gold"><div class="summary-label">VIP ARRIVALS <span>♛</span></div><div class="summary-value">{vip_count}</div></div>'
-        f'<div class="summary-card pink"><div class="summary-label">RELAXURY <span>▣</span></div><div class="summary-value">{relaxury_count}</div></div>'
-        f'<div class="summary-card purple"><div class="summary-label">NOCHES RESERVADAS <span>◔</span></div><div class="summary-value">{nights_count}</div></div>'
+        f'<div class="summary-card"><div class="summary-label">TOTAL RESERVAS <span>â–£</span></div><div class="summary-value">{len(df)}</div></div>'
+        f'<div class="summary-card gold"><div class="summary-label">VIP ARRIVALS <span>â™›</span></div><div class="summary-value">{vip_count}</div></div>'
+        f'<div class="summary-card pink"><div class="summary-label">RELAXURY <span>â–£</span></div><div class="summary-value">{relaxury_count}</div></div>'
+        f'<div class="summary-card purple"><div class="summary-label">NOCHES RESERVADAS <span>â—”</span></div><div class="summary-value">{nights_count}</div></div>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -1072,7 +1072,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 f'<a class="quick-link" href="{url_with(checkout_filtro=stored)}" style="background:#{"0F766E" if offset % 2 == 0 else "155E75"}">{date:%b %d}: {count}</a>'
             )
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
-        st.markdown('<div style="margin-top:7px"><a class="action-link" href="?" style="background:#334155">↻ VER TODAS</a></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-top:7px"><a class="action-link" href="?" style="background:#334155">â†» VER TODAS</a></div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
         selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date(), key="arrival_date")
@@ -1091,11 +1091,11 @@ def render_dashboard(df: pd.DataFrame) -> None:
     render_quick_links()
     st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
     search_left, search_right = st.columns([1, 5], gap="small")
-    search_left.markdown("<div style='padding-top:8px;color:#8ca4ba;font-size:10px;text-align:right'>BÚSQUEDA RÁPIDA</div>", unsafe_allow_html=True)
+    search_left.markdown("<div style='padding-top:8px;color:#8ca4ba;font-size:10px;text-align:right'>BÃšSQUEDA RÃPIDA</div>", unsafe_allow_html=True)
     search_right.text_input(
-        "Búsqueda rápida",
+        "BÃºsqueda rÃ¡pida",
         key="global_search",
-        placeholder="Buscar por nombre, teléfono, reserva, VIP, Relaxury…",
+        placeholder="Buscar por nombre, telÃ©fono, reserva, VIP, Relaxuryâ€¦",
         label_visibility="collapsed",
     )
     filtered, filters = apply_filters(df)
@@ -1107,16 +1107,16 @@ def render_dashboard(df: pd.DataFrame) -> None:
         if "arrival" in filters:
             captions.append("Check-in: " + safe_text(filters["arrival"]))
         if "search" in filters:
-            captions.append("Búsqueda: " + safe_text(filters["search"]))
-        st.caption(" · ".join(captions))
+            captions.append("BÃºsqueda: " + safe_text(filters["search"]))
+        st.caption(" Â· ".join(captions))
 
     st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True)
     render_reservations_grid(filtered)
 
     selected = st.session_state.get("selected_reservation")
     if selected:
-        name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "—"))
-        st.markdown(f'<div class="selection-banner"><b>● RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
+        name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "â€”"))
+        st.markdown(f'<div class="selection-banner"><b>â— RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
         st.markdown(
             '<div class="action-links" style="grid-template-columns:repeat(4,minmax(110px,1fr));max-width:700px">'
             f'<a class="action-link" href="{url_with(action="editar")}" style="background:#D97706">EDITAR</a>'
