@@ -280,6 +280,26 @@ def normalizar_fecha(value: object) -> str:
     return "" if value is None or pd.isna(value) else str(value).strip()
 
 
+def generate_eta_options() -> list[str]:
+    """Genera lista de horas cada 30 min en formato 12h AM/PM."""
+    options = ["-- Sin hora --"]
+    for hour in range(24):
+        for minute in (0, 30):
+            t = datetime.strptime(f"{hour}:{minute:02d}", "%H:%M")
+            options.append(t.strftime("%I:%M %p").lstrip("0"))
+    return options
+
+
+def parse_eta_index(current: str, options: list[str]) -> int:
+    """Devuelve el indice de la opcion que coincida con current, o 0."""
+    if not current or current.strip() in ("", "nan", "none"):
+        return 0
+    current_clean = current.strip().upper()
+    for i, opt in enumerate(options):
+        if opt.upper() == current_clean:
+            return i
+    return 0
+
 def calcular_noches(check_in: object, check_out: object) -> int | None:
     """Devuelve checkout - checkin, sin contar una noche negativa."""
     start, end = parse_fecha(check_in), parse_fecha(check_out)
@@ -694,28 +714,29 @@ def render_back_link() -> None:
 
 
 def render_new_reservation() -> None:
-    st.subheader("Nueva reservaciÃ³n")
+    st.subheader("Nueva ReservaciÃ³n")
     render_back_link()
+    eta_options = generate_eta_options()
     with st.form("new_reservation", clear_on_submit=True):
-        first = st.columns(4)
-        eta = first[0].text_input("ETA", value=datetime.now().strftime("%I:%M %p").lstrip("0"))
-        name = first[1].text_input("Nombre *")
-        qty = first[2].number_input("HuÃ©spedes", min_value=0, value=1)
-        room = first[3].text_input("HabitaciÃ³n")
-        second = st.columns(4)
-        email = second[0].text_input("Email")
-        check_in = second[1].date_input("Check-in")
-        check_out = second[2].date_input("Check-out", value=datetime.now().date() + timedelta(days=1))
-        res_number = second[3].text_input("Reservation #")
-        third = st.columns(4)
-        phone = third[0].text_input("TelÃ©fono")
-        info = third[1].text_input("Information")
-        ird = third[2].text_input("IRD")
-        hsk = third[3].text_input("HSK")
-        fourth = st.columns(2)
-        rate = fourth[0].text_input("Rate")
-        trans = fourth[1].text_input("Transportation")
-        submitted = st.form_submit_button("GUARDAR RESERVACIÃ“N", use_container_width=True)
+        r1 = st.columns(3)
+        eta = r1[0].selectbox("ETA", options=eta_options, index=0)
+        name = r1[1].text_input("Name *", placeholder="Guest name")
+        qty = r1[2].text_input("QTY (adultos,niÃ±os)", placeholder="Ej: 2,1")
+        r2 = st.columns(3)
+        room = r2[0].text_input("Room", placeholder="101")
+        email = r2[1].text_input("Email", placeholder="guest@email.com")
+        res_number = r2[2].text_input("Reservation #", placeholder="RES-001")
+        r3 = st.columns(3)
+        check_in = r3[0].date_input("Check In")
+        check_out = r3[1].date_input("Check Out", value=datetime.now().date() + timedelta(days=1))
+        phone = r3[2].text_input("Phone", placeholder="+1 555 0000")
+        r4 = st.columns(3)
+        rate = r4[0].text_input("Rate", placeholder="$250")
+        ird = r4[1].text_input("IRD")
+        hsk = r4[2].text_input("HSK")
+        info = st.text_input("Information", placeholder="VIP, Birthday, Honeymoon, Relaxury...")
+        trans = st.text_input("Transportation")
+        submitted = st.form_submit_button("ðŸ’¾ Guardar Cambios", type="primary", use_container_width=True)
 
     if submitted:
         if not name.strip():
@@ -724,9 +745,10 @@ def render_new_reservation() -> None:
         if check_out < check_in:
             st.error("La fecha de check-out no puede ser anterior al check-in.")
             return
+        qty_val = int(qty) if qty.strip().isdigit() else 0
         insertar_reserva({
-            "eta": eta.strip(), "name": name.strip(), "qty": int(qty), "room": room.strip(),
-            "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
+            "eta": eta if eta != "-- Sin hora --" else "", "name": name.strip(), "qty": qty_val,
+            "room": room.strip(), "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
             "check_out": check_out.strftime("%B %d, %Y"), "res_number": res_number.strip(),
             "phone": phone.strip(), "info": info.strip(), "ird": ird.strip(), "hsk": hsk.strip(),
             "rate": rate.strip(), "trans": trans.strip(),
