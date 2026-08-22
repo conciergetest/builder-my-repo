@@ -110,8 +110,8 @@ DB_COLUMNS = [
     "res_number", "phone", "info", "ird", "hsk", "rate", "trans",
 ]
 DISPLAY_COLUMNS = [
-    "eta", "name", "qty", "room", "email", "check_in", "check_out", "nights",
-    "res_number", "phone", "info", "ird", "hsk", "rate", "trans",
+    "eta", "name", "qty", "room", "check_in", "check_out", "nights",
+    "res_number", "phone", "email", "info", "ird", "hsk", "rate", "trans",
 ]
 IMPORT_COLUMNS = [column for column in DB_COLUMNS if column != "id"]
 
@@ -1049,7 +1049,6 @@ function calculate(){
     }
 }
 
-// Mapeo robusto de teclado numérico y normal
 const KEY_MAP = {
     'Numpad0':'0','Numpad1':'1','Numpad2':'2','Numpad3':'3',
     'Numpad4':'4','Numpad5':'5','Numpad6':'6','Numpad7':'7',
@@ -1065,7 +1064,6 @@ const KEY_MAP = {
 
 document.addEventListener('keydown', function(e){
     const mapped = KEY_MAP[e.code] || e.key;
-
     if('0123456789.+-*/%'.includes(mapped)){
         e.preventDefault();
         e.stopPropagation();
@@ -1085,7 +1083,6 @@ document.addEventListener('keydown', function(e){
     }
 });
 
-// Enfocar body tras renderizado
 setTimeout(()=>{ document.body.focus(); }, 300);
 </script>
 </body>
@@ -1249,7 +1246,6 @@ def render_bonus() -> None:
         return
 
     # Si llegó aquí, está autenticado
-    # Botón de cerrar sesión
     logout_col, _ = st.columns([1, 4])
     with logout_col:
         if st.button("🔒 CERRAR SESIÓN", use_container_width=True):
@@ -1427,11 +1423,21 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
     )
 
     fields = {
-        "eta": ("ETA", 85), "name": ("NAME", 165), "qty": ("QTY", 65), "room": ("ROOM", 75),
-        "email": ("EMAIL", 200), "check_in": ("CHECK IN", 130), "check_out": ("CHECK OUT", 130),
-        "nights": ("NOCHES", 85), "res_number": ("RESERVATION", 130), "phone": ("PHONE", 135),
-        "info": ("INFORMATION", 210), "ird": ("IRD", 150), "hsk": ("HSK", 120),
-        "rate": ("RATE", 85), "trans": ("TRANS", 170),
+        "eta": ("ETA", 85),
+        "name": ("NAME", 165),
+        "qty": ("QTY", 65),
+        "room": ("ROOM", 75),
+        "check_in": ("CHECK IN", 130),
+        "check_out": ("CHECK OUT", 130),
+        "nights": ("NOCHES", 85),
+        "res_number": ("RESERVATION", 130),
+        "phone": ("PHONE", 135),
+        "email": ("EMAIL", 200),
+        "info": ("INFORMATION", 210),
+        "ird": ("IRD", 150),
+        "hsk": ("HSK", 120),
+        "rate": ("RATE", 85),
+        "trans": ("TRANS", 170),
     }
     for field, (header, width) in fields.items():
         if field not in visible.columns:
