@@ -813,9 +813,11 @@ def render_import() -> None:
     preview = frame[IMPORT_COLUMNS].copy()
     preview["check_in"] = preview["check_in"].map(normalizar_fecha)
     preview["check_out"] = preview["check_out"].map(normalizar_fecha)
-    # Reemplazar NaN/None por cadena vacia para visualizacion limpia
+    # Reemplazar NaN/None por cadena vacia (o 0 para qty) para visualizacion limpia
     for col in preview.columns:
-        if col != "qty":
+        if col == "qty":
+            preview[col] = preview[col].apply(lambda x: 0 if pd.isna(x) or str(x).lower() in ("nan", "none", "null", "") else int(float(x)))
+        else:
             preview[col] = preview[col].apply(lambda x: "" if pd.isna(x) or str(x).lower() in ("nan", "none", "null") else x)
     st.success(f"Archivo vÃ¡lido: {len(preview)} reservaciones detectadas.")
     st.dataframe(preview, use_container_width=True, hide_index=True, height=300)
