@@ -1036,7 +1036,7 @@ function add(v){if('0123456789.'.includes(v)&&out.textContent==='Error')value=''
 function clearAll(){value='';draw()}
 function backspace(){value=value.slice(0,-1);draw()}
 function toggleSign(){value=value.startsWith('-')?value.slice(1):'-'+value;draw()}
-function calculate(){try{if(!/^[0-9+*/.()% -]+$/.test(value))throw Error();value=String(Function('return ('+value+')')());draw()}catch(e){value='';out.textContent='Error'}}
+function calculate(){try{let expr=value.replace(/%/g,'/100');if(!/^[0-9+*/.() -]+$/.test(expr))throw Error();value=String(Function('return ('+expr+')')());draw()}catch(e){value='';out.textContent='Error'}}
 document.addEventListener('keydown',e=>{if('0123456789.+-*/%'.includes(e.key))add(e.key);else if(e.key==='Enter')calculate();else if(e.key==='Backspace')backspace();else if(e.key==='Escape')clearAll()});
 document.body.focus();
 </script>
