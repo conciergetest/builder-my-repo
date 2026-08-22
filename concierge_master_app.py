@@ -562,8 +562,27 @@ def apply_filters(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
 def render_category_chart(df: pd.DataFrame) -> None:
     info = df["info"].fillna("").astype(str).str.upper() if "info" in df.columns else pd.Series(dtype=str)
     cards = []
-    for category, color in CATEGORY_COLORS.items():
-        count = int(info.str.contains(category, na=False).sum())
+
+    # Categorías que se muestran en el gráfico (RELAXURY se excluye; tiene su propia barra debajo)
+    chart_categories = {
+        "VIP": "#00E5FF",
+        "BIRTHDAY": "#FF5252",
+        "HONEYMOON": "#FF9800",
+        "BABYMOON": "#A78BFA",
+        "ANNIVERSARY": "#4ADE80",
+        "TEAM MEMBER": "#FACC15",
+        "LEISURE": "#22D3EE",
+    }
+
+    # Categorías especiales que "consumen" una reserva (excluyendo LEISURE)
+    special_categories = ["VIP", "BIRTHDAY", "HONEYMOON", "BABYMOON", "ANNIVERSARY", "RELAXURY", "TEAM MEMBER"]
+    has_special = info.apply(lambda text: any(cat in text for cat in special_categories))
+
+    for category, color in chart_categories.items():
+        if category == "LEISURE":
+            count = int((~has_special).sum())
+        else:
+            count = int(info.str.contains(category, na=False).sum())
         width = count / max(len(df), 1) * 100
         cards.append(
             f'<div class="category-card" style="--category-color:{color};background:{color}22">'
