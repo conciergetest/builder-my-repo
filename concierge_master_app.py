@@ -1182,8 +1182,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
     )
 
     left, right = st.columns([1.35, 5.65], gap="small")
+    filtered, filters = apply_filters(df)
+
     with left:
-        st.markdown('<div class="panel"><div class="panel-title">Checking out rooms</div>', unsafe_allow_html=True)
         today = datetime.now()
         checkout_links = []
         for offset in range(8):
@@ -1222,7 +1223,6 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown('<a class="action-link" href="?" target="_self" style="background:#475569;margin-top:5px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with right:
-        filtered, filters = apply_filters(df)
         render_category_chart(filtered)
         relaxury = int(filtered.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
         st.markdown(f'<div class="total-strip" style="border-color:#f472b6">RELAXURY <strong style="color:#f472b6">{relaxury}</strong></div>', unsafe_allow_html=True)
