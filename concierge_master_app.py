@@ -1636,6 +1636,25 @@ function(params) {
 """
 )
 
+ROW_STYLE = JsCode(
+    """
+function(params) {
+  if (params.node && params.node.selected) {
+    var bg = (params.rowIndex % 2 === 0) ? '#0b111b' : '#0e1723';
+    return {
+      backgroundColor: bg,
+      borderTop: '1px solid #00E5FF',
+      borderBottom: '1px solid #00E5FF'
+    };
+  }
+  if (String((params.data && params.data.info) || '').toUpperCase().includes('VIP')) {
+    return { backgroundColor: '#0a1a1a', borderLeft: '3px solid #00E5FF' };
+  }
+  return null;
+}
+"""
+)
+
 ROW_CLASS_RULES = JsCode(
     """
 function(params) {
@@ -1687,9 +1706,10 @@ GRID_CSS = {
     ".ag-row-odd": {"background-color": "#0e1723 !important"},
     ".ag-cell": {"border-right": "none !important", "border-bottom": "none !important", "color": "#e6f3fb", "font-size": "12px"},
     ".ag-row-hover": {"background": "#132a3a !important"},
-    ".selected-transparent": {"background": "transparent !important", "background-color": "transparent !important", "border-top": "1px solid #00E5FF !important", "border-bottom": "1px solid #00E5FF !important", "box-shadow": "inset 0 1px 0 0 #00E5FF, inset 0 -1px 0 0 #00E5FF !important"},
-    ".selected-transparent .ag-cell": {"color": "#e6f3fb !important", "font-weight": "800 !important"},
     ".vip-row": {"background-color": "#0a1a1a !important", "border-left": "3px solid #00E5FF !important"},
+    ".selected-transparent": {"background-color": "transparent !important", "background": "transparent !important", "border-top": "1px solid #00E5FF !important", "border-bottom": "1px solid #00E5FF !important"},
+    ".selected-transparent .ag-cell": {"color": "#e6f3fb !important", "font-weight": "800 !important"},
+    ".ag-row-selected": {"background-color": "transparent !important", "background": "transparent !important", "border-top": "1px solid #00E5FF !important", "border-bottom": "1px solid #00E5FF !important"},
     ".ag-row-selected .ag-cell": {"color": "#e6f3fb !important", "font-weight": "800 !important"},
     ".ag-paging-panel": {"border-top": "none !important", "background-color": "#0b111b !important", "color": "#cceaf6 !important"},
     ".ag-header-icon": {"display": "none !important"},
@@ -1737,10 +1757,12 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
     builder.configure_default_column(resizable=True, sortable=True, filter=False, minWidth=80)
     builder.configure_selection(selection_mode="single", use_checkbox=False)
     builder.configure_grid_options(
+        getRowStyle=ROW_STYLE,
         rowClassRules=ROW_CLASS_RULES,
         rowHeight=34,
         headerHeight=37,
         suppressCellFocus=True,
+        suppressRowHoverHighlight=True,
         animateRows=True,
     )
 
