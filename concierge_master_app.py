@@ -1401,16 +1401,7 @@ GRID_CSS = {
     ".ag-header-cell-text": {"color": "#00151d !important"},
     ".ag-row": {"background-color": "#0b111b !important", "border-bottom": "none !important"},
     ".ag-row-odd": {"background-color": "#0e1723 !important"},
-    ".ag-cell": {
-        "border-right": "none !important",
-        "border-bottom": "none !important",
-        "color": "#e6f3fb !important",
-        "font-size": "12px",
-        "line-height": "1.4 !important",
-        "padding-top": "6px !important",
-        "padding-bottom": "6px !important",
-        "white-space": "normal !important",
-    },
+    ".ag-cell": {"border-right": "none !important", "border-bottom": "none !important", "color": "#e6f3fb !important", "font-size": "12px"},
     ".ag-row-hover": {"background-color": "#132a3a !important"},
     ".ag-row-selected": {"background-color": "#00E5FF !important"},
     ".ag-row-selected .ag-cell": {"color": "#00151d !important", "font-weight": "800 !important"},
@@ -1425,47 +1416,27 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         if col != "qty":
             visible[col] = visible[col].apply(lambda x: "" if pd.isna(x) or str(x).lower() in ("nan", "none", "null") else str(x))
     builder = GridOptionsBuilder.from_dataframe(visible)
-    builder.configure_default_column(
-        resizable=True, sortable=True, filter=True, minWidth=80,
-        wrapText=True, autoHeight=True
-    )
+    builder.configure_default_column(resizable=True, sortable=True, filter=True, minWidth=80)
     builder.configure_selection(selection_mode="single", use_checkbox=False)
     builder.configure_grid_options(
         getRowStyle=VIP_ROW_STYLE,
         rowHeight=34,
-        headerHeight=42,
+        headerHeight=37,
         suppressCellFocus=True,
         animateRows=True,
-        domLayout="autoHeight",
     )
 
-    # Anchos generosos para que todo se vea completo
     fields = {
-        "eta":      ("ETA",          100),
-        "name":     ("NAME",         200),
-        "qty":      ("QTY",          70),
-        "room":     ("ROOM",         90),
-        "email":    ("EMAIL",        260),
-        "check_in": ("CHECK IN",     150),
-        "check_out":("CHECK OUT",    150),
-        "nights":   ("NIGHTS",       90),
-        "res_number":("RESERVATION", 160),
-        "phone":    ("PHONE",        170),
-        "info":     ("INFORMATION",  320),
-        "ird":      ("IRD",          220),
-        "hsk":      ("HSK",          180),
-        "rate":     ("RATE",         100),
-        "trans":    ("TRANS",        220),
+        "eta": ("ETA", 85), "name": ("NAME", 165), "qty": ("QTY", 65), "room": ("ROOM", 75),
+        "email": ("EMAIL", 200), "check_in": ("CHECK IN", 130), "check_out": ("CHECK OUT", 130),
+        "nights": ("NOCHES", 85), "res_number": ("RESERVATION", 130), "phone": ("PHONE", 135),
+        "info": ("INFORMATION", 210), "ird": ("IRD", 150), "hsk": ("HSK", 120),
+        "rate": ("RATE", 85), "trans": ("TRANS", 170),
     }
     for field, (header, width) in fields.items():
         if field not in visible.columns:
             continue
-        config: dict = {
-            "header_name": header,
-            "width": width,
-            "wrapText": True,
-            "autoHeight": True,
-        }
+        config: dict = {"header_name": header, "width": width}
         if field in {"info", "ird", "trans"}:
             config["cellStyle"] = CATEGORY_CELL_STYLE
         if field == "nights":
@@ -1477,7 +1448,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         gridOptions=builder.build(),
         custom_css=GRID_CSS,
         theme="alpine",
-        height=700,
+        height=625,
         fit_columns_on_grid_load=False,
         allow_unsafe_jscode=True,
         update_mode=GridUpdateMode.SELECTION_CHANGED,
@@ -1502,6 +1473,12 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
                 st.session_state["selected_reservation_id"] = row.get("id")
                 st.query_params["sel_id"] = str(row.get("id"))
                 st.rerun()
+
+
+# -----------------------------------------------------------------------------
+# Dashboard principal
+# -----------------------------------------------------------------------------
+
 def render_dashboard(df: pd.DataFrame) -> None:
     vip_count = int(df["info"].fillna("").astype(str).str.upper().str.contains("VIP", na=False).sum())
     relaxury_count = int(df.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
