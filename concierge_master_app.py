@@ -360,6 +360,7 @@ def clear_page() -> None:
     clear_selection()
     st.session_state.bulk_selected_ids = []
     st.query_params.clear()
+    st.query_params["skip_splash"] = "1"
     st.rerun()
 
 
