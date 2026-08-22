@@ -333,6 +333,7 @@ def get_selected_reservation(df: pd.DataFrame) -> dict | None:
 
 def clear_page() -> None:
     clear_selection()
+    st.session_state.bulk_selected_ids = []
     st.query_params.clear()
     st.rerun()
 
@@ -387,6 +388,12 @@ def actualizar_reserva(reservation_id: object, data: dict) -> None:
 def eliminar_reserva(reservation_id: object) -> None:
     supabase.table(TABLE_NAME).delete().eq("id", reservation_id).execute()
     st.cache_data.clear()
+
+
+def eliminar_reservas(reservation_ids: list) -> None:
+    if reservation_ids:
+        supabase.table(TABLE_NAME).delete().in_("id", reservation_ids).execute()
+        st.cache_data.clear()
 
 
 def insertar_lote(records: list[dict]) -> None:
@@ -1188,6 +1195,25 @@ def render_dashboard(df: pd.DataFrame) -> None:
             )
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
         st.markdown('<div style="margin-top:7px"><a class="action-link" href="?" target="_self" style="background:#334155">« VER TODAS »</a></div>', unsafe_allow_html=True)
+
+        # Panel de seleccion masiva
+        st.markdown('<div class="panel" style="margin-top:10px"><div class="panel-title">Seleccion masiva</div>', unsafe_allow_html=True)
+        if not filtered.empty:
+            all_ids_current = filtered["id"].dropna().astype(str).tolist()
+            c1, c2 = st.columns(2)
+            if c1.button("SELECC. TODO", use_container_width=True):
+                st.session_state.bulk_selected_ids = all_ids_current
+                st.session_state.pop("selected_reservation", None)
+                st.session_state.pop("selected_reservation_id", None)
+                st.rerun()
+            if c2.button("DESMARCAR", use_container_width=True):
+                st.session_state.bulk_selected_ids = []
+                st.rerun()
+            count_sel = len(st.session_state.get("bulk_selected_ids", []))
+            st.markdown(f'<div style="text-align:center;color:#8ca4ba;font-size:10px;margin-top:4px">{count_sel} de {len(all_ids_current)} seleccionadas</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div style="color:#8ca4ba;font-size:10px;text-align:center">No hay reservas para seleccionar</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
         selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date(), key="arrival_date")
@@ -1228,11 +1254,19 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True)
 
+    # --- Seleccion masiva ---
+    if "bulk_selected_ids" not in st.session_state:
+        st.session_state.bulk_selected_ids = []
+
+    bulk_ids = st.session_state.bulk_selected_ids
+    all_ids = filtered["id"].dropna().astype(str).tolist() if not filtered.empty else []
+
+    # Banner de seleccion individual o masiva
     selected = st.session_state.get("selected_reservation")
-    if selected:
+    if selected and not bulk_ids:
         sel_id = safe_text(str(selected.get("id", "")))
-        name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "â€”"))
-        st.markdown(f'<div class="selection-banner"><b>â— RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
+        name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "â"))
+        st.markdown(f'<div class="selection-banner"><b>â RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
         st.markdown(
             '<div class="action-links" style="grid-template-columns:repeat(4,minmax(110px,1fr));max-width:700px">'
             f'<a class="action-link" href="?action=editar&sel_id={sel_id}" target="_self" style="background:#D97706">EDITAR</a>'
@@ -1242,6 +1276,41 @@ def render_dashboard(df: pd.DataFrame) -> None:
             '</div>',
             unsafe_allow_html=True,
         )
+    elif bulk_ids:
+        st.markdown(
+            f'<div class="selection-banner" style="border-color:#E11D48;background:#2a0a0a">'
+            f'<b>â  RESERVAS SELECCIONADAS: {len(bulk_ids)}</b> &nbsp; | &nbsp;'
+            f'<span style="color:#ff6b6b">Listas para eliminar</span></div>',
+            unsafe_allow_html=True,
+        )
+        with st.form("bulk_delete_form", clear_on_submit=True):
+            pwd_col, btn_col = st.columns([2, 3])
+            with pwd_col:
+                bulk_password = st.text_input("Clave de autorizacion", type="password", label_visibility="collapsed", placeholder="Contrasena de borrado")
+            with btn_col:
+                st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+                submitted_bulk = st.form_submit_button("BORRAR SELECCIONADAS", type="primary", use_container_width=True)
+            if submitted_bulk:
+                expected = st.secrets.get("DELETE_PASSWORD", "")
+                if not expected:
+                    st.error("Configura DELETE_PASSWORD en los Secrets.")
+                elif bulk_password != expected:
+                    st.error("Clave incorrecta.")
+                else:
+                    eliminar_reservas(bulk_ids)
+                    st.session_state.bulk_selected_ids = []
+                    st.session_state.pop("selected_reservation", None)
+                    st.session_state.pop("selected_reservation_id", None)
+                    st.success(f"{len(bulk_ids)} reservas eliminadas correctamente.")
+                    st.query_params.clear()
+                    st.rerun()
+        st.markdown(
+            '<div class="action-links" style="grid-template-columns:repeat(2,minmax(110px,1fr));max-width:400px">'
+            '<a class="action-link" href="?" target="_self" style="background:#475569">CANCELAR SELECCION</a>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
     render_reservations_grid(filtered)
 
     
