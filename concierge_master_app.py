@@ -63,6 +63,7 @@ CATEGORY_COLORS = {
     "ANNIVERSARY": "#4ADE80",
     "RELAXURY": "#F472B6",
     "TEAM MEMBER": "#FACC15",
+    "LEISURE": "#22D3EE",
 }
 
 # Enlaces operativos proporcionados por el usuario; navegan en la pestaÃ±a actual.
@@ -154,9 +155,9 @@ st.markdown(
     .summary-card.pink .summary-value { color:#f472b6; }
     .summary-card.purple .summary-value { color:#a78bfa; }
     .category-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
-    .category-card { min-height:29px; border-radius:5px; padding:5px 7px 4px; }
-    .category-card-head { display:flex; justify-content:space-between; gap:5px; color:var(--category-color); font-size:8px; font-weight:900; text-transform:uppercase; }
-    .category-card-track { height:3px; margin-top:5px; border-radius:3px; background:rgba(0,0,0,.25); overflow:hidden; }
+    .category-card { min-height:46px; border-radius:7px; padding:9px 11px 7px; }
+    .category-card-head { display:flex; justify-content:space-between; gap:5px; color:var(--category-color); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.4px; }
+    .category-card-track { height:4px; margin-top:7px; border-radius:3px; background:rgba(0,0,0,.25); overflow:hidden; }
     .category-card-fill { height:100%; border-radius:3px; background:var(--category-color); }
     .category-row { display:flex; align-items:center; gap:8px; margin:6px 0; }
     .category-label { color:#b9cad8; font-size:10px; width:92px; text-align:right; white-space:nowrap; }
@@ -510,7 +511,7 @@ def show_header() -> None:
 
 def render_quick_links() -> None:
     links = "".join(
-        f'<a class="quick-link" href="{html.escape(url, quote=True)}" style="background:{color}">{label}</a>'
+        f'<a class="quick-link" href="{html.escape(url, quote=True)}" target="_self" style="background:{color}">{label}</a>'
         for label, url, color in QUICK_LINKS
     )
     st.markdown(f'<div class="quick-links">{links}</div>', unsafe_allow_html=True)
@@ -526,7 +527,7 @@ def render_action_links() -> None:
         ("CALCULADORA", "calculadora", "#E11D48", "#FFFFFF"),
     ]
     buttons = "".join(
-        f'<a class="action-link" href="{url_with(action=action)}" style="background:{color};color:{text_color} !important">{label}</a>'
+        f'<a class="action-link" href="{url_with(action=action)}" target="_self" style="background:{color};color:{text_color} !important">{label}</a>'
         for label, action, color, text_color in actions
     )
     st.markdown(f'<div class="action-links">{buttons}</div>', unsafe_allow_html=True)
@@ -582,7 +583,7 @@ def render_category_chart(df: pd.DataFrame) -> None:
 
 def render_back_link() -> None:
     st.markdown(
-        '<a class="action-link" href="?" style="background:#334155;max-width:185px">REGRESAR A LA TABLA</a>',
+        '<a class="action-link" href="?" target="_self" style="background:#334155;max-width:185px">â† REGRESAR A LA TABLA</a>',
         unsafe_allow_html=True,
     )
 
@@ -933,7 +934,7 @@ function(params) {
   const categories = [
     ['VIP', '#00E5FF'], ['BIRTHDAY', '#FF5252'], ['HONEYMOON', '#FF9800'],
     ['BABYMOON', '#A78BFA'], ['ANNIVERSARY', '#4ADE80'], ['RELAXURY', '#F472B6'],
-    ['TEAM MEMBER', '#FACC15']
+    ['TEAM MEMBER', '#FACC15'], ['LEISURE', '#22D3EE']
   ];
   for (const [keyword, color] of categories) {
     if (haystack.includes(keyword)) {
@@ -1069,16 +1070,16 @@ def render_dashboard(df: pd.DataFrame) -> None:
             stored = date.strftime("%B %d, %Y")
             count = int((df["check_out"] == stored).sum())
             checkout_links.append(
-                f'<a class="quick-link" href="{url_with(checkout_filtro=stored)}" style="background:#{"0F766E" if offset % 2 == 0 else "155E75"}">{date:%b %d}: {count}</a>'
+                f'<a class="quick-link" href="{url_with(checkout_filtro=stored)}" target="_self" style="background:#{"0F766E" if offset % 2 == 0 else "155E75"}">{date:%b %d}: {count}</a>'
             )
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
-        st.markdown('<div style="margin-top:7px"><a class="action-link" href="?" style="background:#334155">« VER TODAS »</a></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-top:7px"><a class="action-link" href="?" target="_self" style="background:#334155">« VER TODAS »</a></div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
         selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date(), key="arrival_date")
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="action-link" href="{date_link}" style="background:#0891B2;margin-top:5px">APLICAR FECHA</a>', unsafe_allow_html=True)
-        st.markdown('<a class="action-link" href="?" style="background:#475569;margin-top:5px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;margin-top:5px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown('<a class="action-link" href="?" target="_self" style="background:#475569;margin-top:5px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with right:
         filtered, filters = apply_filters(df)
@@ -1119,10 +1120,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown(f'<div class="selection-banner"><b>â— RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
         st.markdown(
             '<div class="action-links" style="grid-template-columns:repeat(4,minmax(110px,1fr));max-width:700px">'
-            f'<a class="action-link" href="{url_with(action="editar")}" style="background:#D97706">EDITAR</a>'
-            f'<a class="action-link" href="{url_with(action="carta")}" style="background:#7C3AED">CARTA</a>'
-            f'<a class="action-link" href="{url_with(action="cancelar")}" style="background:#E11D48">BORRAR</a>'
-            '<a class="action-link" href="?" style="background:#475569">DESELECCIONAR</a>'
+            f'<a class="action-link" href="{url_with(action="editar")}" target="_self" style="background:#D97706">EDITAR</a>'
+            f'<a class="action-link" href="{url_with(action="carta")}" target="_self" style="background:#7C3AED">CARTA</a>'
+            f'<a class="action-link" href="{url_with(action="cancelar")}" target="_self" style="background:#E11D48">BORRAR</a>'
+            '<a class="action-link" href="?" target="_self" style="background:#475569">DESELECCIONAR</a>'
             '</div>',
             unsafe_allow_html=True,
         )
