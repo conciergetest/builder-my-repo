@@ -51,8 +51,10 @@ st.set_page_config(
 if "splash_shown" not in st.session_state:
     st.session_state.splash_shown = False
 
-# No mostrar splash si el usuario ya interactuo (tiene query params de accion)
+# No mostrar splash si el usuario ya interactuo o viene de regresar a tabla
 has_action_params = any(k in st.query_params for k in ["action", "sel_id", "checkout_filtro", "fecha_date"])
+if st.query_params.get("skip_splash"):
+    st.session_state.splash_shown = True
 
 if not st.session_state.splash_shown and not has_action_params:
     splash_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "splashscreen.png")
@@ -686,7 +688,7 @@ def render_category_chart(df: pd.DataFrame) -> None:
 
 def render_back_link() -> None:
     st.markdown(
-        '<a class="action-link" href="?" target="_self" style="background:#334155;max-width:185px">â† REGRESAR A LA TABLA</a>',
+        '<a class="action-link" href="?skip_splash=1" target="_self" style="background:#334155;max-width:185px">â† REGRESAR A LA TABLA</a>',
         unsafe_allow_html=True,
     )
 
@@ -1198,7 +1200,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 f'<a class="quick-link" href="{url_with(checkout_filtro=stored)}" target="_self" style="background:#{"0F766E" if offset % 2 == 0 else "155E75"}">{date:%b %d}: {count}</a>'
             )
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
-        st.markdown('<div style="margin-top:7px"><a class="action-link" href="?" target="_self" style="background:#334155">« VER TODAS »</a></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-top:7px"><a class="action-link" href="?skip_splash=1" target="_self" style="background:#334155">« VER TODAS »</a></div>', unsafe_allow_html=True)
 
         # Panel de seleccion masiva
         st.markdown('<div class="panel" style="margin-top:10px"><div class="panel-title">Seleccion masiva</div>', unsafe_allow_html=True)
@@ -1223,7 +1225,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date(), key="arrival_date")
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
         st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;margin-top:5px">APLICAR FECHA</a>', unsafe_allow_html=True)
-        st.markdown('<a class="action-link" href="?" target="_self" style="background:#475569;margin-top:5px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown('<a class="action-link" href="?skip_splash=1" target="_self" style="background:#475569;margin-top:5px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with right:
         render_category_chart(filtered)
@@ -1275,7 +1277,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
             f'<a class="action-link" href="?action=editar&sel_id={sel_id}" target="_self" style="background:#D97706">EDITAR</a>'
             f'<a class="action-link" href="?action=carta&sel_id={sel_id}" target="_self" style="background:#7C3AED">CARTA</a>'
             f'<a class="action-link" href="?action=cancelar&sel_id={sel_id}" target="_self" style="background:#E11D48">BORRAR</a>'
-            '<a class="action-link" href="?" target="_self" style="background:#475569">DESELECCIONAR</a>'
+            '<a class="action-link" href="?skip_splash=1" target="_self" style="background:#475569">DESELECCIONAR</a>'
             '</div>',
             unsafe_allow_html=True,
         )
@@ -1309,7 +1311,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                     st.rerun()
         st.markdown(
             '<div class="action-links" style="grid-template-columns:repeat(2,minmax(110px,1fr));max-width:400px">'
-            '<a class="action-link" href="?" target="_self" style="background:#475569">CANCELAR SELECCION</a>'
+            '<a class="action-link" href="?skip_splash=1" target="_self" style="background:#475569">CANCELAR SELECCION</a>'
             '</div>',
             unsafe_allow_html=True,
         )
