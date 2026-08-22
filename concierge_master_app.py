@@ -169,6 +169,26 @@ st.markdown(
 <style>
     :root { color-scheme: dark; }
     .stApp { background: #080b12; color: #edf8ff; }
+    /* AG Grid selected row override - force transparent background */
+    div.ag-row-selected,
+    div.ag-row-selected.ag-row-focus,
+    div.ag-row-selected.ag-row-no-focus,
+    div.ag-row-selected.ag-row-hover,
+    div.ag-body-viewport div.ag-row-selected,
+    div.ag-center-cols-viewport div.ag-row-selected,
+    div.ag-row-selected::before,
+    div.ag-row-selected::after {
+        background-color: transparent !important;
+        background: transparent !important;
+    }
+    div.ag-row-selected {
+        border-top: 2px solid #00E5FF !important;
+        border-bottom: 2px solid #00E5FF !important;
+    }
+    div.ag-row-selected .ag-cell {
+        color: #e6f3fb !important;
+        font-weight: 800 !important;
+    }
     header[data-testid="stHeader"] { display: none; }
     .block-container { max-width: 100%; padding: .7rem 1.1rem 1.4rem; }
     [data-testid="stVerticalBlock"] { gap: .45rem; }
