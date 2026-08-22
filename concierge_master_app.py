@@ -260,10 +260,27 @@ def set_action(action: str) -> None:
     st.rerun()
 
 
+def get_selected_reservation(df: pd.DataFrame) -> dict | None:
+    """Recupera la reserva seleccionada desde session_state o query_params."""
+    reservation = st.session_state.get("selected_reservation")
+    if reservation:
+        return reservation
+    sel_id = st.query_params.get("sel_id")
+    if sel_id:
+        candidate = df[df["id"].astype(str) == str(sel_id)]
+        if not candidate.empty:
+            row = candidate.iloc[0].to_dict()
+            st.session_state["selected_reservation"] = row
+            st.session_state["selected_reservation_id"] = sel_id
+            return row
+    return None
+
+
 def clear_page() -> None:
     clear_selection()
     st.query_params.clear()
     st.rerun()
+
 
 
 # -----------------------------------------------------------------------------
@@ -653,7 +670,8 @@ def render_new_reservation() -> None:
 
 
 def render_edit_reservation() -> None:
-    reservation = st.session_state.get("selected_reservation")
+    reservations = cargar_reservaciones()
+    reservation = get_selected_reservation(reservations)
     if not reservation:
         st.error("Selecciona una reserva de la tabla antes de editar.")
         render_back_link()
@@ -854,9 +872,10 @@ let value='';const out=document.getElementById('display');function draw(){out.te
 
 
 def render_letter() -> None:
-    reservation = st.session_state.get("selected_reservation")
     st.subheader("Carta de despedida")
     render_back_link()
+    reservations = cargar_reservaciones()
+    reservation = get_selected_reservation(reservations)
     if not reservation:
         st.error("Selecciona una reserva de la tabla antes de crear la carta.")
         return
@@ -920,9 +939,10 @@ def render_letter() -> None:
 
 
 def render_delete() -> None:
-    reservation = st.session_state.get("selected_reservation")
     st.subheader("Eliminar reservaciÃ³n")
     render_back_link()
+    reservations = cargar_reservaciones()
+    reservation = get_selected_reservation(reservations)
     if not reservation:
         st.error("Selecciona una reserva antes de solicitar el borrado.")
         return
@@ -1060,6 +1080,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
             if st.session_state.get("selected_reservation_id") != row.get("id"):
                 st.session_state["selected_reservation"] = row
                 st.session_state["selected_reservation_id"] = row.get("id")
+                st.query_params["sel_id"] = str(row.get("id"))
                 st.rerun()
 
 
@@ -1143,13 +1164,14 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     selected = st.session_state.get("selected_reservation")
     if selected:
+        sel_id = safe_text(str(selected.get("id", "")))
         name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "â€”"))
         st.markdown(f'<div class="selection-banner"><b>â— RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
         st.markdown(
             '<div class="action-links" style="grid-template-columns:repeat(4,minmax(110px,1fr));max-width:700px">'
-            f'<a class="action-link" href="{url_with(action="editar")}" target="_self" style="background:#D97706">EDITAR</a>'
-            f'<a class="action-link" href="{url_with(action="carta")}" target="_self" style="background:#7C3AED">CARTA</a>'
-            f'<a class="action-link" href="{url_with(action="cancelar")}" target="_self" style="background:#E11D48">BORRAR</a>'
+            f'<a class="action-link" href="?action=editar&sel_id={sel_id}" target="_self" style="background:#D97706">EDITAR</a>'
+            f'<a class="action-link" href="?action=carta&sel_id={sel_id}" target="_self" style="background:#7C3AED">CARTA</a>'
+            f'<a class="action-link" href="?action=cancelar&sel_id={sel_id}" target="_self" style="background:#E11D48">BORRAR</a>'
             '<a class="action-link" href="?" target="_self" style="background:#475569">DESELECCIONAR</a>'
             '</div>',
             unsafe_allow_html=True,
