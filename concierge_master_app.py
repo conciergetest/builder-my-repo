@@ -595,7 +595,7 @@ def show_header() -> None:
 
 def render_quick_links() -> None:
     links = "".join(
-        f'<a class="quick-link" href="{html.escape(url, quote=True)}" target="_self" style="background:{color}">{label}</a>'
+        f'<a class="quick-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="background:{color}">{label}</a>'
         for label, url, color in QUICK_LINKS
     )
     st.markdown(f'<div class="quick-links">{links}</div>', unsafe_allow_html=True)
