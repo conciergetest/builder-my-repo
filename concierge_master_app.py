@@ -51,36 +51,54 @@ if "splash_shown" not in st.session_state:
     st.session_state.splash_shown = False
 
 if not st.session_state.splash_shown:
-    # Ocultar header y maximizar espacio
-    st.markdown(
-        """
-        <style>
-        header, [data-testid="stHeader"] { display: none !important; }
-        .stApp { background: #000 !important; }
-        .main .block-container { padding: 0 !important; max-width: 100% !important; }
-        .stImage > img { border-radius: 0 !important; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
     splash_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "splashscreen.png")
+
     if os.path.exists(splash_path):
-        st.image(splash_path, use_container_width=True)
+        with open(splash_path, "rb") as img_file:
+            img_b64 = base64.b64encode(img_file.read()).decode("utf-8")
     else:
+        img_b64 = ""
         st.warning("No se encontro `splashscreen.png`. Subelo a tu repositorio junto a este archivo.")
 
-    # Progress bar dorada
-    st.markdown(
-        """
-        <div style="display:flex; justify-content:center; margin-top:16px;">
-            <div style="width:380px; height:4px; background:#1a1a1a; border-radius:2px; overflow:hidden; border:1px solid #333;">
-                <div style="height:100%; background:#D4AF37; width:0%; animation: splashFill 5s linear forwards; box-shadow:0 0 12px #D4AF37, 0 0 24px rgba(212,175,55,0.5);"></div>
+    st.components.v1.html(
+        f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <style>
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{ background: #000; overflow: hidden; }}
+            .splash-wrap {{
+                position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                display: flex; align-items: center; justify-content: center;
+                background: #000; z-index: 999999;
+            }}
+            .splash-wrap img {{
+                width: 100vw; height: 100vh; object-fit: cover; display: block;
+            }}
+            .splash-bar-track {{
+                position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+                width: 380px; height: 4px; background: #1a1a1a; border-radius: 2px;
+                overflow: hidden; border: 1px solid #333;
+            }}
+            .splash-bar-fill {{
+                height: 100%; background: #D4AF37; width: 0%;
+                animation: splashFill 5s linear forwards;
+                box-shadow: 0 0 12px #D4AF37, 0 0 24px rgba(212,175,55,0.5);
+            }}
+            @keyframes splashFill {{ to {{ width: 100%; }} }}
+        </style>
+        </head>
+        <body>
+            <div class="splash-wrap">
+                <img src="data:image/png;base64,{img_b64}" alt="Splash">
+                <div class="splash-bar-track"><div class="splash-bar-fill"></div></div>
             </div>
-        </div>
-        <style>@keyframes splashFill { to { width: 100%; } }</style>
+        </body>
+        </html>
         """,
-        unsafe_allow_html=True,
+        height=0,
+        scrolling=False,
     )
 
     import time
