@@ -1506,44 +1506,18 @@ function(params) {
 QTY_RENDERER = JsCode(
     """
 function(params) {
-  if (params.value === null || params.value === undefined || params.value === '') {
-    var empty = document.createElement('span');
-    empty.textContent = '';
-    return empty;
+  var val = String(params.value || '');
+  if (!val || val === '0') {
+    if (params.eGridCell) params.eGridCell.innerHTML = '';
+    return null;
   }
-  var val = parseFloat(params.value);
-  if (isNaN(val) || val === 0) {
-    var empty = document.createElement('span');
-    empty.textContent = '';
-    return empty;
+  var parts = val.split('+');
+  if (parts.length === 1) {
+    if (params.eGridCell) params.eGridCell.innerHTML = '<span style="color:#e6f3fb;font-weight:700;font-size:12px;">' + val + '</span>';
+  } else {
+    if (params.eGridCell) params.eGridCell.innerHTML = '<span style="color:#e6f3fb;font-weight:700;font-size:12px;">' + parts[0] + '</span><span style="color:#00e5ff;font-weight:800;font-size:12px;">+' + parts[1] + '</span>';
   }
-  var adultos = Math.floor(val);
-  var ninos = Math.round((val - adultos) * 10);
-
-  var div = document.createElement('div');
-  div.style.display = 'flex';
-  div.style.justifyContent = 'center';
-  div.style.alignItems = 'center';
-  div.style.width = '100%';
-  div.style.height = '100%';
-
-  var spanAdultos = document.createElement('span');
-  spanAdultos.style.color = '#e6f3fb';
-  spanAdultos.style.fontWeight = '700';
-  spanAdultos.style.fontSize = '12px';
-  spanAdultos.textContent = adultos;
-  div.appendChild(spanAdultos);
-
-  if (ninos > 0) {
-    var spanNinos = document.createElement('span');
-    spanNinos.style.color = '#00e5ff';
-    spanNinos.style.fontWeight = '800';
-    spanNinos.style.fontSize = '12px';
-    spanNinos.textContent = '+' + ninos;
-    div.appendChild(spanNinos);
-  }
-
-  return div;
+  return null;
 }
 """
 )
@@ -1597,6 +1571,10 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
     for col in visible.columns:
         if col not in ("qty",):
             visible[col] = visible[col].apply(lambda x: "" if pd.isna(x) or str(x).lower() in ("nan", "none", "null") else str(x))
+
+    # Formatear QTY como "2+1" en vez de "2.1"
+    if "qty" in visible.columns:
+        visible["qty"] = visible["qty"].apply(format_qty)
 
     # Quitar .0 en ROOM y NOCHES
     for col in ("room", "nights"):
