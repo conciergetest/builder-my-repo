@@ -1881,12 +1881,25 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     render_quick_links()
     st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
-    search_left, search_right = st.columns([1, 5], gap="small")
-    search_left.markdown("<div style='padding-top:8px;color:#8ca4ba;font-size:10px;text-align:right'>BÚSQUEDA RÁPIDA</div>", unsafe_allow_html=True)
-    search_right.text_input(
+    st.markdown(
+        """
+        <style>
+        .search-wrapper { position: relative; max-width: 100%; }
+        .search-wrapper input {
+            padding-left: 36px !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238ca4ba' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: 12px center !important;
+            background-size: 16px 16px !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.text_input(
         "Búsqueda rápida",
         key="global_search",
-        placeholder="Buscar por nombre, teléfono, reserva, VIP, Relaxury...",
+        placeholder="🔍 Buscar por nombre, teléfono, reserva, VIP, Relaxury...",
         label_visibility="collapsed",
         on_change=st.rerun,
     )
