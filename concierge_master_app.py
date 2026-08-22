@@ -126,7 +126,7 @@ CATEGORY_COLORS = {
     "LEISURE": "#22D3EE",
 }
 
-# Enlaces operativos proporcionados por el usuario; navegan en la pestaÃ±a actual.
+# Enlaces operativos proporcionados por el usuario; navegan en la pestaña actual.
 QUICK_LINKS = [
     (
         "ALICE",
@@ -436,7 +436,7 @@ BONUS_TABLE = "bonus_registro"
 
 
 def cargar_bonus(year: int) -> dict[int, list[str]]:
-    """Carga los datos de bonus para un aÃ±o desde Supabase."""
+    """Carga los datos de bonus para un año desde Supabase."""
     try:
         response = supabase.table(BONUS_TABLE).select("data").eq("year", year).execute()
         if response.data:
@@ -462,7 +462,7 @@ def guardar_bonus(year: int, data: dict[int, list[str]]) -> None:
 
 
 def borrar_bonus(year: int) -> None:
-    """Elimina los datos de bonus para un aÃ±o."""
+    """Elimina los datos de bonus para un año."""
     try:
         supabase.table(BONUS_TABLE).delete().eq("year", year).execute()
     except Exception:
@@ -491,7 +491,7 @@ def exportar_excel_por_categorias(df: pd.DataFrame) -> BytesIO:
     border = Border(*(Side(style="thin", color="D6DEE4") for _ in range(4)))
 
     groups = [
-        ("CUMPLEAÃ‘OS", ("BIRTHDAY", "CUMPLE", "BDAY")),
+        ("CUMPLEAÑOS", ("BIRTHDAY", "CUMPLE", "BDAY")),
         ("VIP", ("VIP",)),
         ("HONEYMOON", ("HONEYMOON", "LUNA DE MIEL")),
         ("ANNIVERSARY", ("ANNIVERSARY", "ANIVERSARIO")),
@@ -565,11 +565,11 @@ def exportar_reporte_excel(data: dict[str, pd.DataFrame], report_date: datetime)
     white = Font(color="FFFFFF", bold=True)
 
     overview.merge_cells("A1:D1")
-    overview["A1"] = f"REPORTE DE OCUPACIÃ“N â€” {report_date.strftime('%B %d, %Y').upper()}"
+    overview["A1"] = f"REPORTE DE OCUPACIÓN” {report_date.strftime('%B %d, %Y').upper()}"
     overview["A1"].fill, overview["A1"].font = cyan, Font(color="FFFFFF", bold=True, size=14)
     overview["A1"].alignment = Alignment(horizontal="center")
     overview.append([])
-    overview.append(["MÃ©trica", "Reservas", "VIPs", "Habitaciones"])
+    overview.append(["Métrica", "Reservas", "VIPs", "Habitaciones"])
     for cell in overview[3]:
         cell.fill, cell.font = dark, white
 
@@ -611,7 +611,7 @@ def show_header() -> None:
     <div class="brand-mark">WA</div>
     <div>
       <div class="brand-name">WALDORF ASTORIA</div>
-      <div class="brand-place">COSTA RICA Â· PUNTA CACIQUE</div>
+      <div class="brand-place">COSTA RICA · PUNTA CACIQUE</div>
       <div class="brand-product">Concierge Master <span style="color:#6f879a">v5.1</span></div>
     </div>
   </div>
@@ -750,20 +750,20 @@ def render_category_chart(df: pd.DataFrame) -> None:
 
 def render_back_link() -> None:
     st.markdown(
-        '<a class="action-link" href="?skip_splash=1" target="_self" style="background:#334155;max-width:185px">â† REGRESAR A LA TABLA</a>',
+        '<a class="action-link" href="?skip_splash=1" target="_self" style="background:#334155;max-width:185px">REGRESAR A LA TABLA</a>',
         unsafe_allow_html=True,
     )
 
 
 def render_new_reservation() -> None:
-    st.subheader("Nueva ReservaciÃ³n")
+    st.subheader("Nueva Reservación")
     render_back_link()
     eta_options = generate_eta_options()
     with st.form("new_reservation", clear_on_submit=True):
         r1 = st.columns(3)
         eta = r1[0].selectbox("ETA", options=eta_options, index=0)
         name = r1[1].text_input("Name *", placeholder="Guest name")
-        qty = r1[2].text_input("QTY (adultos,niÃ±os)", placeholder="Ej: 2,1")
+        qty = r1[2].text_input("QTY (adultos,niños)", placeholder="Ej: 2,1")
         r2 = st.columns(3)
         room = r2[0].text_input("Room", placeholder="101")
         email = r2[1].text_input("Email", placeholder="guest@email.com")
@@ -778,11 +778,11 @@ def render_new_reservation() -> None:
         hsk = r4[2].text_input("HSK")
         info = st.text_input("Information", placeholder="VIP, Birthday, Honeymoon, Relaxury...")
         trans = st.text_input("Transportation")
-        submitted = st.form_submit_button("ðŸ’¾ Guardar Cambios", type="primary", use_container_width=True)
+        submitted = st.form_submit_button("Guardar Cambios", type="primary", use_container_width=True)
 
     if submitted:
         if not name.strip():
-            st.error("El nombre del huÃ©sped es obligatorio.")
+            st.error("El nombre del huésped es obligatorio.")
             return
         if check_out < check_in:
             st.error("La fecha de check-out no puede ser anterior al check-in.")
@@ -795,7 +795,7 @@ def render_new_reservation() -> None:
             "phone": phone.strip(), "info": info.strip(), "ird": ird.strip(), "hsk": hsk.strip(),
             "rate": rate.strip(), "trans": trans.strip(),
         })
-        st.success("ReservaciÃ³n guardada correctamente.")
+        st.success("Reservación guardada correctamente.")
         st.query_params.clear()
         st.rerun()
 
@@ -808,7 +808,7 @@ def render_edit_reservation() -> None:
         render_back_link()
         return
 
-    st.subheader(f"Editar reservaciÃ³n Â· {safe_text(reservation.get('name', ''))}")
+    st.subheader(f"Editar reservación· {safe_text(reservation.get('name', ''))}")
     render_back_link()
     check_in_default = parse_fecha(reservation.get("check_in")) or datetime.now()
     check_out_default = parse_fecha(reservation.get("check_out")) or datetime.now() + timedelta(days=1)
@@ -819,15 +819,15 @@ def render_edit_reservation() -> None:
         first = st.columns(4)
         eta = first[0].text_input("ETA", value=str(reservation.get("eta", "")))
         name = first[1].text_input("Nombre *", value=str(reservation.get("name", "")))
-        qty = first[2].number_input("HuÃ©spedes", min_value=0, value=qty_default)
-        room = first[3].text_input("HabitaciÃ³n", value=str(reservation.get("room", "")))
+        qty = first[2].number_input("Huéspedes", min_value=0, value=qty_default)
+        room = first[3].text_input("Habitación", value=str(reservation.get("room", "")))
         second = st.columns(4)
         email = second[0].text_input("Email", value=str(reservation.get("email", "")))
         check_in = second[1].date_input("Check-in", value=check_in_default.date())
         check_out = second[2].date_input("Check-out", value=check_out_default.date())
         res_number = second[3].text_input("Reservation #", value=str(reservation.get("res_number", "")))
         third = st.columns(4)
-        phone = third[0].text_input("TelÃ©fono", value=str(reservation.get("phone", "")))
+        phone = third[0].text_input("Teléfono", value=str(reservation.get("phone", "")))
         info = third[1].text_input("Information", value=str(reservation.get("info", "")))
         ird = third[2].text_input("IRD", value=str(reservation.get("ird", "")))
         hsk = third[3].text_input("HSK", value=str(reservation.get("hsk", "")))
@@ -838,7 +838,7 @@ def render_edit_reservation() -> None:
 
     if submitted:
         if not name.strip():
-            st.error("El nombre del huÃ©sped es obligatorio.")
+            st.error("El nombre del huésped es obligatorio.")
             return
         if check_out < check_in:
             st.error("La fecha de check-out no puede ser anterior al check-in.")
@@ -883,7 +883,7 @@ def render_import() -> None:
             preview[col] = preview[col].apply(lambda x: 0 if pd.isna(x) or str(x).lower() in ("nan", "none", "null", "") else int(float(x)))
         else:
             preview[col] = preview[col].apply(lambda x: "" if pd.isna(x) or str(x).lower() in ("nan", "none", "null") else x)
-    st.success(f"Archivo vÃ¡lido: {len(preview)} reservaciones detectadas.")
+    st.success(f"Archivo válido: {len(preview)} reservaciones detectadas.")
     st.dataframe(preview, use_container_width=True, hide_index=True, height=300)
 
     if st.button("IMPORTAR A BASE DE DATOS", type="primary", use_container_width=True):
@@ -904,14 +904,14 @@ def render_import() -> None:
             insertar_lote(records)
             st.success(f"{len(records)} reservaciones importadas correctamente.")
         except Exception as exc:
-            st.error(f"No se completÃ³ la importaciÃ³n: {exc}")
+            st.error(f"No se completó la importación: {exc}")
 
 
 def render_export(df: pd.DataFrame) -> None:
     st.subheader("Exportar reservaciones a Excel")
     render_back_link()
     filtered, _ = apply_filters(df)
-    st.info(f"Se exportarÃ¡n {len(filtered)} reservaciones, organizadas por categorÃ­a.")
+    st.info(f"Se exportarán {len(filtered)} reservaciones, organizadas por categoría.")
     st.dataframe(filtered[DISPLAY_COLUMNS], use_container_width=True, hide_index=True, height=300)
     if not filtered.empty:
         st.download_button(
@@ -942,7 +942,7 @@ def render_agenda(df: pd.DataFrame) -> None:
 
 
 def render_report(df: pd.DataFrame) -> None:
-    st.subheader("Reporte de ocupaciÃ³n diario")
+    st.subheader("Reporte de ocupación diario")
     render_back_link()
     today = datetime.now()
     tomorrow = today + timedelta(days=1)
@@ -961,7 +961,7 @@ def render_report(df: pd.DataFrame) -> None:
         "Salen hoy": departures_today,
         "Salen maÃ±ana": departures_tomorrow,
         "Llegan hoy": arrivals_today,
-        "Llegan maÃ±ana": arrivals_tomorrow,
+        "Llegan mañana": arrivals_tomorrow,
     }
     metrics = st.columns(5)
     for column, (label, frame) in zip(metrics, report_data.items()):
@@ -1322,16 +1322,16 @@ def render_bonus() -> None:
 
 
 def render_delete() -> None:
-    st.subheader("Eliminar reservaciÃ³n")
+    st.subheader("Eliminar reservación")
     render_back_link()
     reservations = cargar_reservaciones()
     reservation = get_selected_reservation(reservations)
     if not reservation:
         st.error("Selecciona una reserva antes de solicitar el borrado.")
         return
-    st.warning(f"Se eliminarÃ¡ permanentemente la reserva de {reservation.get('name', 'este huÃ©sped')}.")
+    st.warning(f"Se eliminará¡ permanentemente la reserva de {reservation.get('name', 'este huésped')}.")
     with st.form("delete_reservation"):
-        password = st.text_input("Clave de autorizaciÃ³n", type="password")
+        password = st.text_input("Clave de autorización", type="password")
         confirmed = st.form_submit_button("CONFIRMAR Y BORRAR", type="primary")
     if confirmed:
         expected_password = st.secrets.get("DELETE_PASSWORD", "")
@@ -1480,7 +1480,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         selected = selected.to_dict("records")
     if selected:
         selected_id = selected[0].get("id")
-        # AgGrid recibe una vista sin `id`; la buscamos con una combinaciÃ³n estable de datos.
+        # AgGrid recibe una vista sin `id`; la buscamos con una combinación estable de datos.
         candidate = df[
             (df["name"].astype(str) == str(selected[0].get("name", "")))
             & (df["res_number"].astype(str) == str(selected[0].get("res_number", "")))
@@ -1624,7 +1624,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
     elif bulk_ids:
         st.markdown(
             f'<div class="selection-banner" style="border-color:#E11D48;background:#2a0a0a">'
-            f'<b>â  RESERVAS SELECCIONADAS: {len(bulk_ids)}</b> &nbsp; | &nbsp;'
+            f'<b>RESERVAS SELECCIONADAS: {len(bulk_ids)}</b> &nbsp; | &nbsp;'
             f'<span style="color:#ff6b6b">Listas para eliminar</span></div>',
             unsafe_allow_html=True,
         )
