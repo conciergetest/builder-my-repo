@@ -670,7 +670,6 @@ def render_action_links() -> None:
         ("EXPORTAR", "exportar", "#2563EB", "#FFFFFF"),
         ("REPORTE", "reporte", "#D97706", "#1C1300"),
         ("AGENDA", "agenda", "#7C3AED", "#FFFFFF"),
-        ("CALCULADORA", "calculadora", "#E11D48", "#FFFFFF"),
         ("BONUS", "bonus", "#D4AF37", "#1C1300"),
     ]
     buttons = "".join(
@@ -985,28 +984,78 @@ def render_report(df: pd.DataFrame) -> None:
     )
 
 
+CALCULATOR_HTML = """
+<!doctype html>
+<html>
+<head>
+<style>
+body{margin:0;background:#080b12;font-family:Segoe UI,sans-serif;display:grid;place-items:center;padding:8px;color:#eafaff}
+.calculator{width:280px;padding:14px;background:#101827;border:1px solid #284057;border-radius:16px;box-shadow:0 12px 35px #0008}
+#display{background:#061c2b;border:1px solid #00e5ff;border-radius:10px;color:#00e5ff;font:700 28px monospace;padding:12px;text-align:right;overflow:hidden;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+button{border:0;border-radius:8px;padding:12px 4px;background:#203449;color:#eafaff;font-weight:800;font-size:15px;cursor:pointer}
+button:hover{filter:brightness(1.2)}
+.op{background:#7c3aed}
+.equal{background:#00c6df;color:#01171d}
+.clear{background:#e11d48}
+.hint{color:#8ca4ba;font-size:10px;text-align:center;margin-top:8px}
+</style>
+</head>
+<body tabindex="0">
+<div class="calculator">
+<div id="display">0</div>
+<div class="grid">
+<button class="clear" onclick="clearAll()">C</button>
+<button onclick="backspace()">⌫</button>
+<button class="op" onclick="add('/')">÷</button>
+<button class="op" onclick="add('*')">×</button>
+<button onclick="add('7')">7</button>
+<button onclick="add('8')">8</button>
+<button onclick="add('9')">9</button>
+<button class="op" onclick="add('-')">−</button>
+<button onclick="add('4')">4</button>
+<button onclick="add('5')">5</button>
+<button onclick="add('6')">6</button>
+<button class="op" onclick="add('+')">+</button>
+<button onclick="add('1')">1</button>
+<button onclick="add('2')">2</button>
+<button onclick="add('3')">3</button>
+<button onclick="add('.')">.</button>
+<button onclick="add('0')">0</button>
+<button onclick="add('%')">%</button>
+<button onclick="toggleSign()">±</button>
+<button class="equal" onclick="calculate()">=</button>
+</div>
+<div class="hint">💡 Haz clic aquí para activar el teclado numérico</div>
+</div>
+<script>
+let value='';
+const out=document.getElementById('display');
+function draw(){out.textContent=value||'0'}
+function add(v){if('0123456789.'.includes(v)&&out.textContent==='Error')value='';value+=v;draw()}
+function clearAll(){value='';draw()}
+function backspace(){value=value.slice(0,-1);draw()}
+function toggleSign(){value=value.startsWith('-')?value.slice(1):'-'+value;draw()}
+function calculate(){try{if(!/^[0-9+*/.()% -]+$/.test(value))throw Error();value=String(Function('return ('+value+')')());draw()}catch(e){value='';out.textContent='Error'}}
+document.addEventListener('keydown',e=>{if('0123456789.+-*/%'.includes(e.key))add(e.key);else if(e.key==='Enter')calculate();else if(e.key==='Backspace')backspace();else if(e.key==='Escape')clearAll()});
+document.body.focus();
+</script>
+</body>
+</html>
+"""
+
+
+@st.dialog("🧮 Calculadora", width="small")
+def calculator_dialog() -> None:
+    """Muestra la calculadora como un modal flotante sobre el dashboard."""
+    st.components.v1.html(CALCULATOR_HTML, height=430, scrolling=False)
+
+
 def render_calculator() -> None:
+    """Vista legacy de calculadora (redirige al dialog)."""
     st.subheader("Calculadora")
     render_back_link()
-    st.components.v1.html(
-        """
-<!doctype html><html><head><style>
-body{margin:0;background:#080b12;font-family:Segoe UI,sans-serif;display:grid;place-items:center;padding:12px;color:#eafaff}
-.calculator{width:300px;padding:16px;background:#101827;border:1px solid #284057;border-radius:16px;box-shadow:0 12px 35px #0008}
-#display{background:#061c2b;border:1px solid #00e5ff;border-radius:10px;color:#00e5ff;font:700 30px monospace;padding:14px;text-align:right;overflow:hidden;margin-bottom:11px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}button{border:0;border-radius:8px;padding:13px 6px;background:#203449;color:#eafaff;font-weight:800;font-size:16px;cursor:pointer}button:hover{filter:brightness(1.2)}.op{background:#7c3aed}.equal{background:#00c6df;color:#01171d}.clear{background:#e11d48}
-</style></head><body><div class="calculator"><div id="display">0</div><div class="grid">
-<button class="clear" onclick="clearAll()">C</button><button onclick="backspace()">âŒ«</button><button class="op" onclick="add('/')">Ã·</button><button class="op" onclick="add('*')">Ã—</button>
-<button onclick="add('7')">7</button><button onclick="add('8')">8</button><button onclick="add('9')">9</button><button class="op" onclick="add('-')">âˆ’</button>
-<button onclick="add('4')">4</button><button onclick="add('5')">5</button><button onclick="add('6')">6</button><button class="op" onclick="add('+')">+</button>
-<button onclick="add('1')">1</button><button onclick="add('2')">2</button><button onclick="add('3')">3</button><button onclick="add('.')">.</button>
-<button onclick="add('0')">0</button><button onclick="add('%')">%</button><button onclick="toggleSign()">Â±</button><button class="equal" onclick="calculate()">=</button>
-</div></div><script>
-let value='';const out=document.getElementById('display');function draw(){out.textContent=value||'0'}function add(v){if('0123456789.'.includes(v)&&out.textContent==='Error')value='';value+=v;draw()}function clearAll(){value='';draw()}function backspace(){value=value.slice(0,-1);draw()}function toggleSign(){value=value.startsWith('-')?value.slice(1):'-'+value;draw()}function calculate(){try{if(!/^[0-9+*/.()% -]+$/.test(value))throw Error();value=String(Function('return ('+value+')')());draw()}catch(e){value='';out.textContent='Error'}}document.addEventListener('keydown',e=>{if('0123456789.+-*/%'.includes(e.key))add(e.key);else if(e.key==='Enter')calculate();else if(e.key==='Backspace')backspace();else if(e.key==='Escape')clearAll()});
-</script></body></html>
-        """,
-        height=420,
-    )
+    calculator_dialog()
 
 
 def render_letter() -> None:
@@ -1450,6 +1499,13 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
     render_action_links()
+
+    # Botón flotante de calculadora (abre dialog nativo)
+    calc_col, _ = st.columns([1, 5])
+    with calc_col:
+        if st.button("🧮 CALCULADORA", use_container_width=True):
+            calculator_dialog()
+
     render_quick_links()
     st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
     search_left, search_right = st.columns([1, 5], gap="small")
@@ -1545,6 +1601,10 @@ show_header()
 reservations = cargar_reservaciones()
 action = get_action()
 
+# Auto-abrir calculadora si viene de redirección legacy
+if st.session_state.pop("open_calculator", False):
+    calculator_dialog()
+
 if action == "nueva":
     render_new_reservation()
 elif action == "editar":
@@ -1558,7 +1618,11 @@ elif action == "agenda":
 elif action == "reporte":
     render_report(reservations)
 elif action == "calculadora":
-    render_calculator()
+    # Redirigir al dashboard y abrir dialog automáticamente
+    st.query_params.clear()
+    st.query_params["skip_splash"] = "1"
+    st.session_state["open_calculator"] = True
+    st.rerun()
 elif action == "bonus":
     render_bonus()
 elif action == "carta":
