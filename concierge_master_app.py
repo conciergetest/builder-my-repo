@@ -1478,14 +1478,32 @@ function(params) {
   if (!val || val === 'nan' || val === 'None' || val === 'null') return null;
   const info = String((params.data && params.data.info) || '').toUpperCase();
   const cats = [
-    ['VIP', '#00E5FF'], ['BIRTHDAY', '#FF5252'], ['HONEYMOON', '#FF9800'],
-    ['BABYMOON', '#A78BFA'], ['ANNIVERSARY', '#4ADE80'], ['RELAXURY', '#F472B6'],
-    ['TEAM MEMBER', '#FACC15'], ['LEISURE', '#22D3EE']
+    ['VIP', '#00E5FF', '#0a1f2a'],
+    ['BIRTHDAY', '#FF5252', '#2a0f0f'],
+    ['HONEYMOON', '#FF9800', '#2a1a0a'],
+    ['BABYMOON', '#A78BFA', '#1a0f2a'],
+    ['ANNIVERSARY', '#4ADE80', '#0a2a0f'],
+    ['RELAXURY', '#F472B6', '#2a0f1a'],
+    ['TEAM MEMBER', '#FACC15', '#2a2a0a'],
+    ['LEISURE', '#22D3EE', '#0a1a2a']
   ];
-  for (const [keyword, color] of cats) {
+  for (const [keyword, color, bgColor] of cats) {
     if (info.includes(keyword)) {
-      return { backgroundColor: color + '55', color: color, fontWeight: '800' };
+      return { backgroundColor: bgColor, color: color, fontWeight: '800' };
     }
+  }
+  return null;
+}
+"""
+)
+
+TRANS_CELL_STYLE = JsCode(
+    """
+function(params) {
+  const val = String(params.value || '');
+  if (!val || val === 'nan' || val === 'None' || val === 'null') return null;
+  if (val.toUpperCase().includes('RELAXURY')) {
+    return { color: '#F472B6', fontWeight: '700' };
   }
   return null;
 }
@@ -1616,8 +1634,10 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         if field not in visible.columns:
             continue
         config: dict = {"header_name": header, "width": width}
-        if field in {"info", "ird", "trans"}:
+        if field in {"info", "ird"}:
             config["cellStyle"] = CATEGORY_CELL_STYLE
+        if field == "trans":
+            config["cellStyle"] = TRANS_CELL_STYLE
         if field == "nights":
             config["type"] = ["numericColumn"]
         if field == "qty":
