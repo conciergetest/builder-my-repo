@@ -882,51 +882,64 @@ def render_letter() -> None:
 
     guest_name = str(reservation.get("name", "")).strip()
     if not guest_name:
-        st.error("La reserva seleccionada no tiene un nombre de huÃ©sped.")
-        return
-
-    template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plantilla_despedida.docx")
-    if not os.path.exists(template_path):
-        st.warning("No se encontrÃ³ `plantilla_despedida.docx` junto a este archivo.")
-        st.info("Crea esa plantilla Word y usa `{{NOMBRE}}` donde debe aparecer el nombre del huÃ©sped.")
+        st.error("La reserva seleccionada no tiene un nombre de huesped.")
         return
 
     try:
         from docx import Document
+        from docx.shared import Pt, Inches, RGBColor
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
     except ImportError:
-        st.error("Falta `python-docx`. InstÃ¡lalo con el archivo requirements_streamlit.txt actualizado.")
+        st.error("Falta `python-docx`. Instalalo con el archivo requirements_streamlit.txt actualizado.")
         return
 
     try:
-        document = Document(template_path)
-        replacements = 0
+        document = Document()
+        style = document.styles["Normal"]
+        font = style.font
+        font.name = "Calibri"
+        font.size = Pt(11)
+        font.color.rgb = RGBColor(0x33, 0x33, 0x33)
 
-        def replace_paragraph(paragraph) -> None:
-            nonlocal replacements
-            if "{{NOMBRE}}" not in paragraph.text:
-                return
-            text = paragraph.text.replace("{{NOMBRE}}", guest_name)
-            for run in paragraph.runs:
-                run.text = ""
-            if paragraph.runs:
-                paragraph.runs[0].text = text
-            else:
-                paragraph.add_run(text)
-            replacements += 1
+        heading = document.add_paragraph()
+        heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = heading.add_run("WALDORF ASTORIA")
+        run.bold = True
+        run.font.size = Pt(18)
+        run.font.color.rgb = RGBColor(0xD4, 0xAF, 0x37)
+        run = heading.add_run("\nCOSTA RICA - PUNTA CACIQUE")
+        run.font.size = Pt(9)
+        run.font.color.rgb = RGBColor(0x6F, 0x87, 0x9A)
+        document.add_paragraph()
 
-        for paragraph in document.paragraphs:
-            replace_paragraph(paragraph)
-        for table in document.tables:
-            for row in table.rows:
-                for cell in row.cells:
-                    for paragraph in cell.paragraphs:
-                        replace_paragraph(paragraph)
+        p = document.add_paragraph()
+        p.add_run(f"Dear {guest_name},").bold = True
+        document.add_paragraph()
+
+        document.add_paragraph("It was an absolute pleasure having you with us.")
+        document.add_paragraph()
+
+        quote = document.add_paragraph()
+        quote.paragraph_format.left_indent = Inches(0.25)
+        quote.add_run("We hope every moment of your stay felt as memorable as the place itself.")
+        document.add_paragraph()
+
+        document.add_paragraph("Safe travels and we look forward to welcoming you back soon.")
+        document.add_paragraph()
+
+        document.add_paragraph("With warm regards,")
+        document.add_paragraph()
+
+        sig = document.add_paragraph()
+        sig_run = sig.add_run("Concierge Team\nWaldorf Astoria Costa Rica")
+        sig_run.italic = True
+        sig_run.font.color.rgb = RGBColor(0x00, 0xE5, 0xFF)
 
         output = BytesIO()
         document.save(output)
         output.seek(0)
         safe_name = "".join(char if char.isalnum() or char in "_-" else "_" for char in guest_name)
-        st.success(f"Carta preparada para {guest_name}. Placeholders sustituidos: {replacements}.")
+        st.success(f"Carta preparada para {guest_name}.")
         st.download_button(
             "DESCARGAR CARTA DE DESPEDIDA",
             data=output,
@@ -936,7 +949,6 @@ def render_letter() -> None:
         )
     except Exception as exc:
         st.error(f"No se pudo generar la carta: {exc}")
-
 
 def render_delete() -> None:
     st.subheader("Eliminar reservaciÃ³n")
