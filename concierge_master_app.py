@@ -427,6 +427,47 @@ def insertar_lote(records: list[dict]) -> None:
         st.cache_data.clear()
 
 
+# -----------------------------------------------------------------------------  
+# Bonus / Aguinaldo  -  Supabase CRUD
+# -----------------------------------------------------------------------------  
+
+BONUS_TABLE = "bonus_registro"
+
+
+def cargar_bonus(year: int) -> dict[int, list[str]]:
+    """Carga los datos de bonus para un aÃ±o desde Supabase."""
+    try:
+        response = supabase.table(BONUS_TABLE).select("data").eq("year", year).execute()
+        if response.data:
+            raw = response.data[0]["data"]
+            return {int(k): v for k, v in raw.items()}
+    except Exception:
+        pass
+    return {m: ["", ""] for m in range(12)}
+
+
+def guardar_bonus(year: int, data: dict[int, list[str]]) -> None:
+    """Guarda o actualiza los datos de bonus para un aÃ±o en Supabase."""
+    try:
+        # Verificar si ya existe
+        existing = supabase.table(BONUS_TABLE).select("id").eq("year", year).execute()
+        payload = {"year": year, "data": data}
+        if existing.data:
+            supabase.table(BONUS_TABLE).update({"data": data}).eq("year", year).execute()
+        else:
+            supabase.table(BONUS_TABLE).insert(payload).execute()
+    except Exception as exc:
+        st.error(f"No se pudo guardar en Supabase: {exc}")
+
+
+def borrar_bonus(year: int) -> None:
+    """Elimina los datos de bonus para un aÃ±o."""
+    try:
+        supabase.table(BONUS_TABLE).delete().eq("year", year).execute()
+    except Exception:
+        pass
+
+
 # -----------------------------------------------------------------------------
 # Exportaciones
 # -----------------------------------------------------------------------------
@@ -629,6 +670,7 @@ def render_action_links() -> None:
         ("REPORTE", "reporte", "#D97706", "#1C1300"),
         ("AGENDA", "agenda", "#7C3AED", "#FFFFFF"),
         ("CALCULADORA", "calculadora", "#E11D48", "#FFFFFF"),
+        ("BONUS", "bonus", "#D4AF37", "#1C1300"),
     ]
     buttons = "".join(
         f'<a class="action-link" href="{url_with(action=action)}" target="_self" style="background:{color};color:{text_color} !important">{label}</a>'
@@ -1044,6 +1086,82 @@ def render_letter() -> None:
     except Exception as exc:
         st.error(f"No se pudo generar la carta: {exc}")
 
+
+
+# -----------------------------------------------------------------------------  
+# Bonus / Aguinaldo
+# -----------------------------------------------------------------------------  
+
+def render_bonus() -> None:
+    st.subheader("Registro Mensual de Valores")
+    render_back_link()
+
+    year = st.selectbox("AÃ±o", options=list(range(2024, 2030)), index=list(range(2024, 2030)).index(datetime.now().year), key="bonus_year_select")
+
+    # Cargar desde Supabase (o session_state como cache local)
+    cache_key = f"bonus_loaded_{year}"
+    if cache_key not in st.session_state:
+        st.session_state[f"bonus_{year}"] = cargar_bonus(year)
+        st.session_state[cache_key] = True
+
+    data = st.session_state[f"bonus_{year}"]
+    months = [
+        "DECEMBER", "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY",
+        "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER"
+    ]
+
+    st.markdown(
+        """
+        <style>
+        .bonus-month { background:#0d1420; border:1px solid #1e3348; border-radius:10px; padding:12px; }
+        .bonus-month h4 { color:#D4AF37; font-size:11px; text-align:center; margin:0 0 8px; letter-spacing:1px; }
+        .bonus-input { width:100%; background:#101827; border:1px solid #263b53; color:#effaff; 
+                       border-radius:6px; padding:6px 8px; font-size:13px; margin-bottom:6px; }
+        .bonus-input:focus { border-color:#00e5ff; outline:none; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    total_sum = 0.0
+    cols = st.columns(6)
+    for idx, month_name in enumerate(months):
+        c = cols[idx % 6]
+        with c:
+            st.markdown(f'<div class="bonus-month"><h4>{month_name} {year}</h4>', unsafe_allow_html=True)
+            v1 = st.text_input(f"M{idx}_1", value=str(data[idx][0]), label_visibility="collapsed", key=f"b_{year}_{idx}_1")
+            v2 = st.text_input(f"M{idx}_2", value=str(data[idx][1]), label_visibility="collapsed", key=f"b_{year}_{idx}_2")
+            st.markdown('</div>', unsafe_allow_html=True)
+            for v in (v1, v2):
+                try:
+                    total_sum += float(v.replace(",", "").replace("$", "").strip()) if v.strip() else 0
+                except ValueError:
+                    pass
+            data[idx] = [v1, v2]
+
+    aguinaldo = total_sum / 12.0 if total_sum > 0 else 0.0
+
+    st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+    c1, c2, c3, c4, c5 = st.columns([2, 1.2, 1.2, 1.5, 1.5])
+    with c1:
+        user_name = st.secrets.get("USER_NAME", "CONCIERGE")
+        st.markdown(f'<div style="color:#8ca4ba;font-size:11px">USERNAME: <span style="color:#fff;font-weight:700">{user_name}</span></div>', unsafe_allow_html=True)
+    with c2:
+        if st.button("GUARDAR", type="primary", use_container_width=True):
+            guardar_bonus(year, data)
+            st.session_state[f"bonus_{year}"] = data
+            st.success("Datos guardados en Supabase.")
+    with c3:
+        if st.button("BORRAR", use_container_width=True):
+            borrar_bonus(year)
+            st.session_state[f"bonus_{year}"] = {m: ["", ""] for m in range(12)}
+            st.rerun()
+    with c4:
+        st.markdown(f'<div style="background:#D4AF37;color:#1C1300;padding:8px 12px;border-radius:8px;text-align:center;font-weight:800;font-size:12px">TOTAL SUM<br><span style="font-size:16px">{total_sum:,.2f}</span></div>', unsafe_allow_html=True)
+    with c5:
+        st.markdown(f'<div style="background:#4ADE80;color:#0d1420;padding:8px 12px;border-radius:8px;text-align:center;font-weight:800;font-size:12px">AGUINALDO<br><span style="font-size:16px">{aguinaldo:,.2f}</span></div>', unsafe_allow_html=True)
+
+
 def render_delete() -> None:
     st.subheader("Eliminar reservaciÃ³n")
     render_back_link()
@@ -1375,6 +1493,8 @@ elif action == "reporte":
     render_report(reservations)
 elif action == "calculadora":
     render_calculator()
+elif action == "bonus":
+    render_bonus()
 elif action == "carta":
     render_letter()
 elif action == "cancelar":
