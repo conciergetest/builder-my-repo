@@ -995,6 +995,7 @@ body{margin:0;background:#080b12;font-family:Segoe UI,sans-serif;display:grid;pl
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 button{border:0;border-radius:8px;padding:12px 4px;background:#203449;color:#eafaff;font-weight:800;font-size:15px;cursor:pointer}
 button:hover{filter:brightness(1.2)}
+button:active{transform:scale(0.96)}
 .op{background:#7c3aed}
 .equal{background:#00c6df;color:#01171d}
 .clear{background:#e11d48}
@@ -1026,7 +1027,7 @@ button:hover{filter:brightness(1.2)}
 <button onclick="toggleSign()">±</button>
 <button class="equal" onclick="calculate()">=</button>
 </div>
-<div class="hint">💡 Haz clic aquí para activar el teclado numérico</div>
+<div class="hint">⌨️ Teclado activo — usa números, + − × ÷, Enter y Esc</div>
 </div>
 <script>
 let value='';
@@ -1036,9 +1037,56 @@ function add(v){if('0123456789.'.includes(v)&&out.textContent==='Error')value=''
 function clearAll(){value='';draw()}
 function backspace(){value=value.slice(0,-1);draw()}
 function toggleSign(){value=value.startsWith('-')?value.slice(1):'-'+value;draw()}
-function calculate(){try{let expr=value.replace(/%/g,'/100');if(!/^[0-9+*/.() -]+$/.test(expr))throw Error();value=String(Function('return ('+expr+')')());draw()}catch(e){value='';out.textContent='Error'}}
-document.addEventListener('keydown',e=>{if('0123456789.+-*/%'.includes(e.key))add(e.key);else if(e.key==='Enter')calculate();else if(e.key==='Backspace')backspace();else if(e.key==='Escape')clearAll()});
-document.body.focus();
+function calculate(){
+    try{
+        let expr=value.replace(/%/g,'/100');
+        if(!/^[0-9+*/.() -]+$/.test(expr))throw Error();
+        value=String(Function('return ('+expr+')')());
+        draw();
+    }catch(e){
+        value='';
+        out.textContent='Error';
+    }
+}
+
+// Mapeo robusto de teclado numérico y normal
+const KEY_MAP = {
+    'Numpad0':'0','Numpad1':'1','Numpad2':'2','Numpad3':'3',
+    'Numpad4':'4','Numpad5':'5','Numpad6':'6','Numpad7':'7',
+    'Numpad8':'8','Numpad9':'9','NumpadDecimal':'.',
+    'NumpadAdd':'+','NumpadSubtract':'-','NumpadMultiply':'*',
+    'NumpadDivide':'/','NumpadEnter':'Enter',
+    'Digit0':'0','Digit1':'1','Digit2':'2','Digit3':'3',
+    'Digit4':'4','Digit5':'5','Digit6':'6','Digit7':'7',
+    'Digit8':'8','Digit9':'9',
+    'Period':'.','Comma':'.',
+    'Slash':'/','Minus':'-','Equal':'+',
+};
+
+document.addEventListener('keydown', function(e){
+    const mapped = KEY_MAP[e.code] || e.key;
+
+    if('0123456789.+-*/%'.includes(mapped)){
+        e.preventDefault();
+        e.stopPropagation();
+        add(mapped);
+    } else if(mapped==='Enter' || e.key==='Enter'){
+        e.preventDefault();
+        e.stopPropagation();
+        calculate();
+    } else if(e.key==='Backspace'){
+        e.preventDefault();
+        e.stopPropagation();
+        backspace();
+    } else if(e.key==='Escape'){
+        e.preventDefault();
+        e.stopPropagation();
+        clearAll();
+    }
+});
+
+// Enfocar body tras renderizado
+setTimeout(()=>{ document.body.focus(); }, 300);
 </script>
 </body>
 </html>
