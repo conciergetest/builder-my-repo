@@ -982,15 +982,15 @@ CATEGORY_CELL_STYLE = JsCode(
 function(params) {
   const val = String(params.value || '');
   if (!val || val === 'nan' || val === 'None' || val === 'null') return null;
-  const text = val.toUpperCase();
+  const info = String((params.data && params.data.info) || '').toUpperCase();
   const cats = [
     ['VIP', '#00E5FF'], ['BIRTHDAY', '#FF5252'], ['HONEYMOON', '#FF9800'],
     ['BABYMOON', '#A78BFA'], ['ANNIVERSARY', '#4ADE80'], ['RELAXURY', '#F472B6'],
     ['TEAM MEMBER', '#FACC15'], ['LEISURE', '#22D3EE']
   ];
   for (const [keyword, color] of cats) {
-    if (text.includes(keyword)) {
-      return { backgroundColor: color + '35', color: color, fontWeight: '800', borderRadius: '4px', padding: '2px 6px' };
+    if (info.includes(keyword)) {
+      return { backgroundColor: color + '55', color: color, fontWeight: '800' };
     }
   }
   return null;
