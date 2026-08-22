@@ -1707,10 +1707,12 @@ GRID_CSS = {
     ".ag-cell": {"border-right": "none !important", "border-bottom": "none !important", "color": "#e6f3fb", "font-size": "12px"},
     ".ag-row-hover": {"background": "#132a3a !important"},
     ".vip-row": {"background-color": "#0a1a1a !important", "border-left": "3px solid #00E5FF !important"},
+    ".ag-row-selected": {"background-color": "#0b111b !important", "border-top": "1px solid #00E5FF !important", "border-bottom": "1px solid #00E5FF !important"},
+    ".ag-row-selected.ag-row-odd": {"background-color": "#0e1723 !important", "border-top": "1px solid #00E5FF !important", "border-bottom": "1px solid #00E5FF !important"},
+    ".ag-row-selected .ag-cell": {"color": "#e6f3fb !important", "font-weight": "800 !important"},
     ".selected-transparent": {"background-color": "transparent !important", "background": "transparent !important", "border-top": "1px solid #00E5FF !important", "border-bottom": "1px solid #00E5FF !important"},
     ".selected-transparent .ag-cell": {"color": "#e6f3fb !important", "font-weight": "800 !important"},
-    ".ag-row-selected": {"background-color": "transparent !important", "background": "transparent !important", "border-top": "1px solid #00E5FF !important", "border-bottom": "1px solid #00E5FF !important"},
-    ".ag-row-selected .ag-cell": {"color": "#e6f3fb !important", "font-weight": "800 !important"},
+
     ".ag-paging-panel": {"border-top": "none !important", "background-color": "#0b111b !important", "color": "#cceaf6 !important"},
     ".ag-header-icon": {"display": "none !important"},
 }
