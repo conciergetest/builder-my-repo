@@ -1442,7 +1442,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         "check_out":("CHECK OUT",    130),
         "nights":   ("🌙",            60),   # Luna dorada en vez de NOCHES
         "res_number":("RESERVATION", 135),
-        "phone":    ("PHONE",        140),
+        "phone":    ("PHONE",        175),
         "email":    ("EMAIL",        140),  # Más corto
         "info":     ("INFORMATION",  220),
         "ird":      ("IRD",          160),
