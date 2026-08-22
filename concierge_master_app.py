@@ -1096,6 +1096,70 @@ def render_bonus() -> None:
     st.subheader("Registro Mensual de Valores")
     render_back_link()
 
+    # -------------------------------------------------------------------------
+    # Autenticación de acceso a la sección BONUS
+    # -------------------------------------------------------------------------
+    if not st.session_state.get("bonus_authenticated", False):
+        st.markdown(
+            """
+            <style>
+            .bonus-login-box {
+                background: #0d1420;
+                border: 1px solid #1e3348;
+                border-radius: 12px;
+                padding: 28px 24px;
+                max-width: 420px;
+                margin: 40px auto;
+                text-align: center;
+            }
+            .bonus-login-box h3 {
+                color: #D4AF37;
+                font-size: 16px;
+                letter-spacing: 1.5px;
+                margin-bottom: 18px;
+            }
+            .bonus-login-box p {
+                color: #8ca4ba;
+                font-size: 12px;
+                margin-bottom: 20px;
+            }
+            </style>
+            <div class="bonus-login-box">
+                <h3>🔒 ACCESO RESTRINGIDO</h3>
+                <p>Esta sección requiere autorización.<br>Ingresa la clave de administrador para continuar.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        with st.form("bonus_login_form", clear_on_submit=True):
+            login_pwd = st.text_input(
+                "Clave de acceso",
+                type="password",
+                placeholder="Ingresa la clave de admin",
+                label_visibility="collapsed",
+            )
+            submitted = st.form_submit_button("INGRESAR", type="primary", use_container_width=True)
+            if submitted:
+                expected = st.secrets.get("DELETE_PASSWORD", "")
+                if not expected:
+                    st.error("Configura DELETE_PASSWORD en los Secrets de Streamlit.")
+                elif login_pwd != expected:
+                    st.error("Clave incorrecta. Acceso denegado.")
+                else:
+                    st.session_state["bonus_authenticated"] = True
+                    st.rerun()
+        return
+
+    # Si llegó aquí, está autenticado
+    # Botón de cerrar sesión
+    logout_col, _ = st.columns([1, 4])
+    with logout_col:
+        if st.button("🔒 CERRAR SESIÓN", use_container_width=True):
+            st.session_state["bonus_authenticated"] = False
+            st.rerun()
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
     year = st.selectbox("Año", options=list(range(2024, 2030)), index=list(range(2024, 2030)).index(datetime.now().year), key="bonus_year_select")
 
     # Cargar desde Supabase (o session_state como cache local)
@@ -1142,56 +1206,21 @@ def render_bonus() -> None:
     aguinaldo = total_sum / 12.0 if total_sum > 0 else 0.0
 
     st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-
-    # --- Panel de autenticación para operaciones de escritura ---
-    with st.container():
-        st.markdown("<div style='background:#0d1420;border:1px solid #1e3348;border-radius:10px;padding:12px;margin-bottom:10px'>"
-                    "<div style='color:#00e5ff;font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;margin-bottom:8px'>"
-                    "Autorización requerida</div>", unsafe_allow_html=True)
-
-        auth_col1, auth_col2 = st.columns([2, 3])
-        with auth_col1:
-            bonus_password = st.text_input(
-                "Clave de autorización",
-                type="password",
-                label_visibility="collapsed",
-                placeholder="Ingresa la clave de admin",
-                key="bonus_auth_password"
-            )
-        with auth_col2:
-            st.markdown("<div style='color:#8ca4ba;font-size:10px;padding-top:8px'>"
-                        "Se requiere para <b>GUARDAR</b>, <b>BORRAR</b> o modificar datos.</div>", 
-                        unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
     c1, c2, c3, c4, c5 = st.columns([2, 1.2, 1.2, 1.5, 1.5])
     with c1:
         user_name = st.secrets.get("USER_NAME", "CONCIERGE")
         st.markdown(f'<div style="color:#8ca4ba;font-size:11px">USERNAME: <span style="color:#fff;font-weight:700">{user_name}</span></div>', unsafe_allow_html=True)
     with c2:
         if st.button("GUARDAR", type="primary", use_container_width=True):
-            expected = st.secrets.get("DELETE_PASSWORD", "")
-            if not expected:
-                st.error("Configura DELETE_PASSWORD en los Secrets de Streamlit.")
-            elif bonus_password != expected:
-                st.error("Clave incorrecta. No se guardaron los datos.")
-            else:
-                guardar_bonus(year, data)
-                st.session_state[f"bonus_{year}"] = data
-                st.success("✅ Datos guardados en Supabase correctamente.")
-                st.rerun()
+            guardar_bonus(year, data)
+            st.session_state[f"bonus_{year}"] = data
+            st.success("✅ Datos guardados en Supabase correctamente.")
     with c3:
         if st.button("BORRAR", use_container_width=True):
-            expected = st.secrets.get("DELETE_PASSWORD", "")
-            if not expected:
-                st.error("Configura DELETE_PASSWORD en los Secrets de Streamlit.")
-            elif bonus_password != expected:
-                st.error("Clave incorrecta. No se eliminaron los datos.")
-            else:
-                borrar_bonus(year)
-                st.session_state[f"bonus_{year}"] = {m: ["", ""] for m in range(12)}
-                st.success("🗑️ Todos los datos del año fueron eliminados de Supabase.")
-                st.rerun()
+            borrar_bonus(year)
+            st.session_state[f"bonus_{year}"] = {m: ["", ""] for m in range(12)}
+            st.success("🗑️ Todos los datos del año fueron eliminados de Supabase.")
+            st.rerun()
     with c4:
         st.markdown(f'<div style="background:#D4AF37;color:#1C1300;padding:8px 12px;border-radius:8px;text-align:center;font-weight:800;font-size:12px">TOTAL SUM<br><span style="font-size:16px">{total_sum:,.2f}</span></div>', unsafe_allow_html=True)
     with c5:
