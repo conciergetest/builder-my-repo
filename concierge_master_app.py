@@ -1683,8 +1683,8 @@ GRID_CSS = {
     ".ag-row-odd": {"background-color": "#0e1723 !important"},
     ".ag-cell": {"border-right": "none !important", "border-bottom": "none !important", "color": "#e6f3fb", "font-size": "12px"},
     ".ag-row-hover": {"background-color": "#132a3a !important"},
-    ".ag-row-selected": {"background-color": "#00E5FF !important"},
-    ".ag-row-selected .ag-cell": {"color": "#00151d !important", "font-weight": "800 !important"},
+    ".ag-row-selected": {"background-color": "transparent !important", "border-top": "2px solid #00E5FF !important", "border-bottom": "2px solid #00E5FF !important"},
+    ".ag-row-selected .ag-cell": {"color": "#e6f3fb !important", "font-weight": "800 !important"},
     ".ag-paging-panel": {"border-top": "none !important", "background-color": "#0b111b !important", "color": "#cceaf6 !important"},
     ".ag-header-icon": {"display": "none !important"},
 }
