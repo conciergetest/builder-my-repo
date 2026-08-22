@@ -51,43 +51,38 @@ if "splash_shown" not in st.session_state:
     st.session_state.splash_shown = False
 
 if not st.session_state.splash_shown:
-    splash = st.empty()
-    with splash.container():
-        st.markdown(
-            """
-            <style>
-            .splash-wrap {
-                position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                background: #000; z-index: 999999;
-                display: flex; flex-direction: column; align-items: center; justify-content: center;
-            }
-            .splash-img {
-                max-width: 95vw; max-height: 85vh; object-fit: contain;
-                border-radius: 8px; box-shadow: 0 0 60px rgba(212,175,55,0.15);
-            }
-            .splash-bar-track {
-                width: 320px; height: 4px; background: #1a1a1a; border-radius: 2px;
-                margin-top: 24px; overflow: hidden; border: 1px solid #333;
-            }
-            .splash-bar-fill {
-                height: 100%; background: #D4AF37; width: 0%;
-                animation: splashFill 5s linear forwards;
-                box-shadow: 0 0 10px #D4AF37, 0 0 20px rgba(212,175,55,0.4);
-            }
-            @keyframes splashFill { to { width: 100%; } }
-            </style>
-            <div class="splash-wrap">
-                <img src="splashscreen.png" class="splash-img" onerror="this.style.display='none'">
-                <div class="splash-bar-track"><div class="splash-bar-fill"></div></div>
+    # Ocultar header y maximizar espacio
+    st.markdown(
+        """
+        <style>
+        header, [data-testid="stHeader"] { display: none !important; }
+        .stApp { background: #000 !important; }
+        .main .block-container { padding: 0 !important; max-width: 100% !important; }
+        .stImage > img { border-radius: 0 !important; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    splash_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "splashscreen.png")
+    if os.path.exists(splash_path):
+        st.image(splash_path, use_container_width=True)
+    else:
+        st.warning("No se encontro `splashscreen.png`. Subelo a tu repositorio junto a este archivo.")
+
+    # Progress bar dorada
+    st.markdown(
+        """
+        <div style="display:flex; justify-content:center; margin-top:16px;">
+            <div style="width:380px; height:4px; background:#1a1a1a; border-radius:2px; overflow:hidden; border:1px solid #333;">
+                <div style="height:100%; background:#D4AF37; width:0%; animation: splashFill 5s linear forwards; box-shadow:0 0 12px #D4AF37, 0 0 24px rgba(212,175,55,0.5);"></div>
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        # Fallback por si el HTML img no carga en cloud
-        try:
-            st.image("splashscreen.png", use_container_width=False)
-        except Exception:
-            pass
+        </div>
+        <style>@keyframes splashFill { to { width: 100%; } }</style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     import time
     time.sleep(5)
     st.session_state.splash_shown = True
