@@ -1118,9 +1118,8 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.caption(" Â· ".join(captions))
 
     st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True)
-    render_reservations_grid(filtered)
 
-    selected = st.session_state.get("selected_reservation")
+selected = st.session_state.get("selected_reservation")
     if selected:
         name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "â€”"))
         st.markdown(f'<div class="selection-banner"><b>â— RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
@@ -1133,6 +1132,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
             '</div>',
             unsafe_allow_html=True,
         )
+    render_reservations_grid(filtered)
+
+    
 
 
 # -----------------------------------------------------------------------------
