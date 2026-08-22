@@ -576,7 +576,9 @@ def render_category_chart(df: pd.DataFrame) -> None:
 
     # Categorías especiales que "consumen" una reserva (excluyendo LEISURE)
     special_categories = ["VIP", "BIRTHDAY", "HONEYMOON", "BABYMOON", "ANNIVERSARY", "RELAXURY", "TEAM MEMBER"]
-    has_special = info.apply(lambda text: any(cat in text for cat in special_categories))
+    has_special = info.apply(lambda text: any(cat in text for cat in special_categories) if pd.notna(text) else False)
+    # Asegurar tipo bool para evitar ValueError con operador ~ en Series vacías
+    has_special = has_special.fillna(False).astype(bool)
 
     for category, color in chart_categories.items():
         if category == "LEISURE":
@@ -1121,8 +1123,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
     search_right.text_input(
         "Búsqueda rápida",
         key="global_search",
-        placeholder="Buscar por nombre, teléfono, reserva, VIP, Relaxury",
+        placeholder="Buscar por nombre, teléfono, reserva, VIP, Relaxury...",
         label_visibility="collapsed",
+        on_change=st.rerun,
     )
     filtered, filters = apply_filters(df)
 
