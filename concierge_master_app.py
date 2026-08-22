@@ -51,7 +51,10 @@ st.set_page_config(
 if "splash_shown" not in st.session_state:
     st.session_state.splash_shown = False
 
-if not st.session_state.splash_shown:
+# No mostrar splash si el usuario ya interactuo (tiene query params de accion)
+has_action_params = any(k in st.query_params for k in ["action", "sel_id", "checkout_filtro", "fecha_date"])
+
+if not st.session_state.splash_shown and not has_action_params:
     splash_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "splashscreen.png")
 
     # CSS para pantalla completa
