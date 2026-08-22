@@ -1503,6 +1503,22 @@ function(params) {
 """
 )
 
+QTY_RENDERER = JsCode(
+    """
+function(params) {
+  if (params.value === null || params.value === undefined || params.value === '') return '';
+  var val = parseFloat(params.value);
+  if (isNaN(val) || val === 0) return '';
+  var adultos = Math.floor(val);
+  var ninos = Math.round((val - adultos) * 10);
+  if (ninos <= 0) {
+    return '<div style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;"><span style="color:#e6f3fb;font-weight:700;font-size:12px;">' + adultos + '</span></div>';
+  }
+  return '<div style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;"><span style="color:#e6f3fb;font-weight:700;font-size:12px;">' + adultos + '</span><span style="color:#00e5ff;font-weight:800;font-size:12px;">+' + ninos + '</span></div>';
+}
+"""
+)
+
 GRID_CSS = {
     ".ag-root-wrapper": {
         "border": "1px solid #1f384d !important",
@@ -1553,10 +1569,6 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         if col not in ("qty",):
             visible[col] = visible[col].apply(lambda x: "" if pd.isna(x) or str(x).lower() in ("nan", "none", "null") else str(x))
 
-    # Formatear QTY como "2+1" en vez de "2.1"
-    if "qty" in visible.columns:
-        visible["qty"] = visible["qty"].apply(format_qty)
-
     # Quitar .0 en ROOM y NOCHES
     for col in ("room", "nights"):
         if col in visible.columns:
@@ -1601,6 +1613,8 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
             config["cellStyle"] = CATEGORY_CELL_STYLE
         if field == "nights":
             config["type"] = ["numericColumn"]
+        if field == "qty":
+            config["cellRenderer"] = QTY_RENDERER
         # Solo CHECK IN tiene filtro habilitado
         if field == "check_in":
             config["filter"] = True
