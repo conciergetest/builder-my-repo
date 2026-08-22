@@ -1218,6 +1218,128 @@ def calculator_dialog() -> None:
     st.components.v1.html(CALCULATOR_HTML, height=430, scrolling=False)
 
 
+
+
+CALENDAR_HTML = """
+<!doctype html>
+<html>
+<head>
+<style>
+body{margin:0;background:#080b12;font-family:Segoe UI,sans-serif;display:grid;place-items:center;padding:8px;color:#eafaff}
+.calendar-box{width:340px;padding:16px;background:#101827;border:1px solid #284057;border-radius:16px;box-shadow:0 12px 35px #0008}
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.cal-title{color:#00e5ff;font:800 16px/1.2 "Segoe UI",sans-serif;text-transform:uppercase;letter-spacing:1px}
+.cal-nav{display:flex;gap:6px}
+.cal-nav button{width:32px;height:32px;border:0;border-radius:8px;background:#203449;color:#eafaff;font-weight:800;font-size:16px;cursor:pointer}
+.cal-nav button:hover{filter:brightness(1.3)}
+.cal-nav button:active{transform:scale(0.95)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-day-label{color:#8ca4ba;font-size:10px;font-weight:800;text-transform:uppercase;padding:6px 0}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .12s}
+.cal-day:hover{background:#1a3a4a}
+.cal-day.other{color:#4a5a6a}
+.cal-day.today{background:#00e5ff;color:#00151d;font-weight:900}
+.cal-day.selected{background:#D4AF37;color:#1C1300;font-weight:900}
+.cal-footer{margin-top:14px;padding-top:12px;border-top:1px solid #1e3348;text-align:center;color:#8ca4ba;font-size:11px}
+.cal-footer b{color:#00e5ff;font-size:13px}
+</style>
+</head>
+<body>
+<div class="calendar-box">
+<div class="cal-header">
+  <div class="cal-title" id="cal-month">Loading...</div>
+  <div class="cal-nav">
+    <button onclick="changeMonth(-1)">&#9664;</button>
+    <button onclick="goToday()">&#9679;</button>
+    <button onclick="changeMonth(1)">&#9654;</button>
+  </div>
+</div>
+<div class="cal-grid" id="cal-grid"></div>
+<div class="cal-footer" id="cal-footer">Selecciona una fecha</div>
+</div>
+<script>
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAYS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+let current = new Date();
+let selected = null;
+
+function renderCalendar(){
+  const year = current.getFullYear();
+  const month = current.getMonth();
+  document.getElementById('cal-month').textContent = MONTHS[month] + ' ' + year;
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  DAYS.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-day-label';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+
+  for(let i = firstDay - 1; i >= 0; i--){
+    const el = document.createElement('div');
+    el.className = 'cal-day other';
+    el.textContent = daysInPrev - i;
+    grid.appendChild(el);
+  }
+
+  const today = new Date();
+  for(let d = 1; d <= daysInMonth; d++){
+    const el = document.createElement('div');
+    el.className = 'cal-day';
+    el.textContent = d;
+    if(year === today.getFullYear() && month === today.getMonth() && d === today.getDate()){
+      el.classList.add('today');
+    }
+    if(selected && year === selected.getFullYear() && month === selected.getMonth() && d === selected.getDate()){
+      el.classList.add('selected');
+    }
+    el.onclick = function(){
+      selected = new Date(year, month, d);
+      renderCalendar();
+      const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+      document.getElementById('cal-footer').innerHTML = 'Seleccionado: <b>' + selected.toLocaleDateString('es-ES', opts) + '</b>';
+    };
+    grid.appendChild(el);
+  }
+
+  const remaining = (7 - ((firstDay + daysInMonth) % 7)) % 7;
+  for(let d = 1; d <= remaining; d++){
+    const el = document.createElement('div');
+    el.className = 'cal-day other';
+    el.textContent = d;
+    grid.appendChild(el);
+  }
+}
+
+function changeMonth(dir){
+  current.setMonth(current.getMonth() + dir);
+  renderCalendar();
+}
+function goToday(){
+  current = new Date();
+  renderCalendar();
+}
+
+renderCalendar();
+</script>
+</body>
+</html>
+"""
+
+
+@st.dialog("📅 Almanaque", width="small")
+def calendar_dialog() -> None:
+    """Muestra el calendario como un modal flotante sobre el dashboard."""
+    st.components.v1.html(CALENDAR_HTML, height=460, scrolling=False)
+
+
 def render_calculator() -> None:
     """Vista legacy de calculadora (redirige al dialog)."""
     st.subheader("Calculadora")
@@ -1748,11 +1870,14 @@ def render_dashboard(df: pd.DataFrame) -> None:
     st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
     render_action_links()
 
-    # Botón flotante de calculadora (abre dialog nativo)
-    calc_col, _ = st.columns([1, 5])
+    # Botones flotantes (abren dialogs nativos)
+    calc_col, cal_col, _ = st.columns([1, 1, 4])
     with calc_col:
         if st.button("🧮 CALCULADORA", use_container_width=True):
             calculator_dialog()
+    with cal_col:
+        if st.button("📅 ALMANAQUE", use_container_width=True):
+            calendar_dialog()
 
     render_quick_links()
     st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
@@ -1853,9 +1978,9 @@ action = get_action()
 if st.session_state.pop("open_calculator", False):
     calculator_dialog()
 
-# Auto-abrir calculadora si viene de redirección legacy
-if st.session_state.pop("open_calculator", False):
-    calculator_dialog()
+# Auto-abrir almanaque si viene de redirección
+if st.session_state.pop("open_calendar", False):
+    calendar_dialog()
 
 if action == "nueva":
     render_new_reservation()
@@ -1874,6 +1999,11 @@ elif action == "calculadora":
     st.query_params.clear()
     st.query_params["skip_splash"] = "1"
     st.session_state["open_calculator"] = True
+    st.rerun()
+elif action == "almanaque":
+    st.query_params.clear()
+    st.query_params["skip_splash"] = "1"
+    st.session_state["open_calendar"] = True
     st.rerun()
 elif action == "bonus":
     render_bonus()
