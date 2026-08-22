@@ -1179,7 +1179,6 @@ def render_bonus() -> None:
                 guardar_bonus(year, data)
                 st.session_state[f"bonus_{year}"] = data
                 st.success("✅ Datos guardados en Supabase correctamente.")
-                st.session_state["bonus_auth_password"] = ""  # Limpiar campo
                 st.rerun()
     with c3:
         if st.button("BORRAR", use_container_width=True):
@@ -1192,7 +1191,6 @@ def render_bonus() -> None:
                 borrar_bonus(year)
                 st.session_state[f"bonus_{year}"] = {m: ["", ""] for m in range(12)}
                 st.success("🗑️ Todos los datos del año fueron eliminados de Supabase.")
-                st.session_state["bonus_auth_password"] = ""  # Limpiar campo
                 st.rerun()
     with c4:
         st.markdown(f'<div style="background:#D4AF37;color:#1C1300;padding:8px 12px;border-radius:8px;text-align:center;font-weight:800;font-size:12px">TOTAL SUM<br><span style="font-size:16px">{total_sum:,.2f}</span></div>', unsafe_allow_html=True)
