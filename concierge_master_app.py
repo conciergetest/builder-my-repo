@@ -1478,18 +1478,18 @@ function(params) {
   if (!val || val === 'nan' || val === 'None' || val === 'null') return null;
   const info = String((params.data && params.data.info) || '').toUpperCase();
   const cats = [
-    ['VIP', '#00E5FF', '#0a1f2a'],
-    ['BIRTHDAY', '#FF5252', '#2a0f0f'],
-    ['HONEYMOON', '#FF9800', '#2a1a0a'],
-    ['BABYMOON', '#A78BFA', '#1a0f2a'],
-    ['ANNIVERSARY', '#4ADE80', '#0a2a0f'],
-    ['RELAXURY', '#F472B6', '#2a0f1a'],
-    ['TEAM MEMBER', '#FACC15', '#2a2a0a'],
-    ['LEISURE', '#22D3EE', '#0a1a2a']
+    ['VIP', '#00E5FF'],
+    ['BIRTHDAY', '#FF5252'],
+    ['HONEYMOON', '#FF9800'],
+    ['BABYMOON', '#A78BFA'],
+    ['ANNIVERSARY', '#4ADE80'],
+    ['RELAXURY', '#F472B6'],
+    ['TEAM MEMBER', '#FACC15'],
+    ['LEISURE', '#22D3EE']
   ];
-  for (const [keyword, color, bgColor] of cats) {
+  for (const [keyword, color] of cats) {
     if (info.includes(keyword)) {
-      return { backgroundColor: bgColor, color: color, fontWeight: '800' };
+      return { color: color, fontWeight: '800' };
     }
   }
   return null;
