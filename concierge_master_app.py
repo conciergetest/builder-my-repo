@@ -554,50 +554,59 @@ def exportar_excel_por_categorias(df: pd.DataFrame) -> BytesIO:
 
 
 def exportar_reporte_excel(data: dict[str, pd.DataFrame], report_date: datetime) -> BytesIO:
-    from openpyxl import Workbook
     from openpyxl.styles import Alignment, Font, PatternFill
 
-    workbook = Workbook()
-    overview = workbook.active
-    overview.title = "Resumen"
-    cyan = PatternFill("solid", fgColor="00B0F0")
-    dark = PatternFill("solid", fgColor="123047")
-    white = Font(color="FFFFFF", bold=True)
-
-    overview.merge_cells("A1:D1")
-    overview["A1"] = f"REPORTE DE OCUPACIÓN” {report_date.strftime('%B %d, %Y').upper()}"
-    overview["A1"].fill, overview["A1"].font = cyan, Font(color="FFFFFF", bold=True, size=14)
-    overview["A1"].alignment = Alignment(horizontal="center")
-    overview.append([])
-    overview.append(["Métrica", "Reservas", "VIPs", "Habitaciones"])
-    for cell in overview[3]:
-        cell.fill, cell.font = dark, white
-
-    for title, frame in data.items():
-        vip_count = frame["info"].fillna("").astype(str).str.upper().str.contains("VIP").sum()
-        rooms = ", ".join(frame["room"].dropna().astype(str).replace("", pd.NA).dropna().tolist()) or "â€”"
-        overview.append([title, len(frame), int(vip_count), rooms])
-
-        sheet_name = title[:31]
-        sheet = workbook.create_sheet(sheet_name)
-        visible = frame[[column for column in DISPLAY_COLUMNS if column in frame.columns]].copy()
-        visible.to_excel(sheet, index=False)
-        for cell in sheet[1]:
-            cell.fill, cell.font = dark, white
-        sheet.freeze_panes = "A2"
-
-    for column, width in zip(("A", "B", "C", "D"), (30, 12, 12, 55)):
-        overview.column_dimensions[column].width = width
-
     output = BytesIO()
-    workbook.save(output)
+
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        # Hoja Resumen
+        overview_data = []
+        overview_data.append([f"REPORTE DE OCUPACIÓN — {report_date.strftime('%B %d, %Y').upper()}", "", "", ""])
+        overview_data.append([])
+        overview_data.append(["Métrica", "Reservas", "VIPs", "Habitaciones"])
+
+        for title, frame in data.items():
+            vip_count = int(frame["info"].fillna("").astype(str).str.upper().str.contains("VIP").sum())
+            rooms_list = frame["room"].dropna().astype(str).replace("", pd.NA).dropna().tolist()
+            rooms = ", ".join(rooms_list) if rooms_list else "—"
+            overview_data.append([title, len(frame), vip_count, rooms])
+
+        df_overview = pd.DataFrame(overview_data)
+        df_overview.to_excel(writer, sheet_name="Resumen", index=False, header=False)
+
+        # Estilizar Resumen
+        ws = writer.sheets["Resumen"]
+        cyan_fill = PatternFill("solid", fgColor="00B0F0")
+        dark_fill = PatternFill("solid", fgColor="123047")
+        white_font = Font(color="FFFFFF", bold=True)
+
+        ws.merge_cells("A1:D1")
+        ws["A1"].fill = cyan_fill
+        ws["A1"].font = Font(color="FFFFFF", bold=True, size=14)
+        ws["A1"].alignment = Alignment(horizontal="center")
+
+        for cell in ws[3]:
+            cell.fill = dark_fill
+            cell.font = white_font
+
+        for col, width in zip(("A", "B", "C", "D"), (30, 12, 12, 55)):
+            ws.column_dimensions[col].width = width
+
+        # Hojas individuales
+        for title, frame in data.items():
+            sheet_name = title[:31]
+            visible = frame[[column for column in DISPLAY_COLUMNS if column in frame.columns]].copy()
+            visible.to_excel(writer, sheet_name=sheet_name, index=False)
+
+            ws = writer.sheets[sheet_name]
+            for cell in ws[1]:
+                cell.fill = dark_fill
+                cell.font = white_font
+            ws.freeze_panes = "A2"
+
     output.seek(0)
     return output
 
-
-# -----------------------------------------------------------------------------
-# Interfaz comÃºn
-# -----------------------------------------------------------------------------
 
 def show_header() -> None:
     import streamlit.components.v1 as components
@@ -797,6 +806,7 @@ def render_new_reservation() -> None:
         })
         st.success("Reservación guardada correctamente.")
         st.query_params.clear()
+        st.query_params["skip_splash"] = "1"
         st.rerun()
 
 
@@ -982,6 +992,118 @@ def render_report(df: pd.DataFrame) -> None:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True,
     )
+
+
+CALCULATOR_HTML = """
+<!doctype html>
+<html>
+<head>
+<style>
+body{margin:0;background:#080b12;font-family:Segoe UI,sans-serif;display:grid;place-items:center;padding:8px;color:#eafaff}
+.calculator{width:280px;padding:14px;background:#101827;border:1px solid #284057;border-radius:16px;box-shadow:0 12px 35px #0008}
+#display{background:#061c2b;border:1px solid #00e5ff;border-radius:10px;color:#00e5ff;font:700 28px monospace;padding:12px;text-align:right;overflow:hidden;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+button{border:0;border-radius:8px;padding:12px 4px;background:#203449;color:#eafaff;font-weight:800;font-size:15px;cursor:pointer}
+button:hover{filter:brightness(1.2)}
+button:active{transform:scale(0.96)}
+.op{background:#7c3aed}
+.equal{background:#00c6df;color:#01171d}
+.clear{background:#e11d48}
+.hint{color:#8ca4ba;font-size:10px;text-align:center;margin-top:8px}
+</style>
+</head>
+<body tabindex="0">
+<div class="calculator">
+<div id="display">0</div>
+<div class="grid">
+<button class="clear" onclick="clearAll()">C</button>
+<button onclick="backspace()">⌫</button>
+<button class="op" onclick="add('/')">÷</button>
+<button class="op" onclick="add('*')">×</button>
+<button onclick="add('7')">7</button>
+<button onclick="add('8')">8</button>
+<button onclick="add('9')">9</button>
+<button class="op" onclick="add('-')">−</button>
+<button onclick="add('4')">4</button>
+<button onclick="add('5')">5</button>
+<button onclick="add('6')">6</button>
+<button class="op" onclick="add('+')">+</button>
+<button onclick="add('1')">1</button>
+<button onclick="add('2')">2</button>
+<button onclick="add('3')">3</button>
+<button onclick="add('.')">.</button>
+<button onclick="add('0')">0</button>
+<button onclick="add('%')">%</button>
+<button onclick="toggleSign()">±</button>
+<button class="equal" onclick="calculate()">=</button>
+</div>
+<div class="hint">⌨️ Teclado activo — usa números, + − × ÷, Enter y Esc</div>
+</div>
+<script>
+let value='';
+const out=document.getElementById('display');
+function draw(){out.textContent=value||'0'}
+function add(v){if('0123456789.'.includes(v)&&out.textContent==='Error')value='';value+=v;draw()}
+function clearAll(){value='';draw()}
+function backspace(){value=value.slice(0,-1);draw()}
+function toggleSign(){value=value.startsWith('-')?value.slice(1):'-'+value;draw()}
+function calculate(){
+    try{
+        let expr=value.replace(/%/g,'/100');
+        if(!/^[0-9+*/.() -]+$/.test(expr))throw Error();
+        value=String(Function('return ('+expr+')')());
+        draw();
+    }catch(e){
+        value='';
+        out.textContent='Error';
+    }
+}
+
+const KEY_MAP = {
+    'Numpad0':'0','Numpad1':'1','Numpad2':'2','Numpad3':'3',
+    'Numpad4':'4','Numpad5':'5','Numpad6':'6','Numpad7':'7',
+    'Numpad8':'8','Numpad9':'9','NumpadDecimal':'.',
+    'NumpadAdd':'+','NumpadSubtract':'-','NumpadMultiply':'*',
+    'NumpadDivide':'/','NumpadEnter':'Enter',
+    'Digit0':'0','Digit1':'1','Digit2':'2','Digit3':'3',
+    'Digit4':'4','Digit5':'5','Digit6':'6','Digit7':'7',
+    'Digit8':'8','Digit9':'9',
+    'Period':'.','Comma':'.',
+    'Slash':'/','Minus':'-','Equal':'+',
+};
+
+document.addEventListener('keydown', function(e){
+    const mapped = KEY_MAP[e.code] || e.key;
+    if('0123456789.+-*/%'.includes(mapped)){
+        e.preventDefault();
+        e.stopPropagation();
+        add(mapped);
+    } else if(mapped==='Enter' || e.key==='Enter'){
+        e.preventDefault();
+        e.stopPropagation();
+        calculate();
+    } else if(e.key==='Backspace'){
+        e.preventDefault();
+        e.stopPropagation();
+        backspace();
+    } else if(e.key==='Escape'){
+        e.preventDefault();
+        e.stopPropagation();
+        clearAll();
+    }
+});
+
+setTimeout(()=>{ document.body.focus(); }, 300);
+</script>
+</body>
+</html>
+"""
+
+
+@st.dialog("🧮 Calculadora", width="small")
+def calculator_dialog() -> None:
+    """Muestra la calculadora como un modal flotante sobre el dashboard."""
+    st.components.v1.html(CALCULATOR_HTML, height=430, scrolling=False)
 
 
 CALCULATOR_HTML = """
@@ -1440,15 +1562,15 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         "room":     ("ROOM",         70),
         "check_in": ("CHECK IN",     130),
         "check_out":("CHECK OUT",    130),
-        "nights":   ("🌙",            60),   # Luna dorada en vez de NOCHES
+        "nights":   ("🌙",            60),
         "res_number":("RESERVATION", 135),
         "phone":    ("PHONE",        175),
-        "email":    ("EMAIL",        140),  # Más corto
+        "email":    ("EMAIL",        140),
         "info":     ("INFORMATION",  220),
         "ird":      ("IRD",          160),
         "hsk":      ("HSK",          110),
         "rate":     ("RATE",         80),
-        "trans":    ("TRANS",        200),  # Más ancho para ver completo
+        "trans":    ("TRANS",        200),
     }
     for field, (header, width) in fields.items():
         if field not in visible.columns:
@@ -1494,10 +1616,6 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
                 st.query_params["sel_id"] = str(row.get("id"))
                 st.rerun()
 
-
-# -----------------------------------------------------------------------------
-# Dashboard principal
-# -----------------------------------------------------------------------------
 
 def render_dashboard(df: pd.DataFrame) -> None:
     vip_count = int(df["info"].fillna("").astype(str).str.upper().str.contains("VIP", na=False).sum())
@@ -1668,6 +1786,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
 show_header()
 reservations = cargar_reservaciones()
 action = get_action()
+
+# Auto-abrir calculadora si viene de redirección legacy
+if st.session_state.pop("open_calculator", False):
+    calculator_dialog()
 
 # Auto-abrir calculadora si viene de redirección legacy
 if st.session_state.pop("open_calculator", False):
