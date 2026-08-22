@@ -980,17 +980,17 @@ def render_delete() -> None:
 CATEGORY_CELL_STYLE = JsCode(
     """
 function(params) {
-  const source = String((params.data && params.data.info) || '').toUpperCase();
-  const current = String(params.value || '').toUpperCase();
-  const haystack = source + ' ' + current;
-  const categories = [
+  const val = String(params.value || '');
+  if (!val || val === 'nan' || val === 'None' || val === 'null') return null;
+  const text = val.toUpperCase();
+  const cats = [
     ['VIP', '#00E5FF'], ['BIRTHDAY', '#FF5252'], ['HONEYMOON', '#FF9800'],
     ['BABYMOON', '#A78BFA'], ['ANNIVERSARY', '#4ADE80'], ['RELAXURY', '#F472B6'],
     ['TEAM MEMBER', '#FACC15'], ['LEISURE', '#22D3EE']
   ];
-  for (const [keyword, color] of categories) {
-    if (haystack.includes(keyword)) {
-      return { backgroundColor: color + '24', color: color, fontWeight: '800' };
+  for (const [keyword, color] of cats) {
+    if (text.includes(keyword)) {
+      return { backgroundColor: color + '35', color: color, fontWeight: '800', borderRadius: '4px', padding: '2px 6px' };
     }
   }
   return null;
@@ -1002,7 +1002,7 @@ VIP_ROW_STYLE = JsCode(
     """
 function(params) {
   if (String((params.data && params.data.info) || '').toUpperCase().includes('VIP')) {
-    return { backgroundColor: '#191507', color: '#f6d670' };
+    return { backgroundColor: '#0a1a1a', borderLeft: '3px solid #00E5FF' };
   }
   return null;
 }
