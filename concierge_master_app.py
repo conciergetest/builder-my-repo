@@ -823,7 +823,7 @@ def render_edit_reservation() -> None:
     check_in_default = parse_fecha(reservation.get("check_in")) or datetime.now()
     check_out_default = parse_fecha(reservation.get("check_out")) or datetime.now() + timedelta(days=1)
     qty_default = pd.to_numeric(reservation.get("qty", 0), errors="coerce")
-    qty_default = 0 if pd.isna(qty_default) else int(qty_default)
+    qty_default = 0.0 if pd.isna(qty_default) else float(qty_default)
 
     with st.form("edit_reservation"):
         first = st.columns(4)
@@ -854,7 +854,7 @@ def render_edit_reservation() -> None:
             st.error("La fecha de check-out no puede ser anterior al check-in.")
             return
         actualizar_reserva(reservation["id"], {
-            "eta": eta.strip(), "name": name.strip(), "qty": int(qty), "room": room.strip(),
+            "eta": eta.strip(), "name": name.strip(), "qty": float(qty), "room": room.strip(),
             "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
             "check_out": check_out.strftime("%B %d, %Y"), "res_number": res_number.strip(),
             "phone": phone.strip(), "info": info.strip(), "ird": ird.strip(), "hsk": hsk.strip(),
