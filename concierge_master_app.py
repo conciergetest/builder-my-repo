@@ -1389,12 +1389,12 @@ GRID_CSS = {
         "background-color": "#0b111b !important",
     },
     ".ag-header": {
-        "background-color": "#00E5FF !important",
-        "border-bottom": "none !important",
+        "background-color": "#000000 !important",
+        "border-bottom": "1px solid #1f384d !important",
     },
     ".ag-header-cell": {"border-right": "none !important"},
-    ".ag-header-cell-label": {"color": "#00151d !important", "font-weight": "900 !important", "letter-spacing": ".25px"},
-    ".ag-header-cell-text": {"color": "#00151d !important"},
+    ".ag-header-cell-label": {"color": "#00E5FF !important", "font-weight": "900 !important", "letter-spacing": ".25px"},
+    ".ag-header-cell-text": {"color": "#00E5FF !important"},
     ".ag-row": {"background-color": "#0b111b !important", "border-bottom": "none !important"},
     ".ag-row-odd": {"background-color": "#0e1723 !important"},
     ".ag-cell": {"border-right": "none !important", "border-bottom": "none !important", "color": "#e6f3fb !important", "font-size": "12px"},
@@ -1402,17 +1402,28 @@ GRID_CSS = {
     ".ag-row-selected": {"background-color": "#00E5FF !important"},
     ".ag-row-selected .ag-cell": {"color": "#00151d !important", "font-weight": "800 !important"},
     ".ag-paging-panel": {"border-top": "none !important", "background-color": "#0b111b !important", "color": "#cceaf6 !important"},
+    ".ag-header-icon": {"display": "none !important"},
 }
 
 
 def render_reservations_grid(df: pd.DataFrame) -> None:
     visible = df[[column for column in DISPLAY_COLUMNS if column in df.columns]].copy()
+
     # Reemplazar NaN/None por cadena vacia en columnas de texto
     for col in visible.columns:
         if col != "qty":
             visible[col] = visible[col].apply(lambda x: "" if pd.isna(x) or str(x).lower() in ("nan", "none", "null") else str(x))
+
+    # Quitar .0 en ROOM y NOCHES
+    for col in ("room", "nights"):
+        if col in visible.columns:
+            visible[col] = visible[col].apply(
+                lambda x: str(int(float(x))) if str(x).replace(".", "").replace("-", "").isdigit() else str(x)
+            )
+
     builder = GridOptionsBuilder.from_dataframe(visible)
-    builder.configure_default_column(resizable=True, sortable=True, filter=True, minWidth=80)
+    # Solo CHECK IN tiene filtro; el resto no
+    builder.configure_default_column(resizable=True, sortable=True, filter=False, minWidth=80)
     builder.configure_selection(selection_mode="single", use_checkbox=False)
     builder.configure_grid_options(
         getRowStyle=VIP_ROW_STYLE,
@@ -1423,21 +1434,21 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
     )
 
     fields = {
-        "eta": ("ETA", 85),
-        "name": ("NAME", 165),
-        "qty": ("QTY", 65),
-        "room": ("ROOM", 75),
-        "check_in": ("CHECK IN", 130),
-        "check_out": ("CHECK OUT", 130),
-        "nights": ("NOCHES", 85),
-        "res_number": ("RESERVATION", 130),
-        "phone": ("PHONE", 135),
-        "email": ("EMAIL", 200),
-        "info": ("INFORMATION", 210),
-        "ird": ("IRD", 150),
-        "hsk": ("HSK", 120),
-        "rate": ("RATE", 85),
-        "trans": ("TRANS", 170),
+        "eta":      ("ETA",          80),
+        "name":     ("NAME",         170),
+        "qty":      ("QTY",          60),
+        "room":     ("ROOM",         70),
+        "check_in": ("CHECK IN",     130),
+        "check_out":("CHECK OUT",    130),
+        "nights":   ("🌙",            60),   # Luna dorada en vez de NOCHES
+        "res_number":("RESERVATION", 135),
+        "phone":    ("PHONE",        140),
+        "email":    ("EMAIL",        140),  # Más corto
+        "info":     ("INFORMATION",  220),
+        "ird":      ("IRD",          160),
+        "hsk":      ("HSK",          110),
+        "rate":     ("RATE",         80),
+        "trans":    ("TRANS",        200),  # Más ancho para ver completo
     }
     for field, (header, width) in fields.items():
         if field not in visible.columns:
@@ -1447,6 +1458,9 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
             config["cellStyle"] = CATEGORY_CELL_STYLE
         if field == "nights":
             config["type"] = ["numericColumn"]
+        # Solo CHECK IN tiene filtro habilitado
+        if field == "check_in":
+            config["filter"] = True
         builder.configure_column(field, **config)
 
     response = AgGrid(
