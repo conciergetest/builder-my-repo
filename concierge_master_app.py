@@ -1119,7 +1119,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True)
 
-selected = st.session_state.get("selected_reservation")
+    selected = st.session_state.get("selected_reservation")
     if selected:
         name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "â€”"))
         st.markdown(f'<div class="selection-banner"><b>â— RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
