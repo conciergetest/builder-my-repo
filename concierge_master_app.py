@@ -1506,15 +1506,44 @@ function(params) {
 QTY_RENDERER = JsCode(
     """
 function(params) {
-  if (params.value === null || params.value === undefined || params.value === '') return '';
+  if (params.value === null || params.value === undefined || params.value === '') {
+    var empty = document.createElement('span');
+    empty.textContent = '';
+    return empty;
+  }
   var val = parseFloat(params.value);
-  if (isNaN(val) || val === 0) return '';
+  if (isNaN(val) || val === 0) {
+    var empty = document.createElement('span');
+    empty.textContent = '';
+    return empty;
+  }
   var adultos = Math.floor(val);
   var ninos = Math.round((val - adultos) * 10);
-  if (ninos <= 0) {
-    return '<div style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;"><span style="color:#e6f3fb;font-weight:700;font-size:12px;">' + adultos + '</span></div>';
+
+  var div = document.createElement('div');
+  div.style.display = 'flex';
+  div.style.justifyContent = 'center';
+  div.style.alignItems = 'center';
+  div.style.width = '100%';
+  div.style.height = '100%';
+
+  var spanAdultos = document.createElement('span');
+  spanAdultos.style.color = '#e6f3fb';
+  spanAdultos.style.fontWeight = '700';
+  spanAdultos.style.fontSize = '12px';
+  spanAdultos.textContent = adultos;
+  div.appendChild(spanAdultos);
+
+  if (ninos > 0) {
+    var spanNinos = document.createElement('span');
+    spanNinos.style.color = '#00e5ff';
+    spanNinos.style.fontWeight = '800';
+    spanNinos.style.fontSize = '12px';
+    spanNinos.textContent = '+' + ninos;
+    div.appendChild(spanNinos);
   }
-  return '<div style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;"><span style="color:#e6f3fb;font-weight:700;font-size:12px;">' + adultos + '</span><span style="color:#00e5ff;font-weight:800;font-size:12px;">+' + ninos + '</span></div>';
+
+  return div;
 }
 """
 )
