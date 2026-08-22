@@ -772,7 +772,7 @@ def render_new_reservation() -> None:
         r1 = st.columns(3)
         eta = r1[0].selectbox("ETA", options=eta_options, index=0)
         name = r1[1].text_input("Name *", placeholder="Guest name")
-        qty = r1[2].text_input("QTY (adultos,niños)", placeholder="Ej: 2,1")
+        qty = r1[2].number_input("QTY (adultos,niños)", min_value=0.0, step=0.1, format="%.1f", value=0.0)
         r2 = st.columns(3)
         room = r2[0].text_input("Room", placeholder="101")
         email = r2[1].text_input("Email", placeholder="guest@email.com")
@@ -796,7 +796,7 @@ def render_new_reservation() -> None:
         if check_out < check_in:
             st.error("La fecha de check-out no puede ser anterior al check-in.")
             return
-        qty_val = int(qty) if qty.strip().isdigit() else 0
+        qty_val = float(qty)
         insertar_reserva({
             "eta": eta if eta != "-- Sin hora --" else "", "name": name.strip(), "qty": qty_val,
             "room": room.strip(), "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
@@ -829,7 +829,7 @@ def render_edit_reservation() -> None:
         first = st.columns(4)
         eta = first[0].text_input("ETA", value=str(reservation.get("eta", "")))
         name = first[1].text_input("Nombre *", value=str(reservation.get("name", "")))
-        qty = first[2].number_input("Huéspedes", min_value=0, value=qty_default)
+        qty = first[2].number_input("Huéspedes", min_value=0.0, step=0.1, format="%.1f", value=float(qty_default))
         room = first[3].text_input("Habitación", value=str(reservation.get("room", "")))
         second = st.columns(4)
         email = second[0].text_input("Email", value=str(reservation.get("email", "")))
@@ -1528,13 +1528,34 @@ GRID_CSS = {
 }
 
 
+def format_qty(value) -> str:
+    """Convierte 2.1 → '2+1', 3.0 → '3', 4.2 → '4+2' para mostrar en tabla."""
+    if value is None or pd.isna(value):
+        return ""
+    try:
+        x = float(value)
+        if x == 0:
+            return ""
+        adultos = int(x)
+        ninos = round((x - adultos) * 10)
+        if ninos <= 0:
+            return str(adultos)
+        return f"{adultos}+{ninos}"
+    except (ValueError, TypeError):
+        return str(value)
+
+
 def render_reservations_grid(df: pd.DataFrame) -> None:
     visible = df[[column for column in DISPLAY_COLUMNS if column in df.columns]].copy()
 
     # Reemplazar NaN/None por cadena vacia en columnas de texto
     for col in visible.columns:
-        if col != "qty":
+        if col not in ("qty",):
             visible[col] = visible[col].apply(lambda x: "" if pd.isna(x) or str(x).lower() in ("nan", "none", "null") else str(x))
+
+    # Formatear QTY como "2+1" en vez de "2.1"
+    if "qty" in visible.columns:
+        visible["qty"] = visible["qty"].apply(format_qty)
 
     # Quitar .0 en ROOM y NOCHES
     for col in ("room", "nights"):
