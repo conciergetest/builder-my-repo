@@ -169,28 +169,7 @@ st.markdown(
 <style>
     :root { color-scheme: dark; }
     .stApp { background: #080b12; color: #edf8ff; }
-    /* AG Grid selected row override - force transparent background */
-    div.ag-row-selected,
-    div.ag-row-selected.ag-row-focus,
-    div.ag-row-selected.ag-row-no-focus,
-    div.ag-row-selected.ag-row-hover,
-    div.ag-body-viewport div.ag-row-selected,
-    div.ag-center-cols-viewport div.ag-row-selected,
-    div.ag-row-selected::before,
-    div.ag-row-selected::after,
-    div.ag-row-selected.ag-row-odd,
-    div.ag-row-selected.ag-row-even {
-        background: transparent !important;
-        background-color: transparent !important;
-    }
-    div.ag-row-selected {
-        border-top: 2px solid #00E5FF !important;
-        border-bottom: 2px solid #00E5FF !important;
-    }
-    div.ag-row-selected .ag-cell {
-        color: #e6f3fb !important;
-        font-weight: 800 !important;
-    }
+    /* AG Grid selected row handled via rowClassRules */
     header[data-testid="stHeader"] { display: none; }
     .block-container { max-width: 100%; padding: .7rem 1.1rem 1.4rem; }
     [data-testid="stVerticalBlock"] { gap: .45rem; }
@@ -1657,16 +1636,13 @@ function(params) {
 """
 )
 
-VIP_ROW_STYLE = JsCode(
+ROW_CLASS_RULES = JsCode(
     """
 function(params) {
-  if (params.node && params.node.selected) {
-    return { backgroundColor: 'transparent', borderTop: '2px solid #00E5FF', borderBottom: '2px solid #00E5FF' };
-  }
-  if (String((params.data && params.data.info) || '').toUpperCase().includes('VIP')) {
-    return { backgroundColor: '#0a1a1a', borderLeft: '3px solid #00E5FF' };
-  }
-  return null;
+  return {
+    'selected-transparent': params.node && params.node.selected,
+    'vip-row': String((params.data && params.data.info) || '').toUpperCase().includes('VIP')
+  };
 }
 """
 )
@@ -1711,19 +1687,10 @@ GRID_CSS = {
     ".ag-row-odd": {"background-color": "#0e1723 !important"},
     ".ag-cell": {"border-right": "none !important", "border-bottom": "none !important", "color": "#e6f3fb", "font-size": "12px"},
     ".ag-row-hover": {"background": "#132a3a !important"},
-    ".ag-row.ag-row-selected": {"background": "transparent !important", "border-top": "2px solid #00E5FF !important", "border-bottom": "2px solid #00E5FF !important"},
+    ".selected-transparent": {"background": "transparent !important", "border-top": "2px solid #00E5FF !important", "border-bottom": "2px solid #00E5FF !important"},
+    ".selected-transparent .ag-cell": {"color": "#e6f3fb !important", "font-weight": "800 !important"},
+    ".vip-row": {"background-color": "#0a1a1a !important", "border-left": "3px solid #00E5FF !important"},
     ".ag-row-selected .ag-cell": {"color": "#e6f3fb !important", "font-weight": "800 !important"},
-    ".ag-row-selected.ag-row-focus": {"background": "transparent !important"},
-    ".ag-row-selected.ag-row-no-focus": {"background": "transparent !important"},
-    ".ag-body-viewport .ag-row-selected": {"background": "transparent !important"},
-    ".ag-center-cols-viewport .ag-row-selected": {"background": "transparent !important"},
-    ".ag-row-selected::before": {"background": "transparent !important"},
-    ".ag-row-selected::after": {"background": "transparent !important"},
-    ".ag-row-selected .ag-cell-wrapper": {"background": "transparent !important"},
-    ".ag-row-selected .ag-cell-value": {"background": "transparent !important"},
-    ".ag-row-selected .ag-cell-inline-editing": {"background": "transparent !important"},
-    ".ag-row-selected.ag-row-odd": {"background": "transparent !important"},
-    ".ag-row-selected.ag-row-even": {"background": "transparent !important"},
     ".ag-paging-panel": {"border-top": "none !important", "background-color": "#0b111b !important", "color": "#cceaf6 !important"},
     ".ag-header-icon": {"display": "none !important"},
 }
@@ -1770,7 +1737,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
     builder.configure_default_column(resizable=True, sortable=True, filter=False, minWidth=80)
     builder.configure_selection(selection_mode="single", use_checkbox=False)
     builder.configure_grid_options(
-        getRowStyle=VIP_ROW_STYLE,
+        rowClassRules=ROW_CLASS_RULES,
         rowHeight=34,
         headerHeight=37,
         suppressCellFocus=True,
