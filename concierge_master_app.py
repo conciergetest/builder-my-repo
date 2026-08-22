@@ -813,6 +813,10 @@ def render_import() -> None:
     preview = frame[IMPORT_COLUMNS].copy()
     preview["check_in"] = preview["check_in"].map(normalizar_fecha)
     preview["check_out"] = preview["check_out"].map(normalizar_fecha)
+    # Reemplazar NaN/None por cadena vacia para visualizacion limpia
+    for col in preview.columns:
+        if col != "qty":
+            preview[col] = preview[col].apply(lambda x: "" if pd.isna(x) or str(x).lower() in ("nan", "none", "null") else x)
     st.success(f"Archivo vÃ¡lido: {len(preview)} reservaciones detectadas.")
     st.dataframe(preview, use_container_width=True, hide_index=True, height=300)
 
@@ -822,7 +826,7 @@ def render_import() -> None:
             record = {}
             for column in IMPORT_COLUMNS:
                 value = row[column]
-                if pd.isna(value):
+                if pd.isna(value) or str(value).lower() in ("nan", "none", "null"):
                     value = ""
                 elif column == "qty":
                     value = int(pd.to_numeric(value, errors="coerce") or 0)
@@ -1102,6 +1106,10 @@ GRID_CSS = {
 
 def render_reservations_grid(df: pd.DataFrame) -> None:
     visible = df[[column for column in DISPLAY_COLUMNS if column in df.columns]].copy()
+    # Reemplazar NaN/None por cadena vacia en columnas de texto
+    for col in visible.columns:
+        if col != "qty":
+            visible[col] = visible[col].apply(lambda x: "" if pd.isna(x) or str(x).lower() in ("nan", "none", "null") else str(x))
     builder = GridOptionsBuilder.from_dataframe(visible)
     builder.configure_default_column(resizable=True, sortable=True, filter=True, minWidth=80)
     builder.configure_selection(selection_mode="single", use_checkbox=False)
