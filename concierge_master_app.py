@@ -1599,6 +1599,9 @@ function(params) {
   const val = String(params.value || '');
   if (!val || val === 'nan' || val === 'None' || val === 'null') return null;
   const info = String((params.data && params.data.info) || '').toUpperCase();
+  const ird = String((params.data && params.data.ird) || '').toUpperCase();
+  const trans = String((params.data && params.data.trans) || '').toUpperCase();
+  const combined = info + " " + ird + " " + trans;
   const cats = [
     ['VIP', '#00E5FF'],
     ['BIRTHDAY', '#FF5252'],
@@ -1610,7 +1613,7 @@ function(params) {
     ['LEISURE', '#22D3EE']
   ];
   for (const [keyword, color] of cats) {
-    if (info.includes(keyword)) {
+    if (combined.includes(keyword)) {
       return { color: color, fontWeight: '800' };
     }
   }
