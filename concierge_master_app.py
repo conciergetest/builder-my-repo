@@ -1962,7 +1962,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
     if selected and not bulk_ids:
         sel_id = safe_text(str(selected.get("id", "")))
         name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "â"))
-        st.markdown(f'<div class="selection-banner"><b>â RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="selection-banner"><b>RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
         st.markdown(
             '<div class="action-links" style="grid-template-columns:repeat(4,minmax(110px,1fr));max-width:700px">'
             f'<a class="action-link" href="?action=editar&sel_id={sel_id}" target="_self" style="background:#D97706">EDITAR</a>'
