@@ -683,32 +683,28 @@ def render_quick_links() -> None:
 
 
 def render_app_links() -> None:
-    """Muestra los 4 botones de acceso rápido a otras apps con sus logos."""
-    # Ajusta la rama si tu repo usa otra (ej: master)
-    repo_raw = "https://raw.githubusercontent.com/conciergetest/builder-my-repo/main"
+    """Muestra los 4 botones de acceso rápido a otras apps en el centro del dashboard."""
     apps = [
-        (f"{repo_raw}/Aquatic.png", "🏊 Aquatic Reservations", "https://activities-avhsghtxc4ewcdvhqjejrp.streamlit.app/"),
-        (f"{repo_raw}/Operator.png", "📋 Operator's Log", "https://hotel-logbook-zu2ywlashxhykapkbxawfc.streamlit.app/"),
-        (f"{repo_raw}/VTCreator.png", "✏️ VT Creator", "https://activity-certificate-waldorf-jwxquxl93r5ntvye4w3ftu.streamlit.app/"),
-        (f"{repo_raw}/VTDatabase.png", "🗄️ VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/"),
+        ("🏊 Aquatic Reservations", "https://activities-avhsghtxc4ewcdvhqjejrp.streamlit.app/", "#0891B2"),
+        ("📋 Operator's Log", "https://hotel-logbook-zu2ywlashxhykapkbxawfc.streamlit.app/", "#D97706"),
+        ("✏️ VT Creator", "https://activity-certificate-waldorf-jwxquxl93r5ntvye4w3ftu.streamlit.app/", "#7C3AED"),
+        ("🗄️ VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/", "#059669"),
     ]
     buttons = "".join(
-        f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">'
-        f'<img src="{html.escape(img, quote=True)}" alt="">'
+        f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="background:{bg}">'
         f'<span>{label}</span></a>'
-        for img, label, url in apps
+        for label, url, bg in apps
     )
     st.markdown(
         '<style>'
-        '.app-links { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:10px 0 6px; }'
-        '.app-link { display:flex; align-items:center; gap:10px; padding:10px 14px; background:#0d1420; '
-        'border:1px solid #3d2e12; border-radius:10px; color:#d4af37; text-decoration:none; '
-        'font:800 12px/1 "Segoe UI",sans-serif; letter-spacing:.4px; '
-        'box-shadow:inset 0 0 0 1px rgba(212,175,55,.12), 0 4px 12px rgba(0,0,0,.35); '
+        '.app-links { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:14px 0 4px; }'
+        '.app-link { display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; '
+        'border:1px solid rgba(255,255,255,.08); border-radius:10px; color:#fff; text-decoration:none; '
+        'font:800 12px/1.1 "Segoe UI",sans-serif; letter-spacing:.3px; text-align:center; '
+        'box-shadow:0 4px 12px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08); '
         'transition:all .15s ease; }'
-        '.app-link:hover { filter:brightness(1.2); border-color:#d4af37; transform:translateY(-2px); }'
-        '.app-link img { width:26px; height:26px; object-fit:contain; border-radius:4px; }'
-        '.app-link span { color:#eafaff; }'
+        '.app-link:hover { filter:brightness(1.15); transform:translateY(-2px); border-color:rgba(255,255,255,.25); }'
+        '.app-link span { color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.4); }'
         '@media (max-width:980px){ .app-links { grid-template-columns:repeat(2,1fr); } }'
         '</style>'
         f'<div class="app-links">{buttons}</div>',
@@ -1945,9 +1941,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
         render_category_chart(filtered)
         relaxury = int(filtered.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
         st.markdown(f'<div class="total-strip" style="border-color:#f472b6">RELAXURY <strong style="color:#f472b6">{relaxury}</strong></div>', unsafe_allow_html=True)
+        render_app_links()
 
     st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-    render_app_links()
     render_action_links()
 
     # Botones flotantes (abren dialogs nativos)
