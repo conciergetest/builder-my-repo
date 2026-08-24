@@ -323,8 +323,14 @@ def date_from_filter(value: str | None) -> datetime | None:
 
 
 def url_with(**params: str) -> str:
-    clean = {key: value for key, value in params.items() if value not in (None, "")}
-    return "?" + urlencode(clean) if clean else "?"
+    """Fusiona parámetros nuevos con los query_params actuales (conserva filtros)."""
+    current = {k: v for k, v in st.query_params.items()}
+    for key, value in params.items():
+        if value in (None, ""):
+            current.pop(key, None)
+        else:
+            current[key] = value
+    return "?" + urlencode(current) if current else "?"
 
 
 def clear_selection() -> None:
@@ -360,7 +366,10 @@ def get_selected_reservation(df: pd.DataFrame) -> dict | None:
 def clear_page() -> None:
     clear_selection()
     st.session_state.bulk_selected_ids = []
-    st.query_params.clear()
+    # Preservar filtros; solo eliminamos parámetros de navegación
+    for key in list(st.query_params.keys()):
+        if key in ("action", "sel_id"):
+            del st.query_params[key]
     st.query_params["skip_splash"] = "1"
     st.rerun()
 
@@ -759,8 +768,13 @@ def render_category_chart(df: pd.DataFrame) -> None:
 # -----------------------------------------------------------------------------
 
 def render_back_link() -> None:
+    current = {k: v for k, v in st.query_params.items()}
+    current.pop("action", None)
+    current.pop("sel_id", None)
+    current["skip_splash"] = "1"
+    back_url = "?" + urlencode(current) if current else "?"
     st.markdown(
-        '<a class="action-link" href="?skip_splash=1" target="_self" style="background:#334155;max-width:185px">REGRESAR A LA TABLA</a>',
+        f'<a class="action-link" href="{back_url}" target="_self" style="background:#334155;max-width:185px">REGRESAR A LA TABLA</a>',
         unsafe_allow_html=True,
     )
 
@@ -806,9 +820,7 @@ def render_new_reservation() -> None:
             "rate": rate.strip(), "trans": trans.strip(),
         })
         st.success("Reservación guardada correctamente.")
-        st.query_params.clear()
-        st.query_params["skip_splash"] = "1"
-        st.rerun()
+        clear_page()
 
 
 def render_edit_reservation() -> None:
@@ -1868,7 +1880,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 f'<a class="quick-link" href="{url_with(checkout_filtro=stored)}" target="_self" style="background:#{"0F766E" if offset % 2 == 0 else "155E75"}">{date:%b %d}: {count}</a>'
             )
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
-        st.markdown('<div style="margin-top:7px"><a class="action-link" href="?skip_splash=1" target="_self" style="background:#334155">« VER TODAS »</a></div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="margin-top:7px"><a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#334155">« VER TODAS »</a></div>', unsafe_allow_html=True)
 
         # Panel de seleccion masiva
         st.markdown('<div class="panel" style="margin-top:10px"><div class="panel-title">Seleccion masiva</div>', unsafe_allow_html=True)
@@ -1890,10 +1902,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
-        selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date(), key="arrival_date")
+        selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date())
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
         st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;margin-top:5px">APLICAR FECHA</a>', unsafe_allow_html=True)
-        st.markdown('<a class="action-link" href="?skip_splash=1" target="_self" style="background:#475569;margin-top:5px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#475569;margin-top:5px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with right:
         render_category_chart(filtered)
@@ -1965,10 +1977,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown(f'<div class="selection-banner"><b>RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
         st.markdown(
             '<div class="action-links" style="grid-template-columns:repeat(4,minmax(110px,1fr));max-width:700px">'
-            f'<a class="action-link" href="?action=editar&sel_id={sel_id}" target="_self" style="background:#D97706">EDITAR</a>'
-            f'<a class="action-link" href="?action=carta&sel_id={sel_id}" target="_self" style="background:#7C3AED">CARTA</a>'
-            f'<a class="action-link" href="?action=cancelar&sel_id={sel_id}" target="_self" style="background:#E11D48">BORRAR</a>'
-            '<a class="action-link" href="?skip_splash=1" target="_self" style="background:#475569">DESELECCIONAR</a>'
+            f'<a class="action-link" href="{url_with(action="editar", sel_id=sel_id)}" target="_self" style="background:#D97706">EDITAR</a>'
+            f'<a class="action-link" href="{url_with(action="carta", sel_id=sel_id)}" target="_self" style="background:#7C3AED">CARTA</a>'
+            f'<a class="action-link" href="{url_with(action="cancelar", sel_id=sel_id)}" target="_self" style="background:#E11D48">BORRAR</a>'
+            f'<a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#475569">DESELECCIONAR</a>'
             '</div>',
             unsafe_allow_html=True,
         )
@@ -1998,11 +2010,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
                     st.session_state.pop("selected_reservation", None)
                     st.session_state.pop("selected_reservation_id", None)
                     st.success(f"{len(bulk_ids)} reservas eliminadas correctamente.")
-                    st.query_params.clear()
-                    st.rerun()
+                    clear_page()
         st.markdown(
             '<div class="action-links" style="grid-template-columns:repeat(2,minmax(110px,1fr));max-width:400px">'
-            '<a class="action-link" href="?skip_splash=1" target="_self" style="background:#475569">CANCELAR SELECCION</a>'
+            f'<a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#475569">CANCELAR SELECCION</a>'
             '</div>',
             unsafe_allow_html=True,
         )
@@ -2041,13 +2052,17 @@ elif action == "agenda":
 elif action == "reporte":
     render_report(reservations)
 elif action == "calculadora":
-    # Redirigir al dashboard y abrir dialog automáticamente
-    st.query_params.clear()
+    # Redirigir al dashboard y abrir dialog automáticamente (preservar filtros)
+    for key in list(st.query_params.keys()):
+        if key == "action":
+            del st.query_params[key]
     st.query_params["skip_splash"] = "1"
     st.session_state["open_calculator"] = True
     st.rerun()
 elif action == "almanaque":
-    st.query_params.clear()
+    for key in list(st.query_params.keys()):
+        if key == "action":
+            del st.query_params[key]
     st.query_params["skip_splash"] = "1"
     st.session_state["open_calendar"] = True
     st.rerun()
