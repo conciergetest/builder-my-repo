@@ -510,7 +510,7 @@ def exportar_excel_por_categorias(df: pd.DataFrame) -> BytesIO:
         ("GENERAL", ()),
     ]
     export_columns = [
-        ("id", "ID"), ("eta", "ETA"), ("name", "NAME"), ("qty", "QTY"),
+        ("eta", "ETA"), ("name", "NAME"), ("qty", "QTY"),
         ("room", "ROOM"), ("email", "EMAIL"), ("check_in", "CHECK IN"),
         ("check_out", "CHECK OUT"), ("nights", "NIGHTS"),
         ("res_number", "RESERVATION"), ("phone", "PHONE"), ("info", "INFORMATION"),
@@ -552,7 +552,7 @@ def exportar_excel_por_categorias(df: pd.DataFrame) -> BytesIO:
             row_number += 1
         row_number += 1
 
-    widths = [7, 11, 24, 7, 10, 28, 17, 17, 9, 17, 18, 28, 18, 18, 10, 22]
+    widths = [11, 24, 7, 10, 28, 17, 17, 9, 17, 18, 28, 18, 18, 10, 22]
     for index, width in enumerate(widths, 1):
         sheet.column_dimensions[chr(64 + index)].width = width
     sheet.freeze_panes = "A3"
