@@ -1935,7 +1935,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date())
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
         st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;margin-top:5px">APLICAR FECHA</a>', unsafe_allow_html=True)
-        st.markdown(f'<a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#475569;margin-top:5px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:#475569;margin-top:5px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with right:
         render_category_chart(filtered)
