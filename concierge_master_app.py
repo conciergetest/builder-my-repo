@@ -1942,6 +1942,14 @@ def render_dashboard(df: pd.DataFrame) -> None:
         relaxury = int(filtered.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
         st.markdown(f'<div class="total-strip" style="border-color:#f472b6">RELAXURY <strong style="color:#f472b6">{relaxury}</strong></div>', unsafe_allow_html=True)
         render_app_links()
+        st.markdown(
+            '<div style="display:flex;justify-content:center;margin:12px 0 8px;">'
+            '<img src="https://raw.githubusercontent.com/conciergetest/builder-my-repo/main/FredWayneLOGO.jpeg" '
+            'style="max-height:150px;width:auto;border-radius:10px;opacity:.95;box-shadow:0 8px 24px rgba(0,0,0,.5);" '
+            'alt="Fred Wayne Logo">'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
     st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
     render_action_links()
