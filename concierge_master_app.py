@@ -1727,6 +1727,21 @@ function(params) {
 """
 )
 
+NAVIGATE_JS = JsCode(
+    """
+function(params) {
+  var nextCell = params.nextCellPosition;
+  if (nextCell) {
+    var rowNode = params.api.getDisplayedRowAtIndex(nextCell.rowIndex);
+    if (rowNode) {
+      rowNode.setSelected(true, true);
+    }
+  }
+  return nextCell;
+}
+"""
+)
+
 GRID_CSS = {
     ".ag-root-wrapper": {
         "--ag-selected-row-background-color": "transparent !important",
@@ -1747,6 +1762,7 @@ GRID_CSS = {
     ".ag-row": {"background-color": "#0b111b !important", "border-bottom": "none !important"},
     ".ag-row-odd": {"background-color": "#0e1723 !important"},
     ".ag-cell": {"border-right": "none !important", "border-bottom": "none !important", "color": "#e6f3fb", "font-size": "12px"},
+    ".ag-cell-focus": {"border": "none !important", "outline": "none !important", "box-shadow": "none !important"},
     ".ag-row-hover": {"background": "#132a3a !important"},
     ".vip-row": {"background-color": "#0a1a1a !important", "border-left": "3px solid #00E5FF !important"},
     ".ag-row-selected": {"background-color": "#0b111b !important", "border-top": "1px solid #00E5FF !important", "border-bottom": "1px solid #00E5FF !important"},
@@ -1805,9 +1821,10 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         rowClassRules=ROW_CLASS_RULES,
         rowHeight=34,
         headerHeight=37,
-        suppressCellFocus=True,
+        suppressCellFocus=False,
         suppressRowHoverHighlight=True,
         animateRows=True,
+        navigateToNextCell=NAVIGATE_JS,
     )
 
     fields = {
