@@ -674,12 +674,196 @@ def show_header() -> None:
         )
 
 
-def render_quick_links() -> None:
-    links = "".join(
-        f'<a class="quick-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="background:{color}">{label}</a>'
-        for label, url, color in QUICK_LINKS
-    )
-    st.markdown(f'<div class="quick-links">{links}</div>', unsafe_allow_html=True)
+
+
+
+def render_menu() -> None:
+    """Muestra un único botón de menú que despliega un panel flotante con todas las acciones y enlaces."""
+
+    def _url(action: str) -> str:
+        current = {k: v for k, v in st.query_params.items()}
+        current["action"] = action
+        return "?" + urlencode(current)
+
+    menu_html = f"""
+<style>
+  .menu-wrapper {{ position: relative; display: inline-block; }}
+  .menu-btn {{
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 10px; border: 1px solid #1e3348;
+    background: linear-gradient(135deg, #0d1420 0%, #101827 100%);
+    color: #00e5ff; font-weight: 800; font-size: 13px; letter-spacing: 1.2px;
+    cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
+    transition: all .15s ease; text-transform: uppercase;
+  }}
+  .menu-btn:hover {{ border-color: #00e5ff; box-shadow: 0 0 16px rgba(0,229,255,.25); }}
+  .menu-btn:active {{ transform: scale(0.97); }}
+  .menu-btn svg {{ width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }}
+
+  .menu-overlay {{
+    position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 9998;
+    opacity: 0; pointer-events: none; transition: opacity .2s ease;
+  }}
+  .menu-overlay.open {{ opacity: 1; pointer-events: auto; }}
+
+  .menu-panel {{
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -45%) scale(.96);
+    width: min(520px, 92vw); max-height: 82vh; overflow-y: auto;
+    background: #0b111b; border: 1px solid #1e3348; border-radius: 14px;
+    padding: 22px; box-shadow: 0 24px 60px rgba(0,0,0,.7);
+    opacity: 0; pointer-events: none; transition: all .25s cubic-bezier(.16,1,.3,1); z-index: 9999;
+  }}
+  .menu-panel.open {{ opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }}
+
+  .menu-header {{
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid #1e3348;
+  }}
+  .menu-title {{ color: #d4af37; font-size: 15px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }}
+  .menu-close {{
+    width: 32px; height: 32px; border-radius: 8px; border: 1px solid #263b53;
+    background: #101827; color: #8ca4ba; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all .12s;
+  }}
+  .menu-close:hover {{ border-color: #e11d48; color: #e11d48; background: #2a0a0a; }}
+
+  .menu-section {{ margin-bottom: 18px; }}
+  .menu-section-title {{
+    color: #8ca4ba; font-size: 10px; font-weight: 800; letter-spacing: 1.2px;
+    text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }}
+  .menu-section-title::before {{ content: ''; display: block; width: 18px; height: 2px; border-radius: 1px; }}
+  .section-ops::before {{ background: #00e5ff; }}
+  .section-tools::before {{ background: #a78bfa; }}
+  .section-links::before {{ background: #4ade80; }}
+
+  .menu-grid {{ display: grid; gap: 8px; }}
+  .grid-3 {{ grid-template-columns: repeat(3, 1fr); }}
+  .grid-2 {{ grid-template-columns: repeat(2, 1fr); }}
+  .grid-5 {{ grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }}
+
+  .menu-item {{
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; padding: 12px 8px; border-radius: 10px; border: 1px solid #1e3348;
+    background: #0d1420; color: #eafaff; font-size: 11px; font-weight: 700;
+    letter-spacing: .4px; text-align: center; cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 3px 8px rgba(0,0,0,.25);
+    transition: all .12s ease; text-decoration: none; min-height: 64px;
+  }}
+  .menu-item:hover {{ transform: translateY(-2px); filter: brightness(1.15); border-color: currentColor; }}
+  .menu-item:active {{ transform: scale(0.96); }}
+  .menu-item .icon {{
+    width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 900;
+  }}
+
+  .btn-nueva    {{ --c: #00b8d4; color: #00b8d4; }}
+  .btn-importar {{ --c: #16a34a; color: #4ade80; }}
+  .btn-exportar {{ --c: #2563eb; color: #60a5fa; }}
+  .btn-reporte  {{ --c: #d97706; color: #fbbf24; }}
+  .btn-agenda   {{ --c: #7c3aed; color: #a78bfa; }}
+  .btn-bonus    {{ --c: #d4af37; color: #facc15; }}
+  .btn-calc     {{ --c: #0891b2; color: #22d3ee; }}
+  .btn-alma     {{ --c: #475569; color: #94a3b8; }}
+  .btn-alice    {{ --c: #6c5ce7; color: #a5b4fc; }}
+  .btn-arrivals {{ --c: #0284c7; color: #38bdf8; }}
+  .btn-cernia   {{ --c: #059669; color: #34d399; }}
+  .btn-nolimit  {{ --c: #ea580c; color: #fb923c; }}
+  .btn-opentbl  {{ --c: #dc2626; color: #f87171; }}
+  .btn-outfw    {{ --c: #2563eb; color: #60a5fa; }}
+  .btn-outpc    {{ --c: #0078d4; color: #38bdf8; }}
+  .btn-relax    {{ --c: #db2777; color: #f472b6; }}
+  .btn-vtc      {{ --c: #d97706; color: #fbbf24; }}
+
+  .menu-item .icon {{ background: color-mix(in srgb, var(--c) 15%, transparent); color: var(--c); }}
+  .menu-item:hover {{ border-color: var(--c); box-shadow: 0 0 12px color-mix(in srgb, var(--c) 20%, transparent); }}
+
+  .menu-footer {{
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid #1e3348;
+    text-align: center; color: #4a5a6a; font-size: 10px; letter-spacing: .5px;
+  }}
+
+  @media (max-width: 520px) {{
+    .grid-3, .grid-5 {{ grid-template-columns: repeat(2, 1fr); }}
+  }}
+</style>
+
+<div style="display:flex;justify-content:flex-end;margin:8px 0;">
+  <div class="menu-wrapper">
+    <button class="menu-btn" id="menuToggle" onclick="toggleMenu()">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      MENÚ
+    </button>
+  </div>
+</div>
+
+<div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
+
+<div class="menu-panel" id="menuPanel">
+  <div class="menu-header">
+    <div class="menu-title">☰ Concierge Master</div>
+    <button class="menu-close" onclick="closeMenu()">✕</button>
+  </div>
+
+  <div class="menu-section">
+    <div class="menu-section-title section-ops">Operaciones</div>
+    <div class="menu-grid grid-3">
+      <a class="menu-item btn-nueva"    href="{_url('nueva')}"    target="_self"><span class="icon">＋</span>NUEVA</a>
+      <a class="menu-item btn-importar" href="{_url('importar')}" target="_self"><span class="icon">↑</span>IMPORTAR</a>
+      <a class="menu-item btn-exportar" href="{_url('exportar')}" target="_self"><span class="icon">↓</span>EXPORTAR</a>
+      <a class="menu-item btn-reporte"  href="{_url('reporte')}"  target="_self"><span class="icon">📊</span>REPORTE</a>
+      <a class="menu-item btn-agenda"   href="{_url('agenda')}"   target="_self"><span class="icon">📅</span>AGENDA</a>
+      <a class="menu-item btn-bonus"    href="{_url('bonus')}"    target="_self"><span class="icon">💰</span>BONUS</a>
+    </div>
+  </div>
+
+  <div class="menu-section">
+    <div class="menu-section-title section-tools">Herramientas</div>
+    <div class="menu-grid grid-2">
+      <a class="menu-item btn-calc" href="{_url('calculadora')}" target="_self"><span class="icon">🧮</span>CALCULADORA</a>
+      <a class="menu-item btn-alma" href="{_url('almanaque')}"  target="_self"><span class="icon">📆</span>ALMANAQUE</a>
+    </div>
+  </div>
+
+  <div class="menu-section">
+    <div class="menu-section-title section-links">Enlaces Rápidos</div>
+    <div class="menu-grid grid-5">
+      <a class="menu-item btn-alice"    href="{html.escape(QUICK_LINKS[0][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">A</span>ALICE</a>
+      <a class="menu-item btn-arrivals" href="{html.escape(QUICK_LINKS[1][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">ARR</span>ARRIVALS</a>
+      <a class="menu-item btn-cernia"   href="{html.escape(QUICK_LINKS[2][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">LC</span>LA CERNIA</a>
+      <a class="menu-item btn-nolimit"  href="{html.escape(QUICK_LINKS[3][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">NL</span>NO LIMIT</a>
+      <a class="menu-item btn-opentbl"  href="{html.escape(QUICK_LINKS[4][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">OT</span>OPEN TABLE</a>
+      <a class="menu-item btn-outfw"    href="{html.escape(QUICK_LINKS[5][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">FW</span>OUTLOOK-FW</a>
+      <a class="menu-item btn-outpc"    href="{html.escape(QUICK_LINKS[6][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">PC</span>OUTLOOK-PC</a>
+      <a class="menu-item btn-relax"    href="{html.escape(QUICK_LINKS[7][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">RX</span>RELAXURY</a>
+      <a class="menu-item btn-vtc"      href="{html.escape(QUICK_LINKS[8][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">VT</span>VTC</a>
+    </div>
+  </div>
+
+  <div class="menu-footer">Waldorf Astoria Costa Rica · Concierge Master v5.1</div>
+</div>
+
+<script>
+  const overlay = document.getElementById('menuOverlay');
+  const panel = document.getElementById('menuPanel');
+  function toggleMenu() {{
+    const isOpen = panel.classList.contains('open');
+    if (isOpen) closeMenu(); else openMenu();
+  }}
+  function openMenu() {{
+    overlay.classList.add('open');
+    panel.classList.add('open');
+  }}
+  function closeMenu() {{
+    overlay.classList.remove('open');
+    panel.classList.remove('open');
+  }}
+  document.addEventListener('keydown', function(e) {{
+    if (e.key === 'Escape') closeMenu();
+  }});
+</script>
+    """
+    st.markdown(menu_html, unsafe_allow_html=True)
 
 
 def render_app_links() -> None:
@@ -712,20 +896,7 @@ def render_app_links() -> None:
     )
 
 
-def render_action_links() -> None:
-    actions = [
-        ("NUEVA", "nueva", "#00B8D4", "#041319"),
-        ("IMPORTAR", "importar", "#16A34A", "#FFFFFF"),
-        ("EXPORTAR", "exportar", "#2563EB", "#FFFFFF"),
-        ("REPORTE", "reporte", "#D97706", "#1C1300"),
-        ("AGENDA", "agenda", "#7C3AED", "#FFFFFF"),
-        ("BONUS", "bonus", "#D4AF37", "#1C1300"),
-    ]
-    buttons = "".join(
-        f'<a class="action-link" href="{url_with(action=action)}" target="_self" style="background:{color};color:{text_color} !important">{label}</a>'
-        for label, action, color, text_color in actions
-    )
-    st.markdown(f'<div class="action-links">{buttons}</div>', unsafe_allow_html=True)
+
 
 
 def apply_filters(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
@@ -1969,18 +2140,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         )
 
     st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-    render_action_links()
-
-    # Botones flotantes (abren dialogs nativos)
-    calc_col, cal_col, _ = st.columns([1, 1, 4])
-    with calc_col:
-        if st.button("🧮 CALCULADORA", use_container_width=True):
-            calculator_dialog()
-    with cal_col:
-        if st.button("📅 ALMANAQUE", use_container_width=True):
-            calendar_dialog()
-
-    render_quick_links()
+    render_menu()
     st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
