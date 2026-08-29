@@ -685,7 +685,6 @@ def render_menu() -> None:
         current["action"] = action
         return "?" + urlencode(current)
 
-    # Inject minimal CSS for the popover trigger button styling
     st.markdown(
         """
         <style>
@@ -698,17 +697,12 @@ def render_menu() -> None:
             letter-spacing: 1.2px !important;
             text-transform: uppercase !important;
             border-radius: 10px !important;
-            padding: 10px 18px !important;
             box-shadow: 0 4px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06) !important;
         }
         div[data-testid="stPopover"] > button:hover {
             border-color: #00e5ff !important;
             box-shadow: 0 0 16px rgba(0,229,255,.25) !important;
         }
-        div[data-testid="stPopover"] > button:active {
-            transform: scale(0.97) !important;
-        }
-        /* Popover panel styling */
         div[data-testid="stPopoverBody"] {
             background: #0b111b !important;
             border: 1px solid #1e3348 !important;
@@ -735,71 +729,68 @@ def render_menu() -> None:
         unsafe_allow_html=True,
     )
 
-    col1, col2 = st.columns([6, 1])
-    with col1:
-        pass  # empty space on left
-    with col2:
-        with st.popover("☰ MENÚ", use_container_width=True):
-            st.markdown("<div style='color:#d4af37;font-size:14px;font-weight:800;letter-spacing:1.5px;text-align:center;margin-bottom:14px;'>CONCIERGE MASTER</div>", unsafe_allow_html=True)
+    with st.popover("☰ MENÚ", use_container_width=True):
+        st.markdown("<div style='color:#d4af37;font-size:14px;font-weight:800;letter-spacing:1.5px;text-align:center;margin-bottom:14px;'>CONCIERGE MASTER</div>", unsafe_allow_html=True)
 
-            # ── Operaciones ──
-            st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #00e5ff;padding-left:8px;'>Operaciones</div>", unsafe_allow_html=True)
-            c1, c2, c3 = st.columns(3)
-            if c1.button("➕ NUEVA", use_container_width=True):
-                st.query_params["action"] = "nueva"
-                st.rerun()
-            if c2.button("⬆ IMPORTAR", use_container_width=True):
-                st.query_params["action"] = "importar"
-                st.rerun()
-            if c3.button("⬇ EXPORTAR", use_container_width=True):
-                st.query_params["action"] = "exportar"
-                st.rerun()
-            c4, c5, c6 = st.columns(3)
-            if c4.button("📊 REPORTE", use_container_width=True):
-                st.query_params["action"] = "reporte"
-                st.rerun()
-            if c5.button("📅 AGENDA", use_container_width=True):
-                st.query_params["action"] = "agenda"
-                st.rerun()
-            if c6.button("💰 BONUS", use_container_width=True):
-                st.query_params["action"] = "bonus"
-                st.rerun()
+        # ── Operaciones ──
+        st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #00e5ff;padding-left:8px;'>Operaciones</div>", unsafe_allow_html=True)
+        c1, c2, c3 = st.columns(3)
+        if c1.button("➕ NUEVA", use_container_width=True):
+            st.query_params["action"] = "nueva"
+            st.rerun()
+        if c2.button("⬆ IMPORTAR", use_container_width=True):
+            st.query_params["action"] = "importar"
+            st.rerun()
+        if c3.button("⬇ EXPORTAR", use_container_width=True):
+            st.query_params["action"] = "exportar"
+            st.rerun()
+        c4, c5, c6 = st.columns(3)
+        if c4.button("📊 REPORTE", use_container_width=True):
+            st.query_params["action"] = "reporte"
+            st.rerun()
+        if c5.button("📅 AGENDA", use_container_width=True):
+            st.query_params["action"] = "agenda"
+            st.rerun()
+        if c6.button("💰 BONUS", use_container_width=True):
+            st.query_params["action"] = "bonus"
+            st.rerun()
 
-            st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
-            # ── Herramientas ──
-            st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #a78bfa;padding-left:8px;'>Herramientas</div>", unsafe_allow_html=True)
-            h1, h2 = st.columns(2)
-            if h1.button("🧮 CALCULADORA", use_container_width=True):
-                st.query_params["action"] = "calculadora"
-                st.rerun()
-            if h2.button("📆 ALMANAQUE", use_container_width=True):
-                st.query_params["action"] = "almanaque"
-                st.rerun()
+        # ── Herramientas ──
+        st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #a78bfa;padding-left:8px;'>Herramientas</div>", unsafe_allow_html=True)
+        h1, h2 = st.columns(2)
+        if h1.button("🧮 CALCULADORA", use_container_width=True):
+            st.query_params["action"] = "calculadora"
+            st.rerun()
+        if h2.button("📆 ALMANAQUE", use_container_width=True):
+            st.query_params["action"] = "almanaque"
+            st.rerun()
 
-            st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
-            # ── Enlaces Rápidos ──
-            st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #4ade80;padding-left:8px;'>Enlaces Rápidos</div>", unsafe_allow_html=True)
+        # ── Enlaces Rápidos ──
+        st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #4ade80;padding-left:8px;'>Enlaces Rápidos</div>", unsafe_allow_html=True)
 
-            link_style = 'display:block;text-align:center;padding:8px 4px;border-radius:8px;border:1px solid #1e3348;background:#0d1420;color:#eafaff;text-decoration:none;font-size:11px;font-weight:700;transition:all .12s;'
+        link_style = 'display:block;text-align:center;padding:8px 4px;border-radius:8px;border:1px solid #1e3348;background:#0d1420;color:#eafaff;text-decoration:none;font-size:11px;font-weight:700;transition:all .12s;'
 
-            l1, l2, l3 = st.columns(3)
-            l1.markdown(f'<a href="{html.escape(QUICK_LINKS[0][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#a5b4fc;">ALICE</a>', unsafe_allow_html=True)
-            l2.markdown(f'<a href="{html.escape(QUICK_LINKS[1][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">ARRIVALS</a>', unsafe_allow_html=True)
-            l3.markdown(f'<a href="{html.escape(QUICK_LINKS[2][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#34d399;">LA CERNIA</a>', unsafe_allow_html=True)
+        l1, l2, l3 = st.columns(3)
+        l1.markdown(f'<a href="{html.escape(QUICK_LINKS[0][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#a5b4fc;">ALICE</a>', unsafe_allow_html=True)
+        l2.markdown(f'<a href="{html.escape(QUICK_LINKS[1][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">ARRIVALS</a>', unsafe_allow_html=True)
+        l3.markdown(f'<a href="{html.escape(QUICK_LINKS[2][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#34d399;">LA CERNIA</a>', unsafe_allow_html=True)
 
-            l4, l5, l6 = st.columns(3)
-            l4.markdown(f'<a href="{html.escape(QUICK_LINKS[3][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fb923c;">NO LIMIT</a>', unsafe_allow_html=True)
-            l5.markdown(f'<a href="{html.escape(QUICK_LINKS[4][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f87171;">OPEN TABLE</a>', unsafe_allow_html=True)
-            l6.markdown(f'<a href="{html.escape(QUICK_LINKS[5][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#60a5fa;">OUTLOOK-FW</a>', unsafe_allow_html=True)
+        l4, l5, l6 = st.columns(3)
+        l4.markdown(f'<a href="{html.escape(QUICK_LINKS[3][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fb923c;">NO LIMIT</a>', unsafe_allow_html=True)
+        l5.markdown(f'<a href="{html.escape(QUICK_LINKS[4][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f87171;">OPEN TABLE</a>', unsafe_allow_html=True)
+        l6.markdown(f'<a href="{html.escape(QUICK_LINKS[5][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#60a5fa;">OUTLOOK-FW</a>', unsafe_allow_html=True)
 
-            l7, l8, l9 = st.columns(3)
-            l7.markdown(f'<a href="{html.escape(QUICK_LINKS[6][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
-            l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
-            l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fbbf24;">VTC</a>', unsafe_allow_html=True)
+        l7, l8, l9 = st.columns(3)
+        l7.markdown(f'<a href="{html.escape(QUICK_LINKS[6][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
+        l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
+        l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fbbf24;">VTC</a>', unsafe_allow_html=True)
 
-            st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1e3348;text-align:center;color:#4a5a6a;font-size:10px;'>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1e3348;text-align:center;color:#4a5a6a;font-size:10px;'>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
+
 
 
 def render_app_links() -> None:
@@ -2055,11 +2046,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
             st.markdown('<div style="color:#8ca4ba;font-size:10px;text-align:center">No hay reservas para seleccionar</div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
-        filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
-        selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date())
-        date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;margin-top:5px">APLICAR FECHA</a>', unsafe_allow_html=True)
-        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:#475569;margin-top:5px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+
 
     with right:
         render_category_chart(filtered)
@@ -2075,8 +2062,23 @@ def render_dashboard(df: pd.DataFrame) -> None:
             unsafe_allow_html=True,
         )
 
-    st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-    render_menu()
+    # Fila horizontal: filtros + menú
+    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+    f1, f2, f3, f4 = st.columns([2.2, 1.3, 1.3, 1])
+
+    with f1:
+        filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
+        selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date())
+
+    with f2:
+        date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
+        st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;display:block;text-align:center;margin-top:28px">APLICAR FECHA</a>', unsafe_allow_html=True)
+
+    with f3:
+        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:#475569;display:block;text-align:center;margin-top:28px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+
+    with f4:
+        render_menu()
     st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
