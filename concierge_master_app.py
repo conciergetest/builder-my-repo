@@ -2074,10 +2074,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with f2:
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;display:block;text-align:center;margin-top:28px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;display:flex;align-items:center;justify-content:center;height:38px;margin-top:28px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
     with f3:
-        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:#475569;display:block;text-align:center;margin-top:28px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:#475569;display:flex;align-items:center;justify-content:center;height:38px;margin-top:28px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with f4:
         render_menu()
