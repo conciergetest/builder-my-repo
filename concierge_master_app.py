@@ -1911,11 +1911,26 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
     # Agregar icono de checkout (🏃) solo para reservas que YA hicieron checkout
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     if "check_out" in visible.columns:
+        # Regex para quitar cualquier emoji/icono al final del string
+        _emoji_re = re.compile(
+            "["
+            "\U0001F600-\U0001F64F"  # emoticons
+            "\U0001F300-\U0001F5FF"  # symbols & pictographs
+            "\U0001F680-\U0001F6FF"  # transport & map symbols
+            "\U0001F1E0-\U0001F1FF"  # flags
+            "\U00002702-\U000027B0"
+            "\U000024C2-\U0001F251"
+            "\U0001F900-\U0001F9FF"  # supplemental symbols
+            "\u2600-\u26FF"          # misc symbols
+            "\u2700-\u27BF"          # dingbats
+            "]+", flags=re.UNICODE)
+
         def _checkout_with_icon(val):
-            if not val:
+            if not val or pd.isna(val):
                 return val
-            # Limpiar cualquier icono previo
-            cleaned = val.strip().rstrip("🏃🚶✈️👋").strip()
+            val_str = str(val).strip()
+            # Limpiar cualquier emoji/icono previo
+            cleaned = _emoji_re.sub("", val_str).strip()
             dt = parse_fecha(cleaned)
             if dt and dt.replace(hour=0, minute=0, second=0, microsecond=0) <= today:
                 return cleaned + " 🏃"
