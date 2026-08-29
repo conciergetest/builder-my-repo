@@ -1951,7 +1951,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
     )
 
     fields = {
-        "eta":      ("ETA",          95),
+        "eta":      ("ETA",          110),
         "name":     ("NAME",         170),
         "qty":      ("QTY",          60),
         "room":     ("ROOM",         70),
@@ -1979,6 +1979,8 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
             config["type"] = ["numericColumn"]
         if field == "qty":
             config["cellRenderer"] = QTY_RENDERER
+        if field == "eta":
+            config["cellStyle"] = JsCode("function(params){ return { color: '#D4AF37', fontWeight: '700' }; }")
         # Solo CHECK IN tiene filtro habilitado
         if field == "check_in":
             config["filter"] = True
