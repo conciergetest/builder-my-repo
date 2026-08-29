@@ -42,7 +42,7 @@ st.set_page_config(
     page_title="Concierge Master",
     page_icon="âœ¦",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # -----------------------------------------------------------------------------
@@ -80,17 +80,18 @@ if not st.session_state.splash_shown and not has_action_params:
         }
         @keyframes splashFill { to { width: 100%; } }
         
-    /* --- SIDEBAR STYLES --- */
-    [data-testid="stSidebar"] {
+    /* --- FAKE SIDEBAR (columna izquierda) --- */
+    #layout-sidebar + div > div:first-child {
         background: #080b12 !important;
         border-right: 1px solid #1e3348 !important;
-        min-width: 270px !important;
-        max-width: 290px !important;
     }
-    [data-testid="stSidebar"] > div:first-child > div:first-child {
-        padding-top: 0 !important;
+    #layout-sidebar + div > div:first-child > div {
+        padding: 0 !important;
     }
-    [data-testid="stSidebarNav"] { display: none !important; }
+    .fake-sidebar {
+        padding: 8px 4px;
+        min-height: 100vh;
+    }
     .sidebar-brand {
         text-align: center;
         padding: 20px 0 14px;
@@ -2041,109 +2042,108 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
 
 def render_sidebar(df: pd.DataFrame) -> None:
     """Renderiza la barra lateral con navegación, métricas, filtros y links."""
-    with st.sidebar:
-        # Brand
+    # Brand
+    st.markdown(
+        """
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-mark">WA</div>
+            <div class="sidebar-brand-name">WALDORF ASTORIA</div>
+            <div style="color:#6f879a;font-size:9px;letter-spacing:1px;margin-top:2px;">COSTA RICA · PUNTA CACIQUE</div>
+            <div style="color:#00e5ff;font-size:12px;font-weight:800;margin-top:3px;">Concierge Master <span style="color:#6f879a">v5.1</span></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Métricas
+    vip_count = int(df["info"].fillna("").astype(str).str.upper().str.contains("VIP", na=False).sum())
+    relaxury_count = int(df.astype(str).apply(lambda col: col.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
+    nights_count = int(pd.to_numeric(df["nights"], errors="coerce").fillna(0).sum())
+    total_count = len(df)
+
+    st.markdown(
+        f"""
+        <div class="sidebar-metric"><div class="sidebar-metric-label">Total Reservas</div><div class="sidebar-metric-value">{total_count}</div></div>
+        <div class="sidebar-metric gold"><div class="sidebar-metric-label">VIP Arrivals</div><div class="sidebar-metric-value">{vip_count}</div></div>
+        <div class="sidebar-metric pink"><div class="sidebar-metric-label">Relaxury</div><div class="sidebar-metric-value">{relaxury_count}</div></div>
+        <div class="sidebar-metric purple"><div class="sidebar-metric-label">Noches Reservadas</div><div class="sidebar-metric-value">{nights_count}</div></div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Sección: Acciones
+    st.markdown('<div class="sidebar-section">⚡ Acciones</div>', unsafe_allow_html=True)
+    current_action = get_action()
+
+    actions = [
+        ("➕ NUEVA", "nueva"),
+        ("📥 IMPORTAR", "importar"),
+        ("📤 EXPORTAR", "exportar"),
+        ("📊 REPORTE", "reporte"),
+        ("📅 AGENDA", "agenda"),
+        ("💰 BONUS", "bonus"),
+    ]
+    for label, action in actions:
+        active = " active" if current_action == action else ""
         st.markdown(
-            """
-            <div class="sidebar-brand">
-                <div class="sidebar-brand-mark">WA</div>
-                <div class="sidebar-brand-name">WALDORF ASTORIA</div>
-                <div style="color:#6f879a;font-size:9px;letter-spacing:1px;margin-top:2px;">COSTA RICA · PUNTA CACIQUE</div>
-                <div style="color:#00e5ff;font-size:12px;font-weight:800;margin-top:3px;">Concierge Master <span style="color:#6f879a">v5.1</span></div>
-            </div>
-            """,
+            f'<a class="sidebar-item{active}" href="{url_with(action=action)}" target="_self">'
+            f'<span class="sidebar-icon">{label.split()[0]}</span><span>{label.split(" ", 1)[1]}</span></a>',
             unsafe_allow_html=True,
         )
 
-        # Métricas
-        vip_count = int(df["info"].fillna("").astype(str).str.upper().str.contains("VIP", na=False).sum())
-        relaxury_count = int(df.astype(str).apply(lambda col: col.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
-        nights_count = int(pd.to_numeric(df["nights"], errors="coerce").fillna(0).sum())
-        total_count = len(df)
+    # Sección: Herramientas
+    st.markdown('<div class="sidebar-section">🛠️ Herramientas</div>', unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🧮 Calculadora", use_container_width=True):
+            calculator_dialog()
+    with col2:
+        if st.button("📅 Almanaque", use_container_width=True):
+            calendar_dialog()
 
+    # Sección: Aplicaciones
+    st.markdown('<div class="sidebar-section">🔗 Apps Relacionadas</div>', unsafe_allow_html=True)
+    apps = [
+        ("🏊 Aquatic Reservations", "https://activities-avhsghtxc4ewcdvhqjejrp.streamlit.app/", "#0891B2"),
+        ("📋 Operator's Log", "https://hotel-logbook-zu2ywlashxhykapkbxawfc.streamlit.app/", "#D97706"),
+        ("✏️ VT Creator", "https://activity-certificate-waldorf-jwxquxl93r5ntvye4w3ftu.streamlit.app/", "#7C3AED"),
+        ("🗄️ VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/", "#059669"),
+    ]
+    for label, url, bg in apps:
         st.markdown(
-            f"""
-            <div class="sidebar-metric"><div class="sidebar-metric-label">Total Reservas</div><div class="sidebar-metric-value">{total_count}</div></div>
-            <div class="sidebar-metric gold"><div class="sidebar-metric-label">VIP Arrivals</div><div class="sidebar-metric-value">{vip_count}</div></div>
-            <div class="sidebar-metric pink"><div class="sidebar-metric-label">Relaxury</div><div class="sidebar-metric-value">{relaxury_count}</div></div>
-            <div class="sidebar-metric purple"><div class="sidebar-metric-label">Noches Reservadas</div><div class="sidebar-metric-value">{nights_count}</div></div>
-            """,
+            f'<a class="sidebar-app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="background:{bg}">'
+            f'<span>{label}</span></a>',
             unsafe_allow_html=True,
         )
 
-        # Sección: Acciones
-        st.markdown('<div class="sidebar-section">⚡ Acciones</div>', unsafe_allow_html=True)
-        current_action = get_action()
-
-        actions = [
-            ("➕ NUEVA", "nueva"),
-            ("📥 IMPORTAR", "importar"),
-            ("📤 EXPORTAR", "exportar"),
-            ("📊 REPORTE", "reporte"),
-            ("📅 AGENDA", "agenda"),
-            ("💰 BONUS", "bonus"),
-        ]
-        for label, action in actions:
-            active = " active" if current_action == action else ""
-            st.markdown(
-                f'<a class="sidebar-item{active}" href="{url_with(action=action)}" target="_self">'
-                f'<span class="sidebar-icon">{label.split()[0]}</span><span>{label.split(" ", 1)[1]}</span></a>',
-                unsafe_allow_html=True,
-            )
-
-        # Sección: Herramientas
-        st.markdown('<div class="sidebar-section">🛠️ Herramientas</div>', unsafe_allow_html=True)
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("🧮 Calculadora", use_container_width=True):
-                calculator_dialog()
-        with col2:
-            if st.button("📅 Almanaque", use_container_width=True):
-                calendar_dialog()
-
-        # Sección: Aplicaciones
-        st.markdown('<div class="sidebar-section">🔗 Apps Relacionadas</div>', unsafe_allow_html=True)
-        apps = [
-            ("🏊 Aquatic Reservations", "https://activities-avhsghtxc4ewcdvhqjejrp.streamlit.app/", "#0891B2"),
-            ("📋 Operator's Log", "https://hotel-logbook-zu2ywlashxhykapkbxawfc.streamlit.app/", "#D97706"),
-            ("✏️ VT Creator", "https://activity-certificate-waldorf-jwxquxl93r5ntvye4w3ftu.streamlit.app/", "#7C3AED"),
-            ("🗄️ VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/", "#059669"),
-        ]
-        for label, url, bg in apps:
-            st.markdown(
-                f'<a class="sidebar-app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="background:{bg}">'
-                f'<span>{label}</span></a>',
-                unsafe_allow_html=True,
-            )
-
-        # Sección: Links Operativos
-        st.markdown('<div class="sidebar-section">🌐 Links Operativos</div>', unsafe_allow_html=True)
-        links_html = ""
-        for label, url, color in QUICK_LINKS:
-            links_html += (
-                f'<a class="sidebar-quick-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="background:{color}">'
-                f'{label}</a>'
-            )
-        st.markdown(f'<div class="sidebar-quick-grid">{links_html}</div>', unsafe_allow_html=True)
-
-        # Sección: Filtros
-        st.markdown('<div class="sidebar-section">🔍 Filtros</div>', unsafe_allow_html=True)
-        filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
-        selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date())
-        date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;margin:4px 10px;display:block;text-align:center">APLICAR FECHA</a>', unsafe_allow_html=True)
-        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:#475569;margin:4px 10px;display:block;text-align:center">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
-
-        # Logo Fred Wayne al final
-        st.markdown(
-            """
-            <div class="sidebar-logo-img">
-                <img src="https://raw.githubusercontent.com/conciergetest/builder-my-repo/main/FredWayneLOGO.jpeg"
-                     alt="Fred Wayne Logo">
-            </div>
-            """,
-            unsafe_allow_html=True,
+    # Sección: Links Operativos
+    st.markdown('<div class="sidebar-section">🌐 Links Operativos</div>', unsafe_allow_html=True)
+    links_html = ""
+    for label, url, color in QUICK_LINKS:
+        links_html += (
+            f'<a class="sidebar-quick-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="background:{color}">'
+            f'{label}</a>'
         )
+    st.markdown(f'<div class="sidebar-quick-grid">{links_html}</div>', unsafe_allow_html=True)
+
+    # Sección: Filtros
+    st.markdown('<div class="sidebar-section">🔍 Filtros</div>', unsafe_allow_html=True)
+    filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
+    selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date())
+    date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
+    st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;margin:4px 10px;display:block;text-align:center">APLICAR FECHA</a>', unsafe_allow_html=True)
+    st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:#475569;margin:4px 10px;display:block;text-align:center">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+
+    # Logo Fred Wayne al final
+    st.markdown(
+        """
+        <div class="sidebar-logo-img">
+            <img src="https://raw.githubusercontent.com/conciergetest/builder-my-repo/main/FredWayneLOGO.jpeg"
+                 alt="Fred Wayne Logo">
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 def render_dashboard(df: pd.DataFrame) -> None:
     """Renderiza el dashboard principal con la tabla de reservaciones."""
@@ -2252,49 +2252,59 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
 show_header()
 reservations = cargar_reservaciones()
-render_sidebar(reservations)
-action = get_action()
 
-# Auto-abrir calculadora si viene de redirección legacy
-if st.session_state.pop("open_calculator", False):
-    calculator_dialog()
+# Layout: sidebar falsa con columnas (más confiable que st.sidebar nativo)
+st.markdown('<div id="layout-sidebar"></div>', unsafe_allow_html=True)
+_sidebar_col, _main_col = st.columns([0.20, 0.80])
 
-# Auto-abrir almanaque si viene de redirección
-if st.session_state.pop("open_calendar", False):
-    calendar_dialog()
+with _sidebar_col:
+    st.markdown('<div class="fake-sidebar">', unsafe_allow_html=True)
+    render_sidebar(reservations)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-if action == "nueva":
-    render_new_reservation()
-elif action == "editar":
-    render_edit_reservation()
-elif action == "importar":
-    render_import()
-elif action == "exportar":
-    render_export(reservations)
-elif action == "agenda":
-    render_agenda(reservations)
-elif action == "reporte":
-    render_report(reservations)
-elif action == "calculadora":
-    # Redirigir al dashboard y abrir dialog automáticamente (preservar filtros)
-    for key in list(st.query_params.keys()):
-        if key == "action":
-            del st.query_params[key]
-    st.query_params["skip_splash"] = "1"
-    st.session_state["open_calculator"] = True
-    st.rerun()
-elif action == "almanaque":
-    for key in list(st.query_params.keys()):
-        if key == "action":
-            del st.query_params[key]
-    st.query_params["skip_splash"] = "1"
-    st.session_state["open_calendar"] = True
-    st.rerun()
-elif action == "bonus":
-    render_bonus()
-elif action == "carta":
-    render_letter()
-elif action == "cancelar":
-    render_delete()
-else:
-    render_dashboard(reservations)
+with _main_col:
+    action = get_action()
+
+    # Auto-abrir calculadora si viene de redirección legacy
+    if st.session_state.pop("open_calculator", False):
+        calculator_dialog()
+
+    # Auto-abrir almanaque si viene de redirección
+    if st.session_state.pop("open_calendar", False):
+        calendar_dialog()
+
+    if action == "nueva":
+        render_new_reservation()
+    elif action == "editar":
+        render_edit_reservation()
+    elif action == "importar":
+        render_import()
+    elif action == "exportar":
+        render_export(reservations)
+    elif action == "agenda":
+        render_agenda(reservations)
+    elif action == "reporte":
+        render_report(reservations)
+    elif action == "calculadora":
+        # Redirigir al dashboard y abrir dialog automáticamente (preservar filtros)
+        for key in list(st.query_params.keys()):
+            if key == "action":
+                del st.query_params[key]
+        st.query_params["skip_splash"] = "1"
+        st.session_state["open_calculator"] = True
+        st.rerun()
+    elif action == "almanaque":
+        for key in list(st.query_params.keys()):
+            if key == "action":
+                del st.query_params[key]
+        st.query_params["skip_splash"] = "1"
+        st.session_state["open_calendar"] = True
+        st.rerun()
+    elif action == "bonus":
+        render_bonus()
+    elif action == "carta":
+        render_letter()
+    elif action == "cancelar":
+        render_delete()
+    else:
+        render_dashboard(reservations)
