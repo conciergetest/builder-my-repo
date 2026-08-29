@@ -129,6 +129,11 @@ CATEGORY_COLORS = {
 # Enlaces operativos proporcionados por el usuario; navegan en la pestaña actual.
 QUICK_LINKS = [
     (
+        "ACT. CALEND",
+        "https://hilton-my.sharepoint.com/shared?listurl=https%3A%2F%2Fhilton%2Dmy%2Esharepoint%2Ecom%2Fpersonal%2Fdaniela%5Frojas%5Fwaldorfastoria%5Fcom%2FDocuments&CT=1761512662870&OR=OWA%2DNT%2DMail&e=5%3A15d1fd28f8234839a764af20385bbe03&sharingv2=true&fromShare=true&at=9&clickParams=eyJYLUFwcE5hbWUiOiJNaWNyb3NvZnQgT3V0bG9vayBXZWIgQXBwIiwiWC1BcHBWZXJzaW9uIjoiMjAyNTEwMTcwMDIuMTYiLCJPUyI6IldpbmRvd3MgMTEifQ%3D%3D&cidOR=Client&id=%2Fpersonal%2Fdaniela%5Frojas%5Fwaldorfastoria%5Fcom%2FDocuments%2FCALENDARIO%20ACTIVIDADES%20A%20Y%20B&FolderCTID=0x012000D256DD7AE71A594B8E3E3E9677541131",
+        "#D97706",
+    ),
+    (
         "ALICE",
         "https://auth.aliceapp.com/login-staff?__hstc=85647430.18528c557a8d4857356bbdc77be22153.1745273864718.1745273864718.1745273864718.1&__hssc=85647430.2.1745273864718&__hsfp=92250610",
         "#6C5CE7",
@@ -138,7 +143,7 @@ QUICK_LINKS = [
         "https://hilton-my.sharepoint.com/shared?listurl=https%3A%2F%2Fhilton%2Dmy%2Esharepoint%2Ecom%2Fpersonal%2Fefrem%5Fcatellani%5Fwaldorfastoria%5Fcom%2FDocuments&e=5%3A5760d5a1b59d4b69adb09d888a758bb4&sharingv2=true&fromShare=true&at=9&CT=1782844742090&OR=OWA%2DNT%2DMail&SI=NonSentItems&clickParams=eyJYLUFwcE5hbWUiOiJNaWNyb3NvZnQgT3V0bG9vayBXZWIgQXBwIiwiWC1BcHBWZXJzaW9uIjoiMjAyNjA2MTkwMTAuMTIiLCJPUyI6IldpbmRvd3MgMTEifQ%3D%3D&cidOR=Client&id=%2Fpersonal%2Fefrem%5Fcatellani%5Fwaldorfastoria%5Fcom%2FDocuments%2FARRIVAL%20DAYS%2F2026&FolderCTID=0x0120000A5710A5FF38F342BA540726A6B97804",
         "#0284C7",
     ),
-    ("LA CENIA", "https://lacerniaadventures.com/", "#059669"),
+    ("LA CERNIA", "https://lacerniaadventures.com/", "#059669"),
     ("NO LIMIT", "https://www.experiencecollectioncr.com/", "#EA580C"),
     ("OPEN TABLE", "https://guestcenter.opentable.com/login", "#DC2626"),
     (
@@ -152,11 +157,6 @@ QUICK_LINKS = [
         "#0078D4",
     ),
     ("RELAXURY", "https://relaxury.agilesd.com/", "#DB2777"),
-    (
-        "VTC",
-        "https://hilton-my.sharepoint.com/shared?listurl=https%3A%2F%2Fhilton%2Dmy%2Esharepoint%2Ecom%2Fpersonal%2Fefrem%5Fcatellani%5Fwaldorfastoria%5Fcom%2FDocuments&e=5%3A8e5918d1d45b4d6b90289e3f445b4d82&sharingv2=true&fromShare=true&at=9&cidOR=SPO&id=%2Fpersonal%2Fefrem%5Fcatellani%5Fwaldorfastoria%5Fcom%2FDocuments%2FVIRTUAL%20SIGNATURES&FolderCTID=0x0120000A5710A5FF38F342BA540726A6B97804",
-        "#D97706",
-    ),
 ]
 
 
@@ -784,21 +784,26 @@ def render_menu() -> None:
         link_style = 'display:block;text-align:center;padding:8px 4px;border-radius:8px;border:1px solid #1e3348;background:#0d1420;color:#eafaff;text-decoration:none;font-size:11px;font-weight:700;transition:all .12s;'
 
         l1, l2, l3 = st.columns(3)
-        l1.markdown(f'<a href="{html.escape(QUICK_LINKS[0][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#a5b4fc;">ALICE</a>', unsafe_allow_html=True)
-        l2.markdown(f'<a href="{html.escape(QUICK_LINKS[1][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">ARRIVALS</a>', unsafe_allow_html=True)
-        l3.markdown(f'<a href="{html.escape(QUICK_LINKS[2][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#34d399;">LA CERNIA</a>', unsafe_allow_html=True)
+        l1.markdown(f'<a href="{html.escape(QUICK_LINKS[0][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fbbf24;">ACT. CALEND</a>', unsafe_allow_html=True)
+        l2.markdown(f'<a href="{html.escape(QUICK_LINKS[1][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#a5b4fc;">ALICE</a>', unsafe_allow_html=True)
+        l3.markdown(f'<a href="{html.escape(QUICK_LINKS[2][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">ARRIVALS</a>', unsafe_allow_html=True)
 
         l4, l5, l6 = st.columns(3)
-        l4.markdown(f'<a href="{html.escape(QUICK_LINKS[3][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fb923c;">NO LIMIT</a>', unsafe_allow_html=True)
-        l5.markdown(f'<a href="{html.escape(QUICK_LINKS[4][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f87171;">OPEN TABLE</a>', unsafe_allow_html=True)
-        l6.markdown(f'<a href="{html.escape(QUICK_LINKS[5][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#60a5fa;">OUTLOOK-FW</a>', unsafe_allow_html=True)
+        l4.markdown(f'<a href="{html.escape(QUICK_LINKS[3][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#34d399;">LA CERNIA</a>', unsafe_allow_html=True)
+        l5.markdown(f'<a href="{html.escape(QUICK_LINKS[4][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fb923c;">NO LIMIT</a>', unsafe_allow_html=True)
+        l6.markdown(f'<a href="{html.escape(QUICK_LINKS[5][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f87171;">OPEN TABLE</a>', unsafe_allow_html=True)
 
         l7, l8, l9 = st.columns(3)
-        l7.markdown(f'<a href="{html.escape(QUICK_LINKS[6][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
-        l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
-        l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fbbf24;">VTC</a>', unsafe_allow_html=True)
+        l7.markdown(f'<a href="{html.escape(QUICK_LINKS[6][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#60a5fa;">OUTLOOK-FW</a>', unsafe_allow_html=True)
+        l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
+        l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
 
-        st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1e3348;text-align:center;color:#4a5a6a;font-size:10px;'>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+        # Botón para cerrar el popover manualmente después de abrir enlaces
+        if st.button("✕ Cerrar menú", use_container_width=True, type="secondary"):
+            pass  # El popover se cierra al hacer click en cualquier botón
+
+        st.markdown("<div style='margin-top:8px;padding-top:10px;border-top:1px solid #1e3348;text-align:center;color:#4a5a6a;font-size:10px;'>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
 
 
 
