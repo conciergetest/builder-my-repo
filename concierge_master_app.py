@@ -687,7 +687,11 @@ def render_menu() -> None:
 
     menu_html = f"""
 <style>
+  /* Hide the checkbox */
+  #menu-toggle {{ display: none; }}
+
   .menu-wrapper {{ position: relative; display: inline-block; }}
+
   .menu-btn {{
     display: flex; align-items: center; gap: 8px;
     padding: 10px 18px; border-radius: 10px; border: 1px solid #1e3348;
@@ -704,7 +708,6 @@ def render_menu() -> None:
     position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 9998;
     opacity: 0; pointer-events: none; transition: opacity .2s ease;
   }}
-  .menu-overlay.open {{ opacity: 1; pointer-events: auto; }}
 
   .menu-panel {{
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -45%) scale(.96);
@@ -713,7 +716,14 @@ def render_menu() -> None:
     padding: 22px; box-shadow: 0 24px 60px rgba(0,0,0,.7);
     opacity: 0; pointer-events: none; transition: all .25s cubic-bezier(.16,1,.3,1); z-index: 9999;
   }}
-  .menu-panel.open {{ opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }}
+
+  /* When checkbox is checked, show overlay and panel */
+  #menu-toggle:checked ~ .menu-overlay {{
+    opacity: 1; pointer-events: auto;
+  }}
+  #menu-toggle:checked ~ .menu-panel {{
+    opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1);
+  }}
 
   .menu-header {{
     display: flex; justify-content: space-between; align-items: center;
@@ -790,78 +800,59 @@ def render_menu() -> None:
 
 <div style="display:flex;justify-content:flex-end;margin:8px 0;">
   <div class="menu-wrapper">
-    <button class="menu-btn" id="menuToggle" onclick="toggleMenu()">
+    <input type="checkbox" id="menu-toggle">
+    <label for="menu-toggle" class="menu-btn">
       <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       MENÚ
-    </button>
+    </label>
+
+    <label for="menu-toggle" class="menu-overlay"></label>
+
+    <div class="menu-panel">
+      <div class="menu-header">
+        <div class="menu-title">☰ Concierge Master</div>
+        <label for="menu-toggle" class="menu-close">✕</label>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-section-title section-ops">Operaciones</div>
+        <div class="menu-grid grid-3">
+          <a class="menu-item btn-nueva"    href="{_url('nueva')}"    target="_self"><span class="icon">＋</span>NUEVA</a>
+          <a class="menu-item btn-importar" href="{_url('importar')}" target="_self"><span class="icon">↑</span>IMPORTAR</a>
+          <a class="menu-item btn-exportar" href="{_url('exportar')}" target="_self"><span class="icon">↓</span>EXPORTAR</a>
+          <a class="menu-item btn-reporte"  href="{_url('reporte')}"  target="_self"><span class="icon">📊</span>REPORTE</a>
+          <a class="menu-item btn-agenda"   href="{_url('agenda')}"   target="_self"><span class="icon">📅</span>AGENDA</a>
+          <a class="menu-item btn-bonus"    href="{_url('bonus')}"    target="_self"><span class="icon">💰</span>BONUS</a>
+        </div>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-section-title section-tools">Herramientas</div>
+        <div class="menu-grid grid-2">
+          <a class="menu-item btn-calc" href="{_url('calculadora')}" target="_self"><span class="icon">🧮</span>CALCULADORA</a>
+          <a class="menu-item btn-alma" href="{_url('almanaque')}"  target="_self"><span class="icon">📆</span>ALMANAQUE</a>
+        </div>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-section-title section-links">Enlaces Rápidos</div>
+        <div class="menu-grid grid-5">
+          <a class="menu-item btn-alice"    href="{html.escape(QUICK_LINKS[0][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">A</span>ALICE</a>
+          <a class="menu-item btn-arrivals" href="{html.escape(QUICK_LINKS[1][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">ARR</span>ARRIVALS</a>
+          <a class="menu-item btn-cernia"   href="{html.escape(QUICK_LINKS[2][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">LC</span>LA CERNIA</a>
+          <a class="menu-item btn-nolimit"  href="{html.escape(QUICK_LINKS[3][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">NL</span>NO LIMIT</a>
+          <a class="menu-item btn-opentbl"  href="{html.escape(QUICK_LINKS[4][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">OT</span>OPEN TABLE</a>
+          <a class="menu-item btn-outfw"    href="{html.escape(QUICK_LINKS[5][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">FW</span>OUTLOOK-FW</a>
+          <a class="menu-item btn-outpc"    href="{html.escape(QUICK_LINKS[6][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">PC</span>OUTLOOK-PC</a>
+          <a class="menu-item btn-relax"    href="{html.escape(QUICK_LINKS[7][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">RX</span>RELAXURY</a>
+          <a class="menu-item btn-vtc"      href="{html.escape(QUICK_LINKS[8][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">VT</span>VTC</a>
+        </div>
+      </div>
+
+      <div class="menu-footer">Waldorf Astoria Costa Rica · Concierge Master v5.1</div>
+    </div>
   </div>
 </div>
-
-<div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
-
-<div class="menu-panel" id="menuPanel">
-  <div class="menu-header">
-    <div class="menu-title">☰ Concierge Master</div>
-    <button class="menu-close" onclick="closeMenu()">✕</button>
-  </div>
-
-  <div class="menu-section">
-    <div class="menu-section-title section-ops">Operaciones</div>
-    <div class="menu-grid grid-3">
-      <a class="menu-item btn-nueva"    href="{_url('nueva')}"    target="_self"><span class="icon">＋</span>NUEVA</a>
-      <a class="menu-item btn-importar" href="{_url('importar')}" target="_self"><span class="icon">↑</span>IMPORTAR</a>
-      <a class="menu-item btn-exportar" href="{_url('exportar')}" target="_self"><span class="icon">↓</span>EXPORTAR</a>
-      <a class="menu-item btn-reporte"  href="{_url('reporte')}"  target="_self"><span class="icon">📊</span>REPORTE</a>
-      <a class="menu-item btn-agenda"   href="{_url('agenda')}"   target="_self"><span class="icon">📅</span>AGENDA</a>
-      <a class="menu-item btn-bonus"    href="{_url('bonus')}"    target="_self"><span class="icon">💰</span>BONUS</a>
-    </div>
-  </div>
-
-  <div class="menu-section">
-    <div class="menu-section-title section-tools">Herramientas</div>
-    <div class="menu-grid grid-2">
-      <a class="menu-item btn-calc" href="{_url('calculadora')}" target="_self"><span class="icon">🧮</span>CALCULADORA</a>
-      <a class="menu-item btn-alma" href="{_url('almanaque')}"  target="_self"><span class="icon">📆</span>ALMANAQUE</a>
-    </div>
-  </div>
-
-  <div class="menu-section">
-    <div class="menu-section-title section-links">Enlaces Rápidos</div>
-    <div class="menu-grid grid-5">
-      <a class="menu-item btn-alice"    href="{html.escape(QUICK_LINKS[0][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">A</span>ALICE</a>
-      <a class="menu-item btn-arrivals" href="{html.escape(QUICK_LINKS[1][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">ARR</span>ARRIVALS</a>
-      <a class="menu-item btn-cernia"   href="{html.escape(QUICK_LINKS[2][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">LC</span>LA CERNIA</a>
-      <a class="menu-item btn-nolimit"  href="{html.escape(QUICK_LINKS[3][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">NL</span>NO LIMIT</a>
-      <a class="menu-item btn-opentbl"  href="{html.escape(QUICK_LINKS[4][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">OT</span>OPEN TABLE</a>
-      <a class="menu-item btn-outfw"    href="{html.escape(QUICK_LINKS[5][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">FW</span>OUTLOOK-FW</a>
-      <a class="menu-item btn-outpc"    href="{html.escape(QUICK_LINKS[6][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">PC</span>OUTLOOK-PC</a>
-      <a class="menu-item btn-relax"    href="{html.escape(QUICK_LINKS[7][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">RX</span>RELAXURY</a>
-      <a class="menu-item btn-vtc"      href="{html.escape(QUICK_LINKS[8][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">VT</span>VTC</a>
-    </div>
-  </div>
-
-  <div class="menu-footer">Waldorf Astoria Costa Rica · Concierge Master v5.1</div>
-</div>
-
-<script>
-  const overlay = document.getElementById('menuOverlay');
-  const panel = document.getElementById('menuPanel');
-  function toggleMenu() {{
-    const isOpen = panel.classList.contains('open');
-    if (isOpen) closeMenu(); else openMenu();
-  }}
-  function openMenu() {{
-    overlay.classList.add('open');
-    panel.classList.add('open');
-  }}
-  function closeMenu() {{
-    overlay.classList.remove('open');
-    panel.classList.remove('open');
-  }}
-  document.addEventListener('keydown', function(e) {{
-    if (e.key === 'Escape') closeMenu();
-  }});
-</script>
     """
     st.markdown(menu_html, unsafe_allow_html=True)
 
