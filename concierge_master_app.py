@@ -1908,6 +1908,20 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         if col not in ("qty",):
             visible[col] = visible[col].apply(lambda x: "" if pd.isna(x) or str(x).lower() in ("nan", "none", "null") else str(x))
 
+    # Agregar icono de checkout (🏃) solo para reservas que YA hicieron checkout
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    if "check_out" in visible.columns:
+        def _checkout_with_icon(val):
+            if not val:
+                return val
+            # Limpiar cualquier icono previo
+            cleaned = val.strip().rstrip("🏃🚶✈️👋").strip()
+            dt = parse_fecha(cleaned)
+            if dt and dt.replace(hour=0, minute=0, second=0, microsecond=0) <= today:
+                return cleaned + " 🏃"
+            return cleaned
+        visible["check_out"] = visible["check_out"].apply(_checkout_with_icon)
+
     # Formatear QTY como "2+1" en vez de "2.1"
     if "qty" in visible.columns:
         visible["qty"] = visible["qty"].apply(format_qty)
