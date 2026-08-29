@@ -2114,7 +2114,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
             captions.append("Check-in: " + safe_text(filters["arrival"]))
         if "search" in filters:
             captions.append("Búsqueda: " + safe_text(filters["search"]))
-        st.caption(" Â· ".join(captions))
+        st.caption(" | ".join(captions))
 
     st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True)
 
