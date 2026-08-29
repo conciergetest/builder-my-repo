@@ -42,7 +42,7 @@ st.set_page_config(
     page_title="Concierge Master",
     page_icon="âœ¦",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 # -----------------------------------------------------------------------------
@@ -79,7 +79,151 @@ if not st.session_state.splash_shown and not has_action_params:
             box-shadow: 0 0 12px #D4AF37, 0 0 24px rgba(212,175,55,0.5);
         }
         @keyframes splashFill { to { width: 100%; } }
-        </style>
+        
+    /* --- SIDEBAR STYLES --- */
+    [data-testid="stSidebar"] {
+        background: #080b12 !important;
+        border-right: 1px solid #1e3348 !important;
+        min-width: 270px !important;
+        max-width: 290px !important;
+    }
+    [data-testid="stSidebar"] > div:first-child > div:first-child {
+        padding-top: 0 !important;
+    }
+    [data-testid="stSidebarNav"] { display: none !important; }
+    .sidebar-brand {
+        text-align: center;
+        padding: 20px 0 14px;
+        border-bottom: 1px solid #1e3348;
+    }
+    .sidebar-brand-mark {
+        color: #d4af37;
+        font: 28px Georgia, serif;
+        letter-spacing: 4px;
+    }
+    .sidebar-brand-name {
+        color: #d4af37;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        margin-top: 4px;
+    }
+    .sidebar-section {
+        color: #6f879a;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        margin: 18px 16px 8px;
+    }
+    .sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        margin: 1px 10px;
+        border-radius: 6px;
+        color: #b9cad8;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+        transition: all .12s ease;
+        border-left: 3px solid transparent;
+    }
+    .sidebar-item:hover {
+        background: #0f1724;
+        color: #00e5ff;
+        border-left-color: #00e5ff;
+    }
+    .sidebar-item.active {
+        background: #132a3a;
+        color: #00e5ff;
+        border-left-color: #00e5ff;
+    }
+    .sidebar-icon {
+        font-size: 15px;
+        width: 20px;
+        text-align: center;
+        display: inline-block;
+    }
+    .sidebar-metric {
+        background: #0d1420;
+        border: 1px solid #1e3348;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 6px 10px;
+        text-align: center;
+    }
+    .sidebar-metric-label {
+        color: #6f879a;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .7px;
+        text-transform: uppercase;
+    }
+    .sidebar-metric-value {
+        color: #00e5ff;
+        font-size: 20px;
+        font-weight: 900;
+        margin-top: 4px;
+    }
+    .sidebar-metric.gold .sidebar-metric-value { color: #d4af37; }
+    .sidebar-metric.pink .sidebar-metric-value { color: #f472b6; }
+    .sidebar-quick-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 5px;
+        padding: 0 10px;
+    }
+    .sidebar-quick-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 4px;
+        border-radius: 5px;
+        color: white !important;
+        text-decoration: none;
+        font-size: 9px;
+        font-weight: 800;
+        text-align: center;
+        min-height: 28px;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.15), 0 2px 6px rgba(0,0,0,.25);
+        transition: transform .12s ease, filter .12s ease;
+    }
+    .sidebar-quick-link:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .sidebar-apps {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        padding: 0 10px;
+    }
+    .sidebar-app-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        border-radius: 6px;
+        color: #fff !important;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 700;
+        border: 1px solid rgba(255,255,255,.08);
+        box-shadow: 0 4px 12px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08);
+        transition: all .15s ease;
+    }
+    .sidebar-app-link:hover { filter: brightness(1.15); transform: translateY(-2px); border-color: rgba(255,255,255,.25); }
+    .sidebar-logo-img {
+        text-align: center;
+        padding: 16px 10px;
+        margin-top: auto;
+    }
+    .sidebar-logo-img img {
+        max-width: 140px;
+        width: 100%;
+        border-radius: 8px;
+        opacity: .9;
+    }
+</style>
         """,
         unsafe_allow_html=True,
     )
@@ -1893,95 +2037,119 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
                 st.rerun()
 
 
-def render_dashboard(df: pd.DataFrame) -> None:
-    vip_count = int(df["info"].fillna("").astype(str).str.upper().str.contains("VIP", na=False).sum())
-    relaxury_count = int(df.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
-    nights_count = int(pd.to_numeric(df["nights"], errors="coerce").fillna(0).sum())
 
-    # Calcular métricas filtradas para mostrar en el dashboard
-    filtered_preview, active_filters = apply_filters(df)
-    total_display = len(filtered_preview) if active_filters else len(df)
-    total_label = "RESERVAS FILTRADAS" if active_filters else "TOTAL RESERVAS"
 
-    st.markdown(
-        f'<div class="summary-grid">'
-        f'<div class="summary-card"><div class="summary-label">{total_label} <span></span></div><div class="summary-value">{total_display}</div></div>'
-        f'<div class="summary-card gold"><div class="summary-label">VIP ARRIVALS <span></span></div><div class="summary-value">{vip_count}</div></div>'
-        f'<div class="summary-card pink"><div class="summary-label">RELAXURY <span></span></div><div class="summary-value">{relaxury_count}</div></div>'
-        f'<div class="summary-card purple"><div class="summary-label">NOCHES RESERVADAS <span></span></div><div class="summary-value">{nights_count}</div></div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    left, right = st.columns([1.35, 5.65], gap="small")
-    filtered, filters = apply_filters(df)
-
-    with left:
-        today = datetime.now()
-        checkout_links = []
-        for offset in range(8):
-            date = today + timedelta(days=offset)
-            stored = date.strftime("%B %d, %Y")
-            count = int((df["check_out"] == stored).sum())
-            checkout_links.append(
-                f'<a class="quick-link" href="{url_with(checkout_filtro=stored)}" target="_self" style="background:#{"0F766E" if offset % 2 == 0 else "155E75"}">{date:%b %d}: {count}</a>'
-            )
-        st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
-        st.markdown(f'<div style="margin-top:7px"><a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#334155">« VER TODAS »</a></div>', unsafe_allow_html=True)
-
-        # Panel de seleccion masiva
-        st.markdown('<div class="panel" style="margin-top:10px"><div class="panel-title">Seleccion masiva</div>', unsafe_allow_html=True)
-        if not filtered.empty:
-            all_ids_current = filtered["id"].dropna().astype(str).tolist()
-            c1, c2 = st.columns(2)
-            if c1.button("SELECC. TODO", use_container_width=True):
-                st.session_state.bulk_selected_ids = all_ids_current
-                st.session_state.pop("selected_reservation", None)
-                st.session_state.pop("selected_reservation_id", None)
-                st.rerun()
-            if c2.button("DESMARCAR", use_container_width=True):
-                st.session_state.bulk_selected_ids = []
-                st.rerun()
-            count_sel = len(st.session_state.get("bulk_selected_ids", []))
-            st.markdown(f'<div style="text-align:center;color:#8ca4ba;font-size:10px;margin-top:4px">{count_sel} de {len(all_ids_current)} seleccionadas</div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div style="color:#8ca4ba;font-size:10px;text-align:center">No hay reservas para seleccionar</div>', unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
-        selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date())
-        date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;margin-top:5px">APLICAR FECHA</a>', unsafe_allow_html=True)
-        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:#475569;margin-top:5px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
-
-    with right:
-        render_category_chart(filtered)
-        relaxury = int(filtered.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
-        st.markdown(f'<div class="total-strip" style="border-color:#f472b6">RELAXURY <strong style="color:#f472b6">{relaxury}</strong></div>', unsafe_allow_html=True)
-        render_app_links()
+def render_sidebar(df: pd.DataFrame) -> None:
+    """Renderiza la barra lateral con navegación, métricas, filtros y links."""
+    with st.sidebar:
+        # Brand
         st.markdown(
-            '<div style="display:flex;justify-content:center;margin:12px 0 8px;">'
-            '<img src="https://raw.githubusercontent.com/conciergetest/builder-my-repo/main/FredWayneLOGO.jpeg" '
-            'style="max-height:150px;width:auto;border-radius:10px;opacity:.95;box-shadow:0 8px 24px rgba(0,0,0,.5);" '
-            'alt="Fred Wayne Logo">'
-            '</div>',
+            """
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-mark">WA</div>
+                <div class="sidebar-brand-name">WALDORF ASTORIA</div>
+                <div style="color:#6f879a;font-size:9px;letter-spacing:1px;margin-top:2px;">COSTA RICA · PUNTA CACIQUE</div>
+                <div style="color:#00e5ff;font-size:12px;font-weight:800;margin-top:3px;">Concierge Master <span style="color:#6f879a">v5.1</span></div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
 
-    st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-    render_action_links()
+        # Métricas
+        vip_count = int(df["info"].fillna("").astype(str).str.upper().str.contains("VIP", na=False).sum())
+        relaxury_count = int(df.astype(str).apply(lambda col: col.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
+        nights_count = int(pd.to_numeric(df["nights"], errors="coerce").fillna(0).sum())
+        total_count = len(df)
 
-    # Botones flotantes (abren dialogs nativos)
-    calc_col, cal_col, _ = st.columns([1, 1, 4])
-    with calc_col:
-        if st.button("🧮 CALCULADORA", use_container_width=True):
-            calculator_dialog()
-    with cal_col:
-        if st.button("📅 ALMANAQUE", use_container_width=True):
-            calendar_dialog()
+        st.markdown(
+            f"""
+            <div class="sidebar-metric"><div class="sidebar-metric-label">Total Reservas</div><div class="sidebar-metric-value">{total_count}</div></div>
+            <div class="sidebar-metric gold"><div class="sidebar-metric-label">VIP Arrivals</div><div class="sidebar-metric-value">{vip_count}</div></div>
+            <div class="sidebar-metric pink"><div class="sidebar-metric-label">Relaxury</div><div class="sidebar-metric-value">{relaxury_count}</div></div>
+            <div class="sidebar-metric purple"><div class="sidebar-metric-label">Noches Reservadas</div><div class="sidebar-metric-value">{nights_count}</div></div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-    render_quick_links()
-    st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
+        # Sección: Acciones
+        st.markdown('<div class="sidebar-section">⚡ Acciones</div>', unsafe_allow_html=True)
+        current_action = get_action()
+
+        actions = [
+            ("➕ NUEVA", "nueva"),
+            ("📥 IMPORTAR", "importar"),
+            ("📤 EXPORTAR", "exportar"),
+            ("📊 REPORTE", "reporte"),
+            ("📅 AGENDA", "agenda"),
+            ("💰 BONUS", "bonus"),
+        ]
+        for label, action in actions:
+            active = " active" if current_action == action else ""
+            st.markdown(
+                f'<a class="sidebar-item{active}" href="{url_with(action=action)}" target="_self">'
+                f'<span class="sidebar-icon">{label.split()[0]}</span><span>{label.split(" ", 1)[1]}</span></a>',
+                unsafe_allow_html=True,
+            )
+
+        # Sección: Herramientas
+        st.markdown('<div class="sidebar-section">🛠️ Herramientas</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🧮 Calculadora", use_container_width=True):
+                calculator_dialog()
+        with col2:
+            if st.button("📅 Almanaque", use_container_width=True):
+                calendar_dialog()
+
+        # Sección: Aplicaciones
+        st.markdown('<div class="sidebar-section">🔗 Apps Relacionadas</div>', unsafe_allow_html=True)
+        apps = [
+            ("🏊 Aquatic Reservations", "https://activities-avhsghtxc4ewcdvhqjejrp.streamlit.app/", "#0891B2"),
+            ("📋 Operator's Log", "https://hotel-logbook-zu2ywlashxhykapkbxawfc.streamlit.app/", "#D97706"),
+            ("✏️ VT Creator", "https://activity-certificate-waldorf-jwxquxl93r5ntvye4w3ftu.streamlit.app/", "#7C3AED"),
+            ("🗄️ VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/", "#059669"),
+        ]
+        for label, url, bg in apps:
+            st.markdown(
+                f'<a class="sidebar-app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="background:{bg}">'
+                f'<span>{label}</span></a>',
+                unsafe_allow_html=True,
+            )
+
+        # Sección: Links Operativos
+        st.markdown('<div class="sidebar-section">🌐 Links Operativos</div>', unsafe_allow_html=True)
+        links_html = ""
+        for label, url, color in QUICK_LINKS:
+            links_html += (
+                f'<a class="sidebar-quick-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="background:{color}">'
+                f'{label}</a>'
+            )
+        st.markdown(f'<div class="sidebar-quick-grid">{links_html}</div>', unsafe_allow_html=True)
+
+        # Sección: Filtros
+        st.markdown('<div class="sidebar-section">🔍 Filtros</div>', unsafe_allow_html=True)
+        filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
+        selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date())
+        date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
+        st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;margin:4px 10px;display:block;text-align:center">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:#475569;margin:4px 10px;display:block;text-align:center">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+
+        # Logo Fred Wayne al final
+        st.markdown(
+            """
+            <div class="sidebar-logo-img">
+                <img src="https://raw.githubusercontent.com/conciergetest/builder-my-repo/main/FredWayneLOGO.jpeg"
+                     alt="Fred Wayne Logo">
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+def render_dashboard(df: pd.DataFrame) -> None:
+    """Renderiza el dashboard principal con la tabla de reservaciones."""
+    filtered, filters = apply_filters(df)
+
+    # Barra de búsqueda
     st.markdown(
         """
         <style>
@@ -2004,8 +2172,8 @@ def render_dashboard(df: pd.DataFrame) -> None:
         label_visibility="collapsed",
         on_change=st.rerun,
     )
-    filtered, filters = apply_filters(df)
 
+    # Filtros activos
     if filters:
         captions = []
         if "checkout" in filters:
@@ -2014,7 +2182,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
             captions.append("Check-in: " + safe_text(filters["arrival"]))
         if "search" in filters:
             captions.append("Búsqueda: " + safe_text(filters["search"]))
-        st.caption(" Â· ".join(captions))
+        st.caption(" · ".join(captions))
 
     st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True)
 
@@ -2029,7 +2197,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
     selected = st.session_state.get("selected_reservation")
     if selected and not bulk_ids:
         sel_id = safe_text(str(selected.get("id", "")))
-        name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "â"))
+        name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "—"))
         st.markdown(f'<div class="selection-banner"><b>RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
         st.markdown(
             '<div class="action-links" style="grid-template-columns:repeat(4,minmax(110px,1fr));max-width:700px">'
@@ -2076,7 +2244,6 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     render_reservations_grid(filtered)
 
-    
 
 
 # -----------------------------------------------------------------------------
@@ -2085,6 +2252,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
 show_header()
 reservations = cargar_reservaciones()
+render_sidebar(reservations)
 action = get_action()
 
 # Auto-abrir calculadora si viene de redirección legacy
