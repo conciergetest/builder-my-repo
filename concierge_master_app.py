@@ -678,183 +678,128 @@ def show_header() -> None:
 
 
 def render_menu() -> None:
-    """Muestra un único botón de menú que despliega un panel flotante con todas las acciones y enlaces."""
+    """Muestra un botón de menú nativo de Streamlit que despliega todas las acciones y enlaces."""
 
     def _url(action: str) -> str:
         current = {k: v for k, v in st.query_params.items()}
         current["action"] = action
         return "?" + urlencode(current)
 
-    menu_html = f"""
-<style>
-  /* Hide the checkbox */
-  #menu-toggle {{ display: none; }}
+    # Inject minimal CSS for the popover trigger button styling
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stPopover"] > button {
+            background: linear-gradient(135deg, #0d1420 0%, #101827 100%) !important;
+            border: 1px solid #1e3348 !important;
+            color: #00e5ff !important;
+            font-weight: 800 !important;
+            font-size: 13px !important;
+            letter-spacing: 1.2px !important;
+            text-transform: uppercase !important;
+            border-radius: 10px !important;
+            padding: 10px 18px !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06) !important;
+        }
+        div[data-testid="stPopover"] > button:hover {
+            border-color: #00e5ff !important;
+            box-shadow: 0 0 16px rgba(0,229,255,.25) !important;
+        }
+        div[data-testid="stPopover"] > button:active {
+            transform: scale(0.97) !important;
+        }
+        /* Popover panel styling */
+        div[data-testid="stPopoverBody"] {
+            background: #0b111b !important;
+            border: 1px solid #1e3348 !important;
+            border-radius: 14px !important;
+            padding: 18px !important;
+            box-shadow: 0 24px 60px rgba(0,0,0,.7) !important;
+            min-width: 420px !important;
+        }
+        div[data-testid="stPopoverBody"] button {
+            background: #0d1420 !important;
+            border: 1px solid #1e3348 !important;
+            color: #eafaff !important;
+            border-radius: 8px !important;
+            font-weight: 700 !important;
+            font-size: 11px !important;
+            transition: all .12s ease !important;
+        }
+        div[data-testid="stPopoverBody"] button:hover {
+            filter: brightness(1.15) !important;
+            transform: translateY(-1px) !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
-  .menu-wrapper {{ position: relative; display: inline-block; }}
+    col1, col2 = st.columns([6, 1])
+    with col1:
+        pass  # empty space on left
+    with col2:
+        with st.popover("☰ MENÚ", use_container_width=True):
+            st.markdown("<div style='color:#d4af37;font-size:14px;font-weight:800;letter-spacing:1.5px;text-align:center;margin-bottom:14px;'>CONCIERGE MASTER</div>", unsafe_allow_html=True)
 
-  .menu-btn {{
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 18px; border-radius: 10px; border: 1px solid #1e3348;
-    background: linear-gradient(135deg, #0d1420 0%, #101827 100%);
-    color: #00e5ff; font-weight: 800; font-size: 13px; letter-spacing: 1.2px;
-    cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
-    transition: all .15s ease; text-transform: uppercase;
-  }}
-  .menu-btn:hover {{ border-color: #00e5ff; box-shadow: 0 0 16px rgba(0,229,255,.25); }}
-  .menu-btn:active {{ transform: scale(0.97); }}
-  .menu-btn svg {{ width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }}
+            # ── Operaciones ──
+            st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #00e5ff;padding-left:8px;'>Operaciones</div>", unsafe_allow_html=True)
+            c1, c2, c3 = st.columns(3)
+            if c1.button("➕ NUEVA", use_container_width=True):
+                st.query_params["action"] = "nueva"
+                st.rerun()
+            if c2.button("⬆ IMPORTAR", use_container_width=True):
+                st.query_params["action"] = "importar"
+                st.rerun()
+            if c3.button("⬇ EXPORTAR", use_container_width=True):
+                st.query_params["action"] = "exportar"
+                st.rerun()
+            c4, c5, c6 = st.columns(3)
+            if c4.button("📊 REPORTE", use_container_width=True):
+                st.query_params["action"] = "reporte"
+                st.rerun()
+            if c5.button("📅 AGENDA", use_container_width=True):
+                st.query_params["action"] = "agenda"
+                st.rerun()
+            if c6.button("💰 BONUS", use_container_width=True):
+                st.query_params["action"] = "bonus"
+                st.rerun()
 
-  .menu-overlay {{
-    position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 9998;
-    opacity: 0; pointer-events: none; transition: opacity .2s ease;
-  }}
+            st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
-  .menu-panel {{
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -45%) scale(.96);
-    width: min(520px, 92vw); max-height: 82vh; overflow-y: auto;
-    background: #0b111b; border: 1px solid #1e3348; border-radius: 14px;
-    padding: 22px; box-shadow: 0 24px 60px rgba(0,0,0,.7);
-    opacity: 0; pointer-events: none; transition: all .25s cubic-bezier(.16,1,.3,1); z-index: 9999;
-  }}
+            # ── Herramientas ──
+            st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #a78bfa;padding-left:8px;'>Herramientas</div>", unsafe_allow_html=True)
+            h1, h2 = st.columns(2)
+            if h1.button("🧮 CALCULADORA", use_container_width=True):
+                st.query_params["action"] = "calculadora"
+                st.rerun()
+            if h2.button("📆 ALMANAQUE", use_container_width=True):
+                st.query_params["action"] = "almanaque"
+                st.rerun()
 
-  /* When checkbox is checked, show overlay and panel */
-  #menu-toggle:checked ~ .menu-overlay {{
-    opacity: 1; pointer-events: auto;
-  }}
-  #menu-toggle:checked ~ .menu-panel {{
-    opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1);
-  }}
+            st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
-  .menu-header {{
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid #1e3348;
-  }}
-  .menu-title {{ color: #d4af37; font-size: 15px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }}
-  .menu-close {{
-    width: 32px; height: 32px; border-radius: 8px; border: 1px solid #263b53;
-    background: #101827; color: #8ca4ba; font-size: 18px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; transition: all .12s;
-  }}
-  .menu-close:hover {{ border-color: #e11d48; color: #e11d48; background: #2a0a0a; }}
+            # ── Enlaces Rápidos ──
+            st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #4ade80;padding-left:8px;'>Enlaces Rápidos</div>", unsafe_allow_html=True)
 
-  .menu-section {{ margin-bottom: 18px; }}
-  .menu-section-title {{
-    color: #8ca4ba; font-size: 10px; font-weight: 800; letter-spacing: 1.2px;
-    text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
-  }}
-  .menu-section-title::before {{ content: ''; display: block; width: 18px; height: 2px; border-radius: 1px; }}
-  .section-ops::before {{ background: #00e5ff; }}
-  .section-tools::before {{ background: #a78bfa; }}
-  .section-links::before {{ background: #4ade80; }}
+            link_style = 'display:block;text-align:center;padding:8px 4px;border-radius:8px;border:1px solid #1e3348;background:#0d1420;color:#eafaff;text-decoration:none;font-size:11px;font-weight:700;transition:all .12s;'
 
-  .menu-grid {{ display: grid; gap: 8px; }}
-  .grid-3 {{ grid-template-columns: repeat(3, 1fr); }}
-  .grid-2 {{ grid-template-columns: repeat(2, 1fr); }}
-  .grid-5 {{ grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }}
+            l1, l2, l3 = st.columns(3)
+            l1.markdown(f'<a href="{html.escape(QUICK_LINKS[0][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#a5b4fc;">ALICE</a>', unsafe_allow_html=True)
+            l2.markdown(f'<a href="{html.escape(QUICK_LINKS[1][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">ARRIVALS</a>', unsafe_allow_html=True)
+            l3.markdown(f'<a href="{html.escape(QUICK_LINKS[2][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#34d399;">LA CERNIA</a>', unsafe_allow_html=True)
 
-  .menu-item {{
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 6px; padding: 12px 8px; border-radius: 10px; border: 1px solid #1e3348;
-    background: #0d1420; color: #eafaff; font-size: 11px; font-weight: 700;
-    letter-spacing: .4px; text-align: center; cursor: pointer;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 3px 8px rgba(0,0,0,.25);
-    transition: all .12s ease; text-decoration: none; min-height: 64px;
-  }}
-  .menu-item:hover {{ transform: translateY(-2px); filter: brightness(1.15); border-color: currentColor; }}
-  .menu-item:active {{ transform: scale(0.96); }}
-  .menu-item .icon {{
-    width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 900;
-  }}
+            l4, l5, l6 = st.columns(3)
+            l4.markdown(f'<a href="{html.escape(QUICK_LINKS[3][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fb923c;">NO LIMIT</a>', unsafe_allow_html=True)
+            l5.markdown(f'<a href="{html.escape(QUICK_LINKS[4][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f87171;">OPEN TABLE</a>', unsafe_allow_html=True)
+            l6.markdown(f'<a href="{html.escape(QUICK_LINKS[5][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#60a5fa;">OUTLOOK-FW</a>', unsafe_allow_html=True)
 
-  .btn-nueva    {{ --c: #00b8d4; color: #00b8d4; }}
-  .btn-importar {{ --c: #16a34a; color: #4ade80; }}
-  .btn-exportar {{ --c: #2563eb; color: #60a5fa; }}
-  .btn-reporte  {{ --c: #d97706; color: #fbbf24; }}
-  .btn-agenda   {{ --c: #7c3aed; color: #a78bfa; }}
-  .btn-bonus    {{ --c: #d4af37; color: #facc15; }}
-  .btn-calc     {{ --c: #0891b2; color: #22d3ee; }}
-  .btn-alma     {{ --c: #475569; color: #94a3b8; }}
-  .btn-alice    {{ --c: #6c5ce7; color: #a5b4fc; }}
-  .btn-arrivals {{ --c: #0284c7; color: #38bdf8; }}
-  .btn-cernia   {{ --c: #059669; color: #34d399; }}
-  .btn-nolimit  {{ --c: #ea580c; color: #fb923c; }}
-  .btn-opentbl  {{ --c: #dc2626; color: #f87171; }}
-  .btn-outfw    {{ --c: #2563eb; color: #60a5fa; }}
-  .btn-outpc    {{ --c: #0078d4; color: #38bdf8; }}
-  .btn-relax    {{ --c: #db2777; color: #f472b6; }}
-  .btn-vtc      {{ --c: #d97706; color: #fbbf24; }}
+            l7, l8, l9 = st.columns(3)
+            l7.markdown(f'<a href="{html.escape(QUICK_LINKS[6][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
+            l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
+            l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fbbf24;">VTC</a>', unsafe_allow_html=True)
 
-  .menu-item .icon {{ background: color-mix(in srgb, var(--c) 15%, transparent); color: var(--c); }}
-  .menu-item:hover {{ border-color: var(--c); box-shadow: 0 0 12px color-mix(in srgb, var(--c) 20%, transparent); }}
-
-  .menu-footer {{
-    margin-top: 14px; padding-top: 12px; border-top: 1px solid #1e3348;
-    text-align: center; color: #4a5a6a; font-size: 10px; letter-spacing: .5px;
-  }}
-
-  @media (max-width: 520px) {{
-    .grid-3, .grid-5 {{ grid-template-columns: repeat(2, 1fr); }}
-  }}
-</style>
-
-<div style="display:flex;justify-content:flex-end;margin:8px 0;">
-  <div class="menu-wrapper">
-    <input type="checkbox" id="menu-toggle">
-    <label for="menu-toggle" class="menu-btn">
-      <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-      MENÚ
-    </label>
-
-    <label for="menu-toggle" class="menu-overlay"></label>
-
-    <div class="menu-panel">
-      <div class="menu-header">
-        <div class="menu-title">☰ Concierge Master</div>
-        <label for="menu-toggle" class="menu-close">✕</label>
-      </div>
-
-      <div class="menu-section">
-        <div class="menu-section-title section-ops">Operaciones</div>
-        <div class="menu-grid grid-3">
-          <a class="menu-item btn-nueva"    href="{_url('nueva')}"    target="_self"><span class="icon">＋</span>NUEVA</a>
-          <a class="menu-item btn-importar" href="{_url('importar')}" target="_self"><span class="icon">↑</span>IMPORTAR</a>
-          <a class="menu-item btn-exportar" href="{_url('exportar')}" target="_self"><span class="icon">↓</span>EXPORTAR</a>
-          <a class="menu-item btn-reporte"  href="{_url('reporte')}"  target="_self"><span class="icon">📊</span>REPORTE</a>
-          <a class="menu-item btn-agenda"   href="{_url('agenda')}"   target="_self"><span class="icon">📅</span>AGENDA</a>
-          <a class="menu-item btn-bonus"    href="{_url('bonus')}"    target="_self"><span class="icon">💰</span>BONUS</a>
-        </div>
-      </div>
-
-      <div class="menu-section">
-        <div class="menu-section-title section-tools">Herramientas</div>
-        <div class="menu-grid grid-2">
-          <a class="menu-item btn-calc" href="{_url('calculadora')}" target="_self"><span class="icon">🧮</span>CALCULADORA</a>
-          <a class="menu-item btn-alma" href="{_url('almanaque')}"  target="_self"><span class="icon">📆</span>ALMANAQUE</a>
-        </div>
-      </div>
-
-      <div class="menu-section">
-        <div class="menu-section-title section-links">Enlaces Rápidos</div>
-        <div class="menu-grid grid-5">
-          <a class="menu-item btn-alice"    href="{html.escape(QUICK_LINKS[0][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">A</span>ALICE</a>
-          <a class="menu-item btn-arrivals" href="{html.escape(QUICK_LINKS[1][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">ARR</span>ARRIVALS</a>
-          <a class="menu-item btn-cernia"   href="{html.escape(QUICK_LINKS[2][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">LC</span>LA CERNIA</a>
-          <a class="menu-item btn-nolimit"  href="{html.escape(QUICK_LINKS[3][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">NL</span>NO LIMIT</a>
-          <a class="menu-item btn-opentbl"  href="{html.escape(QUICK_LINKS[4][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">OT</span>OPEN TABLE</a>
-          <a class="menu-item btn-outfw"    href="{html.escape(QUICK_LINKS[5][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">FW</span>OUTLOOK-FW</a>
-          <a class="menu-item btn-outpc"    href="{html.escape(QUICK_LINKS[6][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">PC</span>OUTLOOK-PC</a>
-          <a class="menu-item btn-relax"    href="{html.escape(QUICK_LINKS[7][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">RX</span>RELAXURY</a>
-          <a class="menu-item btn-vtc"      href="{html.escape(QUICK_LINKS[8][1], quote=True)}"  target="_blank" rel="noopener noreferrer"><span class="icon">VT</span>VTC</a>
-        </div>
-      </div>
-
-      <div class="menu-footer">Waldorf Astoria Costa Rica · Concierge Master v5.1</div>
-    </div>
-  </div>
-</div>
-    """
-    st.markdown(menu_html, unsafe_allow_html=True)
+            st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1e3348;text-align:center;color:#4a5a6a;font-size:10px;'>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
 
 
 def render_app_links() -> None:
