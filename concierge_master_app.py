@@ -798,12 +798,7 @@ def render_menu() -> None:
         l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
         l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
 
-        st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-        # Botón para cerrar el popover manualmente después de abrir enlaces
-        if st.button("✕ Cerrar menú", use_container_width=True, type="secondary"):
-            pass  # El popover se cierra al hacer click en cualquier botón
-
-        st.markdown("<div style='margin-top:8px;padding-top:10px;border-top:1px solid #1e3348;text-align:center;color:#4a5a6a;font-size:10px;'>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1e3348;text-align:center;color:#4a5a6a;font-size:10px;'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
 
 
 
