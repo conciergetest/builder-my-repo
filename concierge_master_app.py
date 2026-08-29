@@ -1949,12 +1949,12 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
     )
 
     fields = {
-        "eta":      ("ETA",          80),
+        "eta":      ("ETA",          95),
         "name":     ("NAME",         170),
         "qty":      ("QTY",          60),
         "room":     ("ROOM",         70),
         "check_in": ("CHECK IN",     155),
-        "check_out":("CHECK OUT",    155),
+        "check_out":("CHECK OUT",    175),
         "nights":   ("🌙",            60),
         "res_number":("RESERVATION", 170),
         "phone":    ("PHONE",        175),
