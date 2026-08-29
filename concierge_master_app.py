@@ -621,7 +621,7 @@ def exportar_reporte_excel(data: dict[str, pd.DataFrame], report_date: datetime)
 def show_header() -> None:
     import streamlit.components.v1 as components
 
-    header_left, header_right = st.columns([1.6, 1])
+    header_left, header_center, header_right = st.columns([1.4, 0.5, 1])
     with header_left:
         st.markdown(
             """
@@ -636,6 +636,15 @@ def show_header() -> None:
   </div>
 </div>
             """,
+            unsafe_allow_html=True,
+        )
+    with header_center:
+        st.markdown(
+            '<div style="display:flex;justify-content:center;align-items:center;height:100%;">'
+            '<img src="https://raw.githubusercontent.com/conciergetest/builder-my-repo/main/FredWayneLOGO.jpeg" '
+            'style="max-height:52px;width:auto;border-radius:8px;opacity:.95;box-shadow:0 4px 12px rgba(0,0,0,.5);" '
+            'alt="Fred Wayne Logo">'
+            '</div>',
             unsafe_allow_html=True,
         )
     with header_right:
@@ -2053,14 +2062,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         relaxury = int(filtered.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
         st.markdown(f'<div class="total-strip" style="border-color:#f472b6">RELAXURY <strong style="color:#f472b6">{relaxury}</strong></div>', unsafe_allow_html=True)
         render_app_links()
-        st.markdown(
-            '<div style="display:flex;justify-content:center;margin:12px 0 8px;">'
-            '<img src="https://raw.githubusercontent.com/conciergetest/builder-my-repo/main/FredWayneLOGO.jpeg" '
-            'style="max-height:150px;width:auto;border-radius:10px;opacity:.95;box-shadow:0 8px 24px rgba(0,0,0,.5);" '
-            'alt="Fred Wayne Logo">'
-            '</div>',
-            unsafe_allow_html=True,
-        )
+
 
     # Fila horizontal: filtros + menú
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
