@@ -169,20 +169,20 @@ st.markdown(
     """
 <style>
     :root { color-scheme: dark; }
-    .stApp { background: #080b12; color: #edf8ff; }
+    .stApp { background: #000000; color: #edf8ff; }
     /* AG Grid selected row handled via rowClassRules */
     header[data-testid="stHeader"] { display: none; }
     .block-container { max-width: 100%; padding: .7rem 1.1rem 1.4rem; }
     [data-testid="stVerticalBlock"] { gap: .45rem; }
     [data-testid="stTextInput"] input, [data-testid="stDateInput"] input {
-        color: #effaff !important; background: #101827 !important;
-        border: 1px solid #263b53 !important; border-radius: 8px !important;
+        color: #effaff !important; background: #0d0d0d !important;
+        border: 1px solid #222222 !important; border-radius: 8px !important;
     }
     [data-testid="stTextInput"] input:focus, [data-testid="stDateInput"] input:focus {
         border-color: #00e5ff !important; box-shadow: 0 0 0 1px #00e5ff !important;
     }
     div[data-testid="stMetric"] {
-        border: 1px solid #1e3348; background: #0d1420; border-radius: 10px; padding: 10px;
+        border: 1px solid #1a1a1a; background: #0a0a0a; border-radius: 10px; padding: 10px;
     }
     div[data-testid="stMetric"] label { color: #8ca4ba !important; }
     div[data-testid="stMetric"] [data-testid="stMetricValue"] { color: #00e5ff !important; }
@@ -205,12 +205,12 @@ st.markdown(
     .brand-product { color:#00e5ff; font-size:14px; font-weight:800; margin-top:3px; }
     .clock { color:#00e5ff; font-size:16px; font-weight:800; text-align:right; text-shadow:0 0 12px rgba(0,229,255,.45); }
     .clock-date { color:#00e5ff; font-size:14px; font-weight:700; margin-top:4px; }
-    .panel { background:#0d1420; border:1px solid #1e3348; border-radius:10px; padding:12px; }
+    .panel { background:#0a0a0a; border:1px solid #1a1a1a; border-radius:10px; padding:12px; }
     .panel-title { color:#00e5ff; font-size:11px; font-weight:800; letter-spacing:.7px; text-transform:uppercase; margin-bottom:8px; }
-    .total-strip { border:1px solid #00e5ff; color:#dffcff; background:linear-gradient(90deg,#0b2130,#0d1420); border-radius:8px; padding:7px 12px; text-align:center; font-size:12px; }
+    .total-strip { border:1px solid #00e5ff; color:#dffcff; background:linear-gradient(90deg,#000000,#0a0a0a); border-radius:8px; padding:7px 12px; text-align:center; font-size:12px; }
     .total-strip strong { color:#00e5ff; font-size:17px; margin-left:6px; }
     .summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:8px 0; }
-    .summary-card { min-height:57px; background:#0d1723; border:1px solid #1e3348; border-radius:8px; padding:8px 10px; }
+    .summary-card { min-height:57px; background:#080808; border:1px solid #1a1a1a; border-radius:8px; padding:8px 10px; }
     .summary-label { display:flex; align-items:center; justify-content:space-between; color:#71879a; font-size:9px; font-weight:800; letter-spacing:.7px; text-transform:uppercase; }
     .summary-value { margin-top:5px; color:#00e5ff; font-size:20px; line-height:1; font-weight:900; }
     .summary-card.gold .summary-value { color:#d4af37; }
@@ -223,17 +223,17 @@ st.markdown(
     .category-card-fill { height:100%; border-radius:3px; background:var(--category-color); }
     .category-row { display:flex; align-items:center; gap:8px; margin:6px 0; }
     .category-label { color:#b9cad8; font-size:10px; width:92px; text-align:right; white-space:nowrap; }
-    .category-track { flex:1; height:13px; background:#172331; border-radius:5px; overflow:hidden; }
+    .category-track { flex:1; height:13px; background:#111111; border-radius:5px; overflow:hidden; }
     .category-fill { height:100%; border-radius:5px; }
     .category-value { color:#e8f8ff; font-size:11px; font-weight:700; width:22px; }
     @media (max-width: 980px) {
         .summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
         .category-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
     }
-    .selection-banner { margin: 8px 0; padding:8px 11px; background:#062233; border:1px solid #00e5ff; color:#edfaff; border-radius:8px; font-size:12px; }
+    .selection-banner { margin: 8px 0; padding:8px 11px; background:#001111; border:1px solid #00e5ff; color:#edfaff; border-radius:8px; font-size:12px; }
     .selection-banner b { color:#00e5ff; }
     .stButton > button, .stDownloadButton > button, [data-testid="stFormSubmitButton"] > button {
-        background:#1c2b3a !important; color:#eefaff !important; border:1px solid #35526d !important;
+        background:#1a1a1a !important; color:#eefaff !important; border:1px solid #333333 !important;
         border-radius:7px !important; font-weight:750 !important;
     }
     .stButton > button:hover, .stDownloadButton > button:hover, [data-testid="stFormSubmitButton"] > button:hover {
@@ -699,8 +699,8 @@ def render_menu() -> None:
         """
         <style>
         div[data-testid="stPopover"] > button {
-            background: linear-gradient(135deg, #0d1420 0%, #101827 100%) !important;
-            border: 1px solid #1e3348 !important;
+            background: linear-gradient(135deg, #0a0a0a 0%, #0d0d0d 100%) !important;
+            border: 1px solid #1a1a1a !important;
             color: #00e5ff !important;
             font-weight: 800 !important;
             font-size: 13px !important;
@@ -714,16 +714,16 @@ def render_menu() -> None:
             box-shadow: 0 0 16px rgba(0,229,255,.25) !important;
         }
         div[data-testid="stPopoverBody"] {
-            background: #0b111b !important;
-            border: 1px solid #1e3348 !important;
+            background: #050505 !important;
+            border: 1px solid #1a1a1a !important;
             border-radius: 14px !important;
             padding: 18px !important;
             box-shadow: 0 24px 60px rgba(0,0,0,.7) !important;
             min-width: 420px !important;
         }
         div[data-testid="stPopoverBody"] button {
-            background: #0d1420 !important;
-            border: 1px solid #1e3348 !important;
+            background: #0a0a0a !important;
+            border: 1px solid #1a1a1a !important;
             color: #eafaff !important;
             border-radius: 8px !important;
             font-weight: 700 !important;
@@ -782,7 +782,7 @@ def render_menu() -> None:
         # ── Enlaces Rápidos ──
         st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #4ade80;padding-left:8px;'>Enlaces Rápidos</div>", unsafe_allow_html=True)
 
-        link_style = 'display:block;text-align:center;padding:8px 4px;border-radius:8px;border:1px solid #1e3348;background:#0d1420;color:#eafaff;text-decoration:none;font-size:11px;font-weight:700;transition:all .12s;'
+        link_style = 'display:block;text-align:center;padding:8px 4px;border-radius:8px;border:1px solid #1a1a1a;background:#0a0a0a;color:#eafaff;text-decoration:none;font-size:11px;font-weight:700;transition:all .12s;'
 
         l1, l2, l3 = st.columns(3)
         l1.markdown(f'<a href="{html.escape(QUICK_LINKS[0][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fbbf24;">ACT. CALEND</a>', unsafe_allow_html=True)
@@ -799,7 +799,7 @@ def render_menu() -> None:
         l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
         l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
 
-        st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1e3348;text-align:center;color:#4a5a6a;font-size:10px;'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1a1a1a;text-align:center;color:#4a5a6a;font-size:10px;'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
 
 
 
@@ -912,7 +912,7 @@ def render_back_link() -> None:
     current["skip_splash"] = "1"
     back_url = "?" + urlencode(current) if current else "?"
     st.markdown(
-        f'<a class="action-link" href="{back_url}" target="_self" style="background:#334155;max-width:185px">REGRESAR A LA TABLA</a>',
+        f'<a class="action-link" href="{back_url}" target="_self" style="background:#2a2a2a;max-width:185px">REGRESAR A LA TABLA</a>',
         unsafe_allow_html=True,
     )
 
@@ -1150,11 +1150,11 @@ CALCULATOR_HTML = """
 <html>
 <head>
 <style>
-body{margin:0;background:#080b12;font-family:Segoe UI,sans-serif;display:grid;place-items:center;padding:8px;color:#eafaff}
-.calculator{width:280px;padding:14px;background:#101827;border:1px solid #284057;border-radius:16px;box-shadow:0 12px 35px #0008}
-#display{background:#061c2b;border:1px solid #00e5ff;border-radius:10px;color:#00e5ff;font:700 28px monospace;padding:12px;text-align:right;overflow:hidden;margin-bottom:10px}
+body{margin:0;background:#000000;font-family:Segoe UI,sans-serif;display:grid;place-items:center;padding:8px;color:#eafaff}
+.calculator{width:280px;padding:14px;background:#0d0d0d;border:1px solid #222222;border-radius:16px;box-shadow:0 12px 35px #0008}
+#display{background:#000000;border:1px solid #00e5ff;border-radius:10px;color:#00e5ff;font:700 28px monospace;padding:12px;text-align:right;overflow:hidden;margin-bottom:10px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-button{border:0;border-radius:8px;padding:12px 4px;background:#203449;color:#eafaff;font-weight:800;font-size:15px;cursor:pointer}
+button{border:0;border-radius:8px;padding:12px 4px;background:#1a1a1a;color:#eafaff;font-weight:800;font-size:15px;cursor:pointer}
 button:hover{filter:brightness(1.2)}
 button:active{transform:scale(0.96)}
 .op{background:#7c3aed}
@@ -1262,11 +1262,11 @@ CALCULATOR_HTML = """
 <html>
 <head>
 <style>
-body{margin:0;background:#080b12;font-family:Segoe UI,sans-serif;display:grid;place-items:center;padding:8px;color:#eafaff}
-.calculator{width:280px;padding:14px;background:#101827;border:1px solid #284057;border-radius:16px;box-shadow:0 12px 35px #0008}
-#display{background:#061c2b;border:1px solid #00e5ff;border-radius:10px;color:#00e5ff;font:700 28px monospace;padding:12px;text-align:right;overflow:hidden;margin-bottom:10px}
+body{margin:0;background:#000000;font-family:Segoe UI,sans-serif;display:grid;place-items:center;padding:8px;color:#eafaff}
+.calculator{width:280px;padding:14px;background:#0d0d0d;border:1px solid #222222;border-radius:16px;box-shadow:0 12px 35px #0008}
+#display{background:#000000;border:1px solid #00e5ff;border-radius:10px;color:#00e5ff;font:700 28px monospace;padding:12px;text-align:right;overflow:hidden;margin-bottom:10px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-button{border:0;border-radius:8px;padding:12px 4px;background:#203449;color:#eafaff;font-weight:800;font-size:15px;cursor:pointer}
+button{border:0;border-radius:8px;padding:12px 4px;background:#1a1a1a;color:#eafaff;font-weight:800;font-size:15px;cursor:pointer}
 button:hover{filter:brightness(1.2)}
 button:active{transform:scale(0.96)}
 .op{background:#7c3aed}
@@ -1376,22 +1376,22 @@ CALENDAR_HTML = """
 <html>
 <head>
 <style>
-body{margin:0;background:#080b12;font-family:Segoe UI,sans-serif;display:grid;place-items:center;padding:8px;color:#eafaff}
-.calendar-box{width:340px;padding:16px;background:#101827;border:1px solid #284057;border-radius:16px;box-shadow:0 12px 35px #0008}
+body{margin:0;background:#000000;font-family:Segoe UI,sans-serif;display:grid;place-items:center;padding:8px;color:#eafaff}
+.calendar-box{width:340px;padding:16px;background:#0d0d0d;border:1px solid #222222;border-radius:16px;box-shadow:0 12px 35px #0008}
 .cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .cal-title{color:#00e5ff;font:800 16px/1.2 "Segoe UI",sans-serif;text-transform:uppercase;letter-spacing:1px}
 .cal-nav{display:flex;gap:6px}
-.cal-nav button{width:32px;height:32px;border:0;border-radius:8px;background:#203449;color:#eafaff;font-weight:800;font-size:16px;cursor:pointer}
+.cal-nav button{width:32px;height:32px;border:0;border-radius:8px;background:#1a1a1a;color:#eafaff;font-weight:800;font-size:16px;cursor:pointer}
 .cal-nav button:hover{filter:brightness(1.3)}
 .cal-nav button:active{transform:scale(0.95)}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
 .cal-day-label{color:#8ca4ba;font-size:10px;font-weight:800;text-transform:uppercase;padding:6px 0}
 .cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .12s}
-.cal-day:hover{background:#1a3a4a}
+.cal-day:hover{background:#1a1a1a}
 .cal-day.other{color:#4a5a6a}
 .cal-day.today{background:#00e5ff;color:#00151d;font-weight:900}
 .cal-day.selected{background:#D4AF37;color:#1C1300;font-weight:900}
-.cal-footer{margin-top:14px;padding-top:12px;border-top:1px solid #1e3348;text-align:center;color:#8ca4ba;font-size:11px}
+.cal-footer{margin-top:14px;padding-top:12px;border-top:1px solid #1a1a1a;text-align:center;color:#8ca4ba;font-size:11px}
 .cal-footer b{color:#00e5ff;font-size:13px}
 </style>
 </head>
@@ -1594,8 +1594,8 @@ def render_bonus() -> None:
             """
             <style>
             .bonus-login-box {
-                background: #0d1420;
-                border: 1px solid #1e3348;
+                background: #0a0a0a;
+                border: 1px solid #1a1a1a;
                 border-radius: 12px;
                 padding: 28px 24px;
                 max-width: 420px;
@@ -1666,9 +1666,9 @@ def render_bonus() -> None:
     st.markdown(
         """
         <style>
-        .bonus-month { background:#0d1420; border:1px solid #1e3348; border-radius:10px; padding:12px; }
+        .bonus-month { background:#0a0a0a; border:1px solid #1a1a1a; border-radius:10px; padding:12px; }
         .bonus-month h4 { color:#D4AF37; font-size:11px; text-align:center; margin:0 0 8px; letter-spacing:1px; }
-        .bonus-input { width:100%; background:#101827; border:1px solid #263b53; color:#effaff; 
+        .bonus-input { width:100%; background:#0d0d0d; border:1px solid #222222; color:#effaff; 
                        border-radius:6px; padding:6px 8px; font-size:13px; margin-bottom:6px; }
         .bonus-input:focus { border-color:#00e5ff; outline:none; }
         </style>
@@ -1713,7 +1713,7 @@ def render_bonus() -> None:
     with c4:
         st.markdown(f'<div style="background:#D4AF37;color:#1C1300;padding:8px 12px;border-radius:8px;text-align:center;font-weight:800;font-size:12px">TOTAL SUM<br><span style="font-size:16px">{total_sum:,.2f}</span></div>', unsafe_allow_html=True)
     with c5:
-        st.markdown(f'<div style="background:#4ADE80;color:#0d1420;padding:8px 12px;border-radius:8px;text-align:center;font-weight:800;font-size:12px">AGUINALDO<br><span style="font-size:16px">{aguinaldo:,.2f}</span></div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="background:#4ADE80;color:#0a0a0a;padding:8px 12px;border-radius:8px;text-align:center;font-weight:800;font-size:12px">AGUINALDO<br><span style="font-size:16px">{aguinaldo:,.2f}</span></div>', unsafe_allow_html=True)
 
 
 def render_delete() -> None:
@@ -1790,7 +1790,7 @@ ROW_STYLE = JsCode(
     """
 function(params) {
   if (params.node && params.node.selected) {
-    var bg = (params.rowIndex % 2 === 0) ? '#0b111b' : '#0e1723';
+    var bg = (params.rowIndex % 2 === 0) ? '#050505' : '#0e1723';
     return {
       backgroundColor: bg,
       borderTop: '1px solid #00E5FF',
@@ -1854,32 +1854,32 @@ GRID_CSS = {
     ".ag-root-wrapper": {
         "--ag-selected-row-background-color": "transparent !important",
         "--ag-range-selection-background-color": "transparent !important",
-        "--ag-row-hover-color": "#132a3a !important",
-        "border": "1px solid #1f384d !important",
+        "--ag-row-hover-color": "#111111 !important",
+        "border": "1px solid #1a1a1a !important",
         "border-radius": "10px !important",
         "overflow": "hidden !important",
-        "background-color": "#0b111b !important",
+        "background-color": "#050505 !important",
     },
     ".ag-header": {
         "background-color": "#000000 !important",
-        "border-bottom": "1px solid #1f384d !important",
+        "border-bottom": "1px solid #1a1a1a !important",
     },
     ".ag-header-cell": {"border-right": "none !important"},
     ".ag-header-cell-label": {"color": "#00E5FF !important", "font-weight": "900 !important", "letter-spacing": ".25px"},
     ".ag-header-cell-text": {"color": "#00E5FF !important"},
-    ".ag-row": {"background-color": "#0b111b !important", "border-bottom": "none !important"},
+    ".ag-row": {"background-color": "#050505 !important", "border-bottom": "none !important"},
     ".ag-row-odd": {"background-color": "#0e1723 !important"},
     ".ag-cell": {"border-right": "none !important", "border-bottom": "none !important", "color": "#e6f3fb", "font-size": "12px"},
     ".ag-cell-focus": {"border": "none !important", "outline": "none !important", "box-shadow": "none !important"},
-    ".ag-row-hover": {"background": "#132a3a !important"},
+    ".ag-row-hover": {"background": "#111111 !important"},
     ".vip-row": {"background-color": "#0a1a1a !important", "border-left": "3px solid #00E5FF !important"},
-    ".ag-row-selected": {"background-color": "#0b111b !important", "border-top": "1px solid #00E5FF !important", "border-bottom": "1px solid #00E5FF !important"},
+    ".ag-row-selected": {"background-color": "#050505 !important", "border-top": "1px solid #00E5FF !important", "border-bottom": "1px solid #00E5FF !important"},
     ".ag-row-selected.ag-row-odd": {"background-color": "#0e1723 !important", "border-top": "1px solid #00E5FF !important", "border-bottom": "1px solid #00E5FF !important"},
     ".ag-row-selected .ag-cell": {"color": "#e6f3fb !important", "font-weight": "800 !important"},
     ".selected-transparent": {"background-color": "transparent !important", "background": "transparent !important", "border-top": "1px solid #00E5FF !important", "border-bottom": "1px solid #00E5FF !important"},
     ".selected-transparent .ag-cell": {"color": "#e6f3fb !important", "font-weight": "800 !important"},
 
-    ".ag-paging-panel": {"border-top": "none !important", "background-color": "#0b111b !important", "color": "#cceaf6 !important"},
+    ".ag-paging-panel": {"border-top": "none !important", "background-color": "#050505 !important", "color": "#cceaf6 !important"},
     ".ag-header-icon": {"display": "none !important"},
 }
 
@@ -2052,7 +2052,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 f'<a class="quick-link" href="{url_with(checkout_filtro=stored)}" target="_self" style="background:#{"0F766E" if offset % 2 == 0 else "155E75"}">{date:%b %d}: {count}</a>'
             )
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
-        st.markdown(f'<div style="margin-top:7px"><a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#334155">« VER TODAS »</a></div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="margin-top:7px"><a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#2a2a2a">« VER TODAS »</a></div>', unsafe_allow_html=True)
 
         # Panel de seleccion masiva
         st.markdown('<div class="panel" style="margin-top:10px"><div class="panel-title">Seleccion masiva</div>', unsafe_allow_html=True)
@@ -2095,7 +2095,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;display:flex;align-items:center;justify-content:center;height:38px;margin-top:28px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
     with f3:
-        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:#475569;display:flex;align-items:center;justify-content:center;height:38px;margin-top:28px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:#3a3a3a;display:flex;align-items:center;justify-content:center;height:38px;margin-top:28px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with f4:
         render_menu()
@@ -2154,13 +2154,13 @@ def render_dashboard(df: pd.DataFrame) -> None:
             f'<a class="action-link" href="{url_with(action="editar", sel_id=sel_id)}" target="_self" style="background:#D97706">EDITAR</a>'
             f'<a class="action-link" href="{url_with(action="carta", sel_id=sel_id)}" target="_self" style="background:#7C3AED">CARTA</a>'
             f'<a class="action-link" href="{url_with(action="cancelar", sel_id=sel_id)}" target="_self" style="background:#E11D48">BORRAR</a>'
-            f'<a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#475569">DESELECCIONAR</a>'
+            f'<a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#3a3a3a">DESELECCIONAR</a>'
             '</div>',
             unsafe_allow_html=True,
         )
     elif bulk_ids:
         st.markdown(
-            f'<div class="selection-banner" style="border-color:#E11D48;background:#2a0a0a">'
+            f'<div class="selection-banner" style="border-color:#E11D48;background:#1a0000">'
             f'<b>RESERVAS SELECCIONADAS: {len(bulk_ids)}</b> &nbsp; | &nbsp;'
             f'<span style="color:#ff6b6b">Listas para eliminar</span></div>',
             unsafe_allow_html=True,
@@ -2187,7 +2187,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                     clear_page()
         st.markdown(
             '<div class="action-links" style="grid-template-columns:repeat(2,minmax(110px,1fr));max-width:400px">'
-            f'<a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#475569">CANCELAR SELECCION</a>'
+            f'<a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#3a3a3a">CANCELAR SELECCION</a>'
             '</div>',
             unsafe_allow_html=True,
         )
