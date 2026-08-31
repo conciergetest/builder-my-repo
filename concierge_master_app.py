@@ -1019,20 +1019,21 @@ def render_app_links() -> None:
         ("🗄️ VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/", "#059669"),
     ]
     buttons = "".join(
-        f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="background:{bg};text-decoration:none !important;">'
-        f'<span>{label}</span></a>'
+        f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" '
+        f'style="background:#0a0a0a;border:2px solid {bg};color:{bg};text-decoration:none !important;">'
+        f'<span style="color:{bg};text-decoration:none !important;">{label}</span></a>'
         for label, url, bg in apps
     )
     st.markdown(
         '<style>'
         '.app-links { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:14px 0 4px; }'
         '.app-link { display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; '
-        'border:1px solid rgba(255,255,255,.08); border-radius:10px; color:#fff; text-decoration:none; '
+        'border-radius:10px; text-decoration:none !important; '
         'font:800 12px/1.1 "Segoe UI",sans-serif; letter-spacing:.3px; text-align:center; '
-        'box-shadow:0 4px 12px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08); '
+        'box-shadow:0 4px 12px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04); '
         'transition:all .15s ease; }'
-        '.app-link:hover { filter:brightness(1.15); transform:translateY(-2px); border-color:rgba(255,255,255,.25); }'
-        '.app-link span { color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.4); text-decoration:none !important; }'
+        '.app-link:hover { filter:brightness(1.25); transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.5); }'
+        '.app-link span { font-weight:800; text-decoration:none !important; }'
         '@media (max-width:980px){ .app-links { grid-template-columns:repeat(2,1fr); } }'
         '</style>'
         f'<div class="app-links">{buttons}</div>',
