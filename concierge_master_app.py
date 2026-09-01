@@ -1,4 +1,4 @@
-"""Concierge Master” Streamlit + Supabase.
+"""Concierge Master — Streamlit + Supabase.
 
 Instalación:
     pip install -r requirements_streamlit.txt
@@ -41,7 +41,7 @@ except ImportError:
 
 st.set_page_config(
     page_title="Concierge Master",
-    page_icon="âœ¦",
+    page_icon="✦",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -375,7 +375,6 @@ def clear_page() -> None:
     st.rerun()
 
 
-
 # -----------------------------------------------------------------------------
 # Supabase CRUD
 # -----------------------------------------------------------------------------
@@ -439,9 +438,9 @@ def insertar_lote(records: list[dict]) -> None:
         st.cache_data.clear()
 
 
-# -----------------------------------------------------------------------------  
+# -----------------------------------------------------------------------------
 # Bonus / Aguinaldo  -  Supabase CRUD
-# -----------------------------------------------------------------------------  
+# -----------------------------------------------------------------------------
 
 BONUS_TABLE = "bonus_registro"
 
@@ -459,7 +458,7 @@ def cargar_bonus(year: int) -> dict[int, list[str]]:
 
 
 def guardar_bonus(year: int, data: dict[int, list[str]]) -> None:
-    """Guarda o actualiza los datos de bonus para un aÃ±o en Supabase."""
+    """Guarda o actualiza los datos de bonus para un año en Supabase."""
     try:
         # Verificar si ya existe
         existing = supabase.table(BONUS_TABLE).select("id").eq("year", year).execute()
@@ -488,10 +487,21 @@ def exportar_excel_por_categorias(df: pd.DataFrame) -> BytesIO:
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
-    # DEFENSA: asegurar que exista la columna que la función usa para categorizar
-    if "info" not in df.columns:
-        df = df.copy()
-        df["info"] = ""
+    export_columns = [
+        ("eta", "ETA"), ("name", "NAME"), ("qty", "QTY"),
+        ("room", "ROOM"), ("email", "EMAIL"), ("check_in", "CHECK IN"),
+        ("check_out", "CHECK OUT"), ("nights", "NIGHTS"),
+        ("res_number", "RESERVATION"), ("phone", "PHONE"), ("info", "INFORMATION"),
+        ("ird", "IRD"), ("hsk", "HSK"), ("rate", "RATE"), ("trans", "TRANSPORTATION"),
+    ]
+
+    # DEFENSA: garantizar que TODAS las columnas que usa la exportación existan.
+    # Si falta alguna (p. ej. "info" renombrada/borrada en Supabase o caché viejo),
+    # se crea vacía en lugar de lanzar KeyError.
+    df = df.copy()
+    for key, _ in export_columns:
+        if key not in df.columns:
+            df[key] = ""
 
     workbook = Workbook()
     sheet = workbook.active
@@ -514,13 +524,6 @@ def exportar_excel_por_categorias(df: pd.DataFrame) -> BytesIO:
         ("BABYMOON", ("BABYMOON",)),
         ("TEAM MEMBER", ("TEAM MEMBER", "STAFF", "EMPLOYEE")),
         ("GENERAL", ()),
-    ]
-    export_columns = [
-        ("eta", "ETA"), ("name", "NAME"), ("qty", "QTY"),
-        ("room", "ROOM"), ("email", "EMAIL"), ("check_in", "CHECK IN"),
-        ("check_out", "CHECK OUT"), ("nights", "NIGHTS"),
-        ("res_number", "RESERVATION"), ("phone", "PHONE"), ("info", "INFORMATION"),
-        ("ird", "IRD"), ("hsk", "HSK"), ("rate", "RATE"), ("trans", "TRANSPORTATION"),
     ]
 
     remaining = df.copy()
@@ -666,7 +669,7 @@ def show_header() -> None:
 </head>
 <body>
   <div id="local-clock">--:--:--</div>
-  <div id="local-date">Loading dateâ€¦</div>
+  <div id="local-date">Loading date…</div>
 <script>
   const clock = document.getElementById('local-clock');
   const date = document.getElementById('local-date');
@@ -686,9 +689,6 @@ def show_header() -> None:
             height=54,
             scrolling=False,
         )
-
-
-
 
 
 def render_menu() -> None:
@@ -806,7 +806,6 @@ def render_menu() -> None:
         st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1a1a1a;text-align:center;color:#4a5a6a;font-size:10px;'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
 
 
-
 def render_app_links() -> None:
     """Muestra los 4 botones de acceso rápido a otras apps en el centro del dashboard."""
     apps = [
@@ -824,20 +823,18 @@ def render_app_links() -> None:
         '<style>'
         '.app-links { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:14px 0 4px; }'
         '.app-link { display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; '
-        'border:1px solid rgba(255,255,255,.08); border-radius:10px; color:#fff; text-decoration:none; '
+        'border:1px solid rgba(255,255,255,.08); border-radius:10px; color:#fff !important; text-decoration:none !important; '
         'font:800 12px/1.1 "Segoe UI",sans-serif; letter-spacing:.3px; text-align:center; '
         'box-shadow:0 4px 12px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08); '
         'transition:all .15s ease; }'
+        '.app-link:hover, .app-link:visited, .app-link:active { color:#fff !important; text-decoration:none !important; }'
         '.app-link:hover { filter:brightness(1.15); transform:translateY(-2px); border-color:rgba(255,255,255,.25); }'
-        '.app-link span { color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.4); }'
+        '.app-link span { color:#fff !important; text-decoration:none !important; text-shadow:0 1px 2px rgba(0,0,0,.4); }'
         '@media (max-width:980px){ .app-links { grid-template-columns:repeat(2,1fr); } }'
         '</style>'
         f'<div class="app-links">{buttons}</div>',
         unsafe_allow_html=True,
     )
-
-
-
 
 
 def apply_filters(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
@@ -1124,7 +1121,7 @@ def render_report(df: pd.DataFrame) -> None:
     report_data = {
         "En casa": in_house,
         "Salen hoy": departures_today,
-        "Salen maÃ±ana": departures_tomorrow,
+        "Salen mañana": departures_tomorrow,
         "Llegan hoy": arrivals_today,
         "Llegan mañana": arrivals_tomorrow,
     }
@@ -1134,7 +1131,7 @@ def render_report(df: pd.DataFrame) -> None:
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     st.dataframe(
         pd.DataFrame([
-            {"CategorÃ­a": label, "Reservas": len(frame), "Habitaciones": ", ".join(frame["room"].dropna().astype(str).tolist()) or "â€”"}
+            {"Categoría": label, "Reservas": len(frame), "Habitaciones": ", ".join(frame["room"].dropna().astype(str).tolist()) or "—"}
             for label, frame in report_data.items()
         ]),
         use_container_width=True,
@@ -1259,120 +1256,6 @@ setTimeout(()=>{ document.body.focus(); }, 300);
 def calculator_dialog() -> None:
     """Muestra la calculadora como un modal flotante sobre el dashboard."""
     st.components.v1.html(CALCULATOR_HTML, height=430, scrolling=False)
-
-
-CALCULATOR_HTML = """
-<!doctype html>
-<html>
-<head>
-<style>
-body{margin:0;background:#000000;font-family:Segoe UI,sans-serif;display:grid;place-items:center;padding:8px;color:#eafaff}
-.calculator{width:280px;padding:14px;background:#0d0d0d;border:1px solid #222222;border-radius:16px;box-shadow:0 12px 35px #0008}
-#display{background:#000000;border:1px solid #00e5ff;border-radius:10px;color:#00e5ff;font:700 28px monospace;padding:12px;text-align:right;overflow:hidden;margin-bottom:10px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-button{border:0;border-radius:8px;padding:12px 4px;background:#1a1a1a;color:#eafaff;font-weight:800;font-size:15px;cursor:pointer}
-button:hover{filter:brightness(1.2)}
-button:active{transform:scale(0.96)}
-.op{background:#7c3aed}
-.equal{background:#00c6df;color:#01171d}
-.clear{background:#e11d48}
-.hint{color:#8ca4ba;font-size:10px;text-align:center;margin-top:8px}
-</style>
-</head>
-<body tabindex="0">
-<div class="calculator">
-<div id="display">0</div>
-<div class="grid">
-<button class="clear" onclick="clearAll()">C</button>
-<button onclick="backspace()">⌫</button>
-<button class="op" onclick="add('/')">÷</button>
-<button class="op" onclick="add('*')">×</button>
-<button onclick="add('7')">7</button>
-<button onclick="add('8')">8</button>
-<button onclick="add('9')">9</button>
-<button class="op" onclick="add('-')">−</button>
-<button onclick="add('4')">4</button>
-<button onclick="add('5')">5</button>
-<button onclick="add('6')">6</button>
-<button class="op" onclick="add('+')">+</button>
-<button onclick="add('1')">1</button>
-<button onclick="add('2')">2</button>
-<button onclick="add('3')">3</button>
-<button onclick="add('.')">.</button>
-<button onclick="add('0')">0</button>
-<button onclick="add('%')">%</button>
-<button onclick="toggleSign()">±</button>
-<button class="equal" onclick="calculate()">=</button>
-</div>
-<div class="hint">⌨️ Teclado activo — usa números, + − × ÷, Enter y Esc</div>
-</div>
-<script>
-let value='';
-const out=document.getElementById('display');
-function draw(){out.textContent=value||'0'}
-function add(v){if('0123456789.'.includes(v)&&out.textContent==='Error')value='';value+=v;draw()}
-function clearAll(){value='';draw()}
-function backspace(){value=value.slice(0,-1);draw()}
-function toggleSign(){value=value.startsWith('-')?value.slice(1):'-'+value;draw()}
-function calculate(){
-    try{
-        let expr=value.replace(/%/g,'/100');
-        if(!/^[0-9+*/.() -]+$/.test(expr))throw Error();
-        value=String(Function('return ('+expr+')')());
-        draw();
-    }catch(e){
-        value='';
-        out.textContent='Error';
-    }
-}
-
-const KEY_MAP = {
-    'Numpad0':'0','Numpad1':'1','Numpad2':'2','Numpad3':'3',
-    'Numpad4':'4','Numpad5':'5','Numpad6':'6','Numpad7':'7',
-    'Numpad8':'8','Numpad9':'9','NumpadDecimal':'.',
-    'NumpadAdd':'+','NumpadSubtract':'-','NumpadMultiply':'*',
-    'NumpadDivide':'/','NumpadEnter':'Enter',
-    'Digit0':'0','Digit1':'1','Digit2':'2','Digit3':'3',
-    'Digit4':'4','Digit5':'5','Digit6':'6','Digit7':'7',
-    'Digit8':'8','Digit9':'9',
-    'Period':'.','Comma':'.',
-    'Slash':'/','Minus':'-','Equal':'+',
-};
-
-document.addEventListener('keydown', function(e){
-    const mapped = KEY_MAP[e.code] || e.key;
-    if('0123456789.+-*/%'.includes(mapped)){
-        e.preventDefault();
-        e.stopPropagation();
-        add(mapped);
-    } else if(mapped==='Enter' || e.key==='Enter'){
-        e.preventDefault();
-        e.stopPropagation();
-        calculate();
-    } else if(e.key==='Backspace'){
-        e.preventDefault();
-        e.stopPropagation();
-        backspace();
-    } else if(e.key==='Escape'){
-        e.preventDefault();
-        e.stopPropagation();
-        clearAll();
-    }
-});
-
-setTimeout(()=>{ document.body.focus(); }, 300);
-</script>
-</body>
-</html>
-"""
-
-
-@st.dialog("🧮 Calculadora", width="small")
-def calculator_dialog() -> None:
-    """Muestra la calculadora como un modal flotante sobre el dashboard."""
-    st.components.v1.html(CALCULATOR_HTML, height=430, scrolling=False)
-
-
 
 
 CALENDAR_HTML = """
@@ -1581,10 +1464,9 @@ def render_letter() -> None:
         st.error(f"No se pudo generar la carta: {exc}")
 
 
-
-# -----------------------------------------------------------------------------  
+# -----------------------------------------------------------------------------
 # Bonus / Aguinaldo
-# -----------------------------------------------------------------------------  
+# -----------------------------------------------------------------------------
 
 def render_bonus() -> None:
     st.subheader("Registro Mensual de Valores")
@@ -1672,7 +1554,7 @@ def render_bonus() -> None:
         <style>
         .bonus-month { background:#0a0a0a; border:1px solid #1a1a1a; border-radius:10px; padding:12px; }
         .bonus-month h4 { color:#D4AF37; font-size:11px; text-align:center; margin:0 0 8px; letter-spacing:1px; }
-        .bonus-input { width:100%; background:#0d0d0d; border:1px solid #222222; color:#effaff; 
+        .bonus-input { width:100%; background:#0d0d0d; border:1px solid #222222; color:#effaff;
                        border-radius:6px; padding:6px 8px; font-size:13px; margin-bottom:6px; }
         .bonus-input:focus { border-color:#00e5ff; outline:none; }
         </style>
@@ -1728,7 +1610,7 @@ def render_delete() -> None:
     if not reservation:
         st.error("Selecciona una reserva antes de solicitar el borrado.")
         return
-    st.warning(f"Se eliminará¡ permanentemente la reserva de {reservation.get('name', 'este huésped')}.")
+    st.warning(f"Se eliminará permanentemente la reserva de {reservation.get('name', 'este huésped')}.")
     with st.form("delete_reservation"):
         password = st.text_input("Clave de autorización", type="password")
         confirmed = st.form_submit_button("CONFIRMAR Y BORRAR", type="primary")
@@ -2151,7 +2033,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
     selected = st.session_state.get("selected_reservation")
     if selected and not bulk_ids:
         sel_id = safe_text(str(selected.get("id", "")))
-        name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "â"))
+        name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "—"))
         st.markdown(f'<div class="selection-banner"><b>RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
         st.markdown(
             '<div class="action-links" style="grid-template-columns:repeat(4,minmax(110px,1fr));max-width:700px">'
@@ -2197,8 +2079,6 @@ def render_dashboard(df: pd.DataFrame) -> None:
         )
 
     render_reservations_grid(filtered)
-
-    
 
 
 # -----------------------------------------------------------------------------
