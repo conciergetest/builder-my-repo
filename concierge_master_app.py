@@ -488,6 +488,11 @@ def exportar_excel_por_categorias(df: pd.DataFrame) -> BytesIO:
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
+    # DEFENSA: asegurar que exista la columna que la función usa para categorizar
+    if "info" not in df.columns:
+        df = df.copy()
+        df["info"] = ""
+
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Arrivals"
@@ -562,7 +567,6 @@ def exportar_excel_por_categorias(df: pd.DataFrame) -> BytesIO:
     workbook.save(output)
     output.seek(0)
     return output
-
 
 def exportar_reporte_excel(data: dict[str, pd.DataFrame], report_date: datetime) -> BytesIO:
     from openpyxl.styles import Alignment, Font, PatternFill
