@@ -483,7 +483,7 @@ def borrar_bonus(year: int) -> None:
 # Exportaciones
 # -----------------------------------------------------------------------------
 
-def exportar_excel_por_categorias(df: pd.DataFrame) -> BytesIO:
+def exportar_excel_categorias_safe(df: pd.DataFrame) -> BytesIO:
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
@@ -1076,9 +1076,14 @@ def render_export(df: pd.DataFrame) -> None:
     st.info(f"Se exportarán {len(filtered)} reservaciones, organizadas por categoría.")
     st.dataframe(filtered[DISPLAY_COLUMNS], use_container_width=True, hide_index=True, height=300)
     if not filtered.empty:
+        try:
+            excel_data = exportar_excel_categorias_safe(filtered)
+        except Exception as exc:
+            st.error(f"No se pudo generar el Excel: {exc}")
+            return
         st.download_button(
             "DESCARGAR EXCEL",
-            data=exportar_excel_por_categorias(filtered),
+            data=excel_data,
             file_name=f"Arrivals_{datetime.now():%Y%m%d_%H%M}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
