@@ -1075,11 +1075,103 @@ def render_export(df: pd.DataFrame) -> None:
     filtered, _ = apply_filters(df)
     st.info(f"Se exportarán {len(filtered)} reservaciones, organizadas por categoría.")
     st.dataframe(filtered[DISPLAY_COLUMNS], use_container_width=True, hide_index=True, height=300)
+
+    def _build_excel(data: pd.DataFrame) -> BytesIO:
+        """Generador de Excel AUTOCONTENIDO: no depende de ninguna otra función del archivo."""
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+
+        export_columns = [
+            ("eta", "ETA"), ("name", "NAME"), ("qty", "QTY"),
+            ("room", "ROOM"), ("email", "EMAIL"), ("check_in", "CHECK IN"),
+            ("check_out", "CHECK OUT"), ("nights", "NIGHTS"),
+            ("res_number", "RESERVATION"), ("phone", "PHONE"), ("info", "INFORMATION"),
+            ("ird", "IRD"), ("hsk", "HSK"), ("rate", "RATE"), ("trans", "TRANSPORTATION"),
+        ]
+
+        data = data.copy()
+        # Normalizar nombres de columnas: sin espacios y en minúsculas
+        data.columns = [str(column).strip().lower() for column in data.columns]
+        # Eliminar columnas duplicadas (conserva la primera aparición)
+        data = data.loc[:, ~pd.Index(data.columns).duplicated(keep="first")]
+        # DEFENSA: crear como vacía cualquier columna faltante (incluida "info")
+        for key, _ in export_columns:
+            if key not in data.columns:
+                data[key] = ""
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Arrivals"
+
+        fill_section = PatternFill("solid", fgColor="00B0F0")
+        fill_header = PatternFill("solid", fgColor="123047")
+        fill_data = PatternFill("solid", fgColor="F4F7F9")
+        white_bold = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+        black_font = Font(name="Calibri", size=10, color="000000")
+        center = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        left = Alignment(horizontal="left", vertical="center", wrap_text=True)
+        border = Border(*(Side(style="thin", color="D6DEE4") for _ in range(4)))
+
+        groups = [
+            ("CUMPLEAÑOS", ("BIRTHDAY", "CUMPLE", "BDAY")),
+            ("VIP", ("VIP",)),
+            ("HONEYMOON", ("HONEYMOON", "LUNA DE MIEL")),
+            ("ANNIVERSARY", ("ANNIVERSARY", "ANIVERSARIO")),
+            ("BABYMOON", ("BABYMOON",)),
+            ("TEAM MEMBER", ("TEAM MEMBER", "STAFF", "EMPLOYEE")),
+            ("GENERAL", ()),
+        ]
+
+        remaining = data
+        row_number = 1
+        for title, keywords in groups:
+            if keywords:
+                info_series = remaining["info"].fillna("").astype(str).str.upper()
+                mask = info_series.apply(lambda value: any(keyword in value for keyword in keywords))
+                rows = remaining[mask]
+                remaining = remaining[~mask]
+            else:
+                rows = remaining
+
+            if rows.empty:
+                continue
+
+            sheet.merge_cells(start_row=row_number, start_column=1, end_row=row_number, end_column=len(export_columns))
+            cell = sheet.cell(row=row_number, column=1, value=title)
+            cell.fill, cell.font, cell.alignment = fill_section, white_bold, center
+            row_number += 1
+
+            for column_index, (_, heading) in enumerate(export_columns, 1):
+                cell = sheet.cell(row=row_number, column=column_index, value=heading)
+                cell.fill, cell.font, cell.alignment, cell.border = fill_header, white_bold, center, border
+            row_number += 1
+
+            for _, record in rows.iterrows():
+                for column_index, (key, _) in enumerate(export_columns, 1):
+                    value = record.get(key, "")
+                    if pd.isna(value):
+                        value = ""
+                    cell = sheet.cell(row=row_number, column=column_index, value=value)
+                    cell.fill, cell.font, cell.alignment, cell.border = fill_data, black_font, left, border
+                row_number += 1
+            row_number += 1
+
+        widths = [11, 24, 7, 10, 28, 17, 17, 9, 17, 18, 28, 18, 18, 10, 22]
+        for index, width in enumerate(widths, 1):
+            sheet.column_dimensions[chr(64 + index)].width = width
+        sheet.freeze_panes = "A3"
+
+        output = BytesIO()
+        workbook.save(output)
+        output.seek(0)
+        return output
+
     if not filtered.empty:
         try:
-            excel_data = exportar_excel_categorias_safe(filtered)
+            excel_data = _build_excel(filtered)
         except Exception as exc:
-            st.error(f"No se pudo generar el Excel: {exc}")
+            st.error(f"No se pudo generar el Excel: {exc!r}")
+            st.caption("Columnas detectadas: " + ", ".join(map(str, filtered.columns)))
             return
         st.download_button(
             "DESCARGAR EXCEL",
