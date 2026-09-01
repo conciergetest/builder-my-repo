@@ -1077,7 +1077,7 @@ def render_export(df: pd.DataFrame) -> None:
     st.dataframe(filtered[DISPLAY_COLUMNS], use_container_width=True, hide_index=True, height=300)
 
     def _build_excel(data: pd.DataFrame) -> BytesIO:
-        """Generador de Excel AUTOCONTENIDO: no depende de ninguna otra función del archivo."""
+        """Generador de Excel AUTOCONTENIDO: usa solo dicts de Python, sin acceso por etiquetas de pandas."""
         from openpyxl import Workbook
         from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
@@ -1088,16 +1088,49 @@ def render_export(df: pd.DataFrame) -> None:
             ("res_number", "RESERVATION"), ("phone", "PHONE"), ("info", "INFORMATION"),
             ("ird", "IRD"), ("hsk", "HSK"), ("rate", "RATE"), ("trans", "TRANSPORTATION"),
         ]
+        export_keys = [key for key, _ in export_columns]
 
-        data = data.copy()
-        # Normalizar nombres de columnas: sin espacios y en minúsculas
-        data.columns = [str(column).strip().lower() for column in data.columns]
-        # Eliminar columnas duplicadas (conserva la primera aparición)
-        data = data.loc[:, ~pd.Index(data.columns).duplicated(keep="first")]
-        # DEFENSA: crear como vacía cualquier columna faltante (incluida "info")
-        for key, _ in export_columns:
-            if key not in data.columns:
-                data[key] = ""
+        def _clean(value):
+            if value is None:
+                return ""
+            try:
+                if pd.isna(value):
+                    return ""
+            except Exception:
+                pass
+            if isinstance(value, (str, int, float, bool)) or hasattr(value, "isoformat"):
+                return value
+            return str(value)
+
+        # Extraer filas como dicts de Python puros (sin acceso por etiqueta de pandas)
+        try:
+            raw_records = data.to_dict("records")
+        except Exception:
+            try:
+                normalized = [str(column).strip().lower() for column in data.columns]
+                raw_records = [dict(zip(normalized, values)) for values in data.values.tolist()]
+            except Exception:
+                raw_records = []
+
+        rows = []
+        for record in raw_records:
+            lowered = {}
+            for label, value in record.items():
+                try:
+                    lowered[str(label).strip().lower()] = value
+                except Exception:
+                    pass
+            row = {}
+            for key in export_keys:
+                try:
+                    row[key] = _clean(lowered.get(key, ""))
+                except Exception:
+                    row[key] = ""
+            try:
+                row["_info_upper"] = str(row.get("info") or "").upper()
+            except Exception:
+                row["_info_upper"] = ""
+            rows.append(row)
 
         workbook = Workbook()
         sheet = workbook.active
@@ -1122,36 +1155,28 @@ def render_export(df: pd.DataFrame) -> None:
             ("GENERAL", ()),
         ]
 
-        remaining = data
         row_number = 1
         for title, keywords in groups:
             if keywords:
-                info_series = remaining["info"].fillna("").astype(str).str.upper()
-                mask = info_series.apply(lambda value: any(keyword in value for keyword in keywords))
-                rows = remaining[mask]
-                remaining = remaining[~mask]
+                selected = [row for row in rows if any(keyword in row["_info_upper"] for keyword in keywords)]
+                chosen = {id(row) for row in selected}
+                rows = [row for row in rows if id(row) not in chosen]
             else:
-                rows = remaining
-
-            if rows.empty:
+                selected = rows
+                rows = []
+            if not selected:
                 continue
-
             sheet.merge_cells(start_row=row_number, start_column=1, end_row=row_number, end_column=len(export_columns))
             cell = sheet.cell(row=row_number, column=1, value=title)
             cell.fill, cell.font, cell.alignment = fill_section, white_bold, center
             row_number += 1
-
             for column_index, (_, heading) in enumerate(export_columns, 1):
                 cell = sheet.cell(row=row_number, column=column_index, value=heading)
                 cell.fill, cell.font, cell.alignment, cell.border = fill_header, white_bold, center, border
             row_number += 1
-
-            for _, record in rows.iterrows():
+            for row in selected:
                 for column_index, (key, _) in enumerate(export_columns, 1):
-                    value = record.get(key, "")
-                    if pd.isna(value):
-                        value = ""
-                    cell = sheet.cell(row=row_number, column=column_index, value=value)
+                    cell = sheet.cell(row=row_number, column=column_index, value=row[key])
                     cell.fill, cell.font, cell.alignment, cell.border = fill_data, black_font, left, border
                 row_number += 1
             row_number += 1
