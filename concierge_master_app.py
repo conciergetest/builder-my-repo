@@ -17,7 +17,7 @@ import base64
 import re
 import html
 import os
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 from io import BytesIO
 from urllib.parse import urlencode
 
@@ -262,59 +262,23 @@ def safe_text(value: object) -> str:
 
 
 def parse_fecha(value: object) -> datetime | None:
-    """Convierte un valor de fecha (texto o fecha real) a datetime.
-
-    CORRECCIÓN: cuando `pd.read_excel()` lee una celda de Excel formateada
-    como fecha, entrega un objeto `Timestamp`/`datetime` real, NO un texto.
-    Antes, esta función lo convertía directo a string con `str(value)`, lo
-    que producía algo como "2026-09-07 00:00:00" (con hora incluida) — un
-    texto que no calzaba con NINGÚN patrón de abajo (todos esperan solo
-    fecha, sin hora). Eso hacía que `parse_fecha` devolviera `None` y que
-    `normalizar_fecha` guardara el texto crudo sin formatear, en vez de
-    "September 07, 2026" como el resto de la app.
-
-    La solución: revisar PRIMERO si el valor ya es un objeto de fecha
-    (Timestamp de pandas es subclase de datetime, así que un solo chequeo
-    cubre ambos) y, de ser así, usarlo directamente sin pasar por texto.
-    """
-    if value is None or pd.isna(value):
+    if value is None or pd.isna(value) or not str(value).strip():
         return None
-
-    # Timestamp de pandas es subclase de datetime.datetime -> este chequeo
-    # cubre tanto Timestamps como objetos datetime normales.
-    if isinstance(value, datetime):
-        return datetime(value.year, value.month, value.day)
-    # Objetos `date` "puros" (sin hora), por si aparecen en otra fuente.
-    if isinstance(value, date):
-        return datetime(value.year, value.month, value.day)
-
-    value_str = str(value).strip()
-    if not value_str:
-        return None
-
-    for pattern in (
-        "%B %d, %Y", "%b %d, %Y", "%Y-%m-%d", "%B %d", "%b %d",
-        "%Y-%m-%d %H:%M:%S", "%m/%d/%Y", "%m/%d/%Y %H:%M:%S",
-    ):
+    value = str(value).strip()
+    for pattern in ("%B %d, %Y", "%b %d, %Y", "%Y-%m-%d", "%B %d", "%b %d"):
         try:
-            return datetime.strptime(value_str, pattern)
+            return datetime.strptime(value, pattern)
         except ValueError:
             continue
-
-    # Último recurso: dejar que pandas intente inferir el formato
-    # (cubre variantes que no anticipamos en la lista de patrones).
-    parsed = pd.to_datetime(value_str, errors="coerce")
-    if pd.notna(parsed):
-        return parsed.to_pydatetime()
     return None
 
 
 def normalizar_fecha(value: object) -> str:
-    date_value = parse_fecha(value)
-    if date_value:
-        if date_value.year == 1900:
-            date_value = date_value.replace(year=datetime.now().year)
-        return date_value.strftime("%B %d, %Y")
+    date = parse_fecha(value)
+    if date:
+        if date.year == 1900:
+            date = date.replace(year=datetime.now().year)
+        return date.strftime("%B %d, %Y")
     return "" if value is None or pd.isna(value) else str(value).strip()
 
 
