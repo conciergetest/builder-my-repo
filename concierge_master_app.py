@@ -26,7 +26,7 @@ import streamlit as st
 from supabase import Client, create_client
 
 try:
-    from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode, JsCode
+    from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 except ImportError:
     st.error(
         "Falta la dependencia `streamlit-aggrid`. Ejecuta: "
@@ -663,8 +663,6 @@ def exportar_reporte_excel(data: dict[str, pd.DataFrame], report_date: datetime)
 
 
 def show_header() -> None:
-    import streamlit.components.v1 as components
-
     header_left, header_center, header_right = st.columns([1.4, 0.5, 1])
     with header_left:
         st.markdown(
@@ -692,7 +690,7 @@ def show_header() -> None:
             unsafe_allow_html=True,
         )
     with header_right:
-        components.html(
+        st.html(
             """
 <!doctype html>
 <html>
@@ -2038,7 +2036,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         height=625,
         fit_columns_on_grid_load=False,
         allow_unsafe_jscode=True,
-        update_mode=GridUpdateMode.SELECTION_CHANGED,
+        update_on=["selectionChanged"],
         key="concierge_reservations_grid",
     )
 
