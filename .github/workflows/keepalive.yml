@@ -1,0 +1,15 @@
+name: Keep Alive - Concierge Master
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Main App
+        run: |
+          curl -s -o /dev/null -w "Main App: %{http_code}\n" \
+            https://builder-my-repo-kjkypcxg8ffctvrnamr9sv.streamlit.app/
