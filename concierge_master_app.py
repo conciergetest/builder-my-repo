@@ -721,7 +721,6 @@ def show_header() -> None:
 </html>
             """,
             height=54,
-            scrolling=False,
         )
 
 
@@ -1411,7 +1410,7 @@ setTimeout(()=>{ document.body.focus(); }, 300);
 @st.dialog("🧮 Calculadora", width="small")
 def calculator_dialog() -> None:
     """Muestra la calculadora como un modal flotante sobre el dashboard."""
-    st.components.v1.html(CALCULATOR_HTML, height=430, scrolling=False)
+    st.html(CALCULATOR_HTML, height=430)
 
 
 CALENDAR_HTML = """
@@ -1531,7 +1530,7 @@ renderCalendar();
 @st.dialog("📅 Almanaque", width="small")
 def calendar_dialog() -> None:
     """Muestra el calendario como un modal flotante sobre el dashboard."""
-    st.components.v1.html(CALENDAR_HTML, height=460, scrolling=False)
+    st.html(CALENDAR_HTML, height=460)
 
 
 def render_calculator() -> None:
