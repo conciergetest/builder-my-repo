@@ -26,7 +26,7 @@ import streamlit as st
 from supabase import Client, create_client
 
 try:
-    from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
+    from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode, JsCode
 except ImportError:
     st.error(
         "Falta la dependencia `streamlit-aggrid`. Ejecuta: "
@@ -663,6 +663,8 @@ def exportar_reporte_excel(data: dict[str, pd.DataFrame], report_date: datetime)
 
 
 def show_header() -> None:
+    import streamlit.components.v1 as components
+
     header_left, header_center, header_right = st.columns([1.4, 0.5, 1])
     with header_left:
         st.markdown(
@@ -690,7 +692,7 @@ def show_header() -> None:
             unsafe_allow_html=True,
         )
     with header_right:
-        st.html(
+        components.html(
             """
 <!doctype html>
 <html>
@@ -721,6 +723,7 @@ def show_header() -> None:
 </html>
             """,
             height=54,
+            scrolling=False,
         )
 
 
@@ -1410,7 +1413,7 @@ setTimeout(()=>{ document.body.focus(); }, 300);
 @st.dialog("🧮 Calculadora", width="small")
 def calculator_dialog() -> None:
     """Muestra la calculadora como un modal flotante sobre el dashboard."""
-    st.html(CALCULATOR_HTML, height=430)
+    st.components.v1.html(CALCULATOR_HTML, height=430, scrolling=False)
 
 
 CALENDAR_HTML = """
@@ -1530,7 +1533,7 @@ renderCalendar();
 @st.dialog("📅 Almanaque", width="small")
 def calendar_dialog() -> None:
     """Muestra el calendario como un modal flotante sobre el dashboard."""
-    st.html(CALENDAR_HTML, height=460)
+    st.components.v1.html(CALENDAR_HTML, height=460, scrolling=False)
 
 
 def render_calculator() -> None:
@@ -2035,7 +2038,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         height=625,
         fit_columns_on_grid_load=False,
         allow_unsafe_jscode=True,
-        update_on=["selectionChanged"],
+        update_mode=GridUpdateMode.SELECTION_CHANGED,
         key="concierge_reservations_grid",
     )
 
