@@ -809,12 +809,15 @@ def render_menu() -> None:
 
         # ── Herramientas ──
         st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #a78bfa;padding-left:8px;'>Herramientas</div>", unsafe_allow_html=True)
-        h1, h2 = st.columns(2)
+        h1, h2, h3 = st.columns(3)
         if h1.button("🧮 CALCULADORA", use_container_width=True):
             st.query_params["action"] = "calculadora"
             st.rerun()
         if h2.button("📆 ALMANAQUE", use_container_width=True):
             st.query_params["action"] = "almanaque"
+            st.rerun()
+        if h3.button("🏷️ FRED WAYNE", use_container_width=True):
+            st.session_state["open_logo"] = True
             st.rerun()
 
         st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
@@ -1536,6 +1539,46 @@ def calendar_dialog() -> None:
     st.components.v1.html(CALENDAR_HTML, height=460, scrolling=False)
 
 
+LOGO_FILENAMES = ("fred_wayne.png", "fredwayne.png", "logo_fred_wayne.png", "logo.png")
+
+
+def _find_logo_path() -> str | None:
+    """Devuelve la ruta del archivo de logo si existe junto a la app."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    for filename in LOGO_FILENAMES:
+        candidate = os.path.join(base_dir, filename)
+        if os.path.exists(candidate):
+            return candidate
+    return None
+
+
+@st.dialog("🏷️ Fred Wayne", width="small")
+def logo_dialog() -> None:
+    """Muestra el logo de Fred Wayne como un modal flotante sobre el dashboard."""
+    logo_path = _find_logo_path()
+    if logo_path:
+        encoded = base64.b64encode(open(logo_path, "rb").read()).decode("utf-8")
+        st.markdown(
+            '<div style="display:flex;flex-direction:column;align-items:center;gap:14px;'
+            'padding:18px 10px;background:#0d0d0d;border:1px solid #222222;border-radius:16px;">'
+            f'<img src="data:image/png;base64,{encoded}" alt="Fred Wayne" '
+            'style="max-width:100%;max-height:420px;object-fit:contain;border-radius:12px;">'
+            '<div style="color:#D4AF37;font:800 13px/1.2 \'Segoe UI\',sans-serif;'
+            'letter-spacing:1.5px;text-transform:uppercase;">Fred Wayne</div>'
+            "</div>",
+            unsafe_allow_html=True,
+        )
+    else:
+        st.warning(
+            "No se encontro el archivo del logo. Sube `fred_wayne.png` a tu repositorio "
+            "junto a este archivo (tambien se aceptan `fredwayne.png`, "
+            "`logo_fred_wayne.png` o `logo.png`)."
+        )
+
+    if st.button("Cerrar", use_container_width=True, key="close_logo_dialog"):
+        st.rerun()
+
+
 def render_calculator() -> None:
     """Vista legacy de calculadora (redirige al dialog)."""
     st.subheader("Calculadora")
@@ -2254,6 +2297,10 @@ if st.session_state.pop("open_calculator", False):
 # Auto-abrir almanaque si viene de redirección
 if st.session_state.pop("open_calendar", False):
     calendar_dialog()
+
+# Auto-abrir el logo Fred Wayne desde el menu de Herramientas
+if st.session_state.pop("open_logo", False):
+    logo_dialog()
 
 if action == "nueva":
     render_new_reservation()
