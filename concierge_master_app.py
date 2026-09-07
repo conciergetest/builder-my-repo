@@ -685,7 +685,7 @@ def show_header() -> None:
     with header_center:
         st.markdown(
             '<div style="display:flex;justify-content:center;align-items:center;height:100%;">'
-            '<img src="https://raw.githubusercontent.com/conciergetest/builder-my-repo/main/FredWayneLOGO.jpeg" '
+            '<img src="https://raw.githubusercontent.com/conciergetest/builder-my-repo/main/fred_wayne.png" '
             'style="max-height:52px;width:auto;border-radius:8px;opacity:.95;box-shadow:0 4px 12px rgba(0,0,0,.5);" '
             'alt="Fred Wayne Logo">'
             '</div>',
