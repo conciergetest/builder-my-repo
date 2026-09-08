@@ -683,14 +683,40 @@ def show_header() -> None:
             unsafe_allow_html=True,
         )
     with header_center:
+        # Boton central: reemplaza el logo Fred Wayne y abre el popup de
+        # "Arrivals By Date" con todas las fechas de check-in disponibles.
         st.markdown(
-            '<div style="display:flex;justify-content:center;align-items:center;height:100%;">'
-            '<img src="https://raw.githubusercontent.com/conciergetest/builder-my-repo/main/fred_wayne.png" '
-            'style="max-height:52px;width:auto;border-radius:8px;opacity:.95;box-shadow:0 4px 12px rgba(0,0,0,.5);" '
-            'alt="Fred Wayne Logo">'
-            '</div>',
+            """
+            <style>
+            .st-key-header_arrivals_btn { display:flex; justify-content:center; align-items:center; }
+            .st-key-header_arrivals_btn button {
+                background: linear-gradient(135deg,#0891B2,#00e5ff) !important;
+                color:#001018 !important;
+                border:1px solid rgba(0,229,255,.55) !important;
+                border-radius:10px !important;
+                font: 800 12px/1.1 'Segoe UI', sans-serif !important;
+                letter-spacing:1.1px !important;
+                text-transform:uppercase !important;
+                padding:10px 14px !important;
+                box-shadow:0 4px 14px rgba(0,229,255,.25) !important;
+                transition: all .12s ease !important;
+            }
+            .st-key-header_arrivals_btn button:hover {
+                filter:brightness(1.12) !important;
+                transform:translateY(-1px) !important;
+            }
+            </style>
+            """,
             unsafe_allow_html=True,
         )
+        with st.container(key="header_arrivals_btn"):
+            if st.button(
+                "📅 Arrivals By Date",
+                key="btn_header_arrivals",
+                use_container_width=True,
+                help="Ver todas las fechas de check-in y filtrar la tabla",
+            ):
+                arrivals_dates_dialog()
     with header_right:
         components.html(
             """
@@ -1576,6 +1602,131 @@ def logo_dialog() -> None:
         )
 
     if st.button("Cerrar", use_container_width=True, key="close_logo_dialog"):
+        st.rerun()
+
+
+def _arrival_dates_summary() -> list[tuple[datetime, str, int]]:
+    """Devuelve (fecha, etiqueta, cantidad de reservas) por cada check-in existente.
+
+    Toma la columna `check_in` de todas las reservas, la convierte a fecha real
+    (con `parse_fecha`, que soporta texto y Timestamp), elimina duplicados y
+    ordena cronologicamente de la mas antigua a la mas reciente.
+    """
+    df = cargar_reservaciones()
+    if df.empty or "check_in" not in df.columns:
+        return []
+
+    counts: dict[datetime, int] = {}
+    for value in df["check_in"].tolist():
+        parsed = parse_fecha(value)
+        if not parsed:
+            continue
+        key = datetime(parsed.year, parsed.month, parsed.day)
+        counts[key] = counts.get(key, 0) + 1
+
+    return [
+        (day, day.strftime("%B %d, %Y"), counts[day])
+        for day in sorted(counts)
+    ]
+
+
+def _apply_arrival_date(day: datetime) -> None:
+    """Aplica el filtro de check-in de la tabla y vuelve al dashboard."""
+    st.query_params["fecha_date"] = day.strftime("%Y-%m-%d")
+    st.query_params["skip_splash"] = "1"
+    if "action" in st.query_params:
+        del st.query_params["action"]
+    clear_selection()
+    st.rerun()
+
+
+@st.dialog("📅 Arrivals By Date", width="small")
+def arrivals_dates_dialog() -> None:
+    """Popup con todas las fechas de check-in; al hacer clic filtra la tabla."""
+    dates = _arrival_dates_summary()
+
+    if not dates:
+        st.info("No hay fechas de check-in registradas todavia.")
+        if st.button("Cerrar", use_container_width=True, key="close_arrivals_empty"):
+            st.rerun()
+        return
+
+    active = date_from_filter(str(st.query_params.get("fecha_date", "")))
+    active_key = datetime(active.year, active.month, active.day) if active else None
+
+    st.markdown(
+        "<div style='color:#8ca4ba;font-size:11px;font-weight:700;letter-spacing:1px;"
+        "text-transform:uppercase;text-align:center;margin-bottom:10px;'>"
+        f"{len(dates)} fechas · haz clic para ver las reservas de ese dia</div>",
+        unsafe_allow_html=True,
+    )
+
+    query = st.text_input(
+        "Buscar fecha",
+        key="arrivals_date_search",
+        placeholder="Ej: March, 2026, 21…",
+        label_visibility="collapsed",
+    ).strip().lower()
+
+    if query:
+        dates = [item for item in dates if query in item[1].lower()]
+        if not dates:
+            st.warning("Ninguna fecha coincide con la busqueda.")
+
+    st.markdown(
+        """
+        <style>
+        .st-key-arrivals_list button {
+            justify-content:flex-start !important;
+            text-align:left !important;
+            background:#0a0a0a !important;
+            border:1px solid #1e1e1e !important;
+            color:#eafaff !important;
+            font: 600 13px/1.2 'Segoe UI', sans-serif !important;
+            padding:7px 12px !important;
+            border-radius:8px !important;
+        }
+        .st-key-arrivals_list button:hover {
+            border-color:#00e5ff !important;
+            color:#00e5ff !important;
+            background:#06171c !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.container(key="arrivals_list", height=380):
+        current_month = ""
+        for day, label, count in dates:
+            month_label = day.strftime("%B %Y").upper()
+            if month_label != current_month:
+                current_month = month_label
+                st.markdown(
+                    "<div style='color:#D4AF37;font-size:10px;font-weight:800;letter-spacing:1.4px;"
+                    "margin:10px 0 6px;border-left:3px solid #D4AF37;padding-left:8px;'>"
+                    f"{month_label}</div>",
+                    unsafe_allow_html=True,
+                )
+
+            is_active = active_key is not None and day == active_key
+            prefix = "▸ " if is_active else ""
+            if st.button(
+                f"{prefix}{label}   ·   {count} reserva{'s' if count != 1 else ''}",
+                key=f"arrival_date_{day.strftime('%Y%m%d')}",
+                use_container_width=True,
+                type="primary" if is_active else "secondary",
+            ):
+                _apply_arrival_date(day)
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    left, right = st.columns(2)
+    if left.button("🧹 Ver todas", use_container_width=True, key="clear_arrivals_filter"):
+        if "fecha_date" in st.query_params:
+            del st.query_params["fecha_date"]
+        st.query_params["skip_splash"] = "1"
+        st.rerun()
+    if right.button("Cerrar", use_container_width=True, key="close_arrivals_dialog"):
         st.rerun()
 
 
