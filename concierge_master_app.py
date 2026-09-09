@@ -812,20 +812,26 @@ def render_menu() -> None:
         st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #00e5ff;padding-left:8px;'>Operaciones</div>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
         if c1.button("➕ NUEVA", use_container_width=True):
-            st.query_params["action"] = "nueva"
+            # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
+            st.session_state["open_nueva"] = True
+            st.query_params["skip_splash"] = "1"
             st.rerun()
         if c2.button("⬆ IMPORTAR", use_container_width=True):
-            st.query_params["action"] = "importar"
+            st.session_state["open_importar"] = True
+            st.query_params["skip_splash"] = "1"
             st.rerun()
         if c3.button("⬇ EXPORTAR", use_container_width=True):
-            st.query_params["action"] = "exportar"
+            st.session_state["open_exportar"] = True
+            st.query_params["skip_splash"] = "1"
             st.rerun()
         c4, c5, c6 = st.columns(3)
         if c4.button("📊 REPORTE", use_container_width=True):
-            st.query_params["action"] = "reporte"
+            st.session_state["open_reporte"] = True
+            st.query_params["skip_splash"] = "1"
             st.rerun()
         if c5.button("📅 AGENDA", use_container_width=True):
-            st.query_params["action"] = "agenda"
+            st.session_state["open_agenda"] = True
+            st.query_params["skip_splash"] = "1"
             st.rerun()
         if c6.button("💰 BONUS", use_container_width=True):
             st.query_params["action"] = "bonus"
@@ -983,11 +989,10 @@ def render_back_link() -> None:
     )
 
 
-def render_new_reservation() -> None:
-    st.subheader("Nueva Reservación")
-    render_back_link()
+def _new_reservation_form(context: str = "page") -> None:
+    """Formulario de nueva reserva, reutilizable en pagina o en popup."""
     eta_options = generate_eta_options()
-    with st.form("new_reservation", clear_on_submit=True):
+    with st.form(f"new_reservation_{context}", clear_on_submit=True):
         r1 = st.columns(3)
         eta = r1[0].selectbox("ETA", options=eta_options, index=0)
         name = r1[1].text_input("Name *", placeholder="Guest name")
@@ -1027,22 +1032,29 @@ def render_new_reservation() -> None:
         clear_page()
 
 
-def render_edit_reservation() -> None:
-    reservations = cargar_reservaciones()
-    reservation = get_selected_reservation(reservations)
-    if not reservation:
-        st.error("Selecciona una reserva de la tabla antes de editar.")
-        render_back_link()
-        return
+@st.dialog("➕ Nueva Reservación", width="large")
+def new_reservation_dialog() -> None:
+    """Popup flotante para crear una reserva sin salir del dashboard."""
+    _new_reservation_form("dialog")
+    if st.button("Cerrar", use_container_width=True, key="close_new_dialog"):
+        st.rerun()
 
-    st.subheader(f"Editar reservación· {safe_text(reservation.get('name', ''))}")
+
+def render_new_reservation() -> None:
+    """Vista legacy en pagina completa (se conserva por compatibilidad)."""
+    st.subheader("Nueva Reservación")
     render_back_link()
+    _new_reservation_form("page")
+
+
+def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
+    """Formulario de edicion, reutilizable en pagina o en popup."""
     check_in_default = parse_fecha(reservation.get("check_in")) or datetime.now()
     check_out_default = parse_fecha(reservation.get("check_out")) or datetime.now() + timedelta(days=1)
     qty_default = pd.to_numeric(reservation.get("qty", 0), errors="coerce")
     qty_default = 0.0 if pd.isna(qty_default) else float(qty_default)
 
-    with st.form("edit_reservation"):
+    with st.form(f"edit_reservation_{context}"):
         first = st.columns(4)
         eta = first[0].text_input("ETA", value=str(reservation.get("eta", "")))
         name = first[1].text_input("Nombre *", value=str(reservation.get("name", "")))
@@ -1081,11 +1093,43 @@ def render_edit_reservation() -> None:
         clear_page()
 
 
-def render_import() -> None:
-    st.subheader("Importar reservaciones desde Excel")
+@st.dialog("✏️ Editar Reservación", width="large")
+def edit_reservation_dialog() -> None:
+    """Popup flotante de edicion sobre el dashboard."""
+    reservation = get_selected_reservation(cargar_reservaciones())
+    if not reservation:
+        st.error("Selecciona una reserva de la tabla antes de editar.")
+        if st.button("Cerrar", use_container_width=True, key="close_edit_dialog_empty"):
+            st.rerun()
+        return
+
+    st.markdown(
+        '<div style="color:#D4AF37;font:800 12px/1.2 \'Segoe UI\',sans-serif;letter-spacing:1.4px;'
+        'text-transform:uppercase;margin-bottom:10px;">'
+        f'{safe_text(reservation.get("name", ""))} &nbsp;·&nbsp; Room {safe_text(reservation.get("room", "—"))}</div>',
+        unsafe_allow_html=True,
+    )
+    _edit_reservation_form(reservation, "dialog")
+    if st.button("Cerrar", use_container_width=True, key="close_edit_dialog"):
+        st.rerun()
+
+
+def render_edit_reservation() -> None:
+    """Vista legacy en pagina completa (se conserva por compatibilidad)."""
+    reservation = get_selected_reservation(cargar_reservaciones())
+    if not reservation:
+        st.error("Selecciona una reserva de la tabla antes de editar.")
+        render_back_link()
+        return
+    st.subheader(f"Editar reservación· {safe_text(reservation.get('name', ''))}")
     render_back_link()
+    _edit_reservation_form(reservation, "page")
+
+
+def _import_body(context: str = "page") -> None:
+    """Importador de Excel, reutilizable en pagina o en popup."""
     st.info("Columnas requeridas: " + ", ".join(IMPORT_COLUMNS))
-    uploaded = st.file_uploader("Archivo Excel", type=["xlsx", "xls"])
+    uploaded = st.file_uploader("Archivo Excel", type=["xlsx", "xls"], key=f"import_uploader_{context}")
     if not uploaded:
         return
 
@@ -1113,7 +1157,7 @@ def render_import() -> None:
     st.success(f"Archivo válido: {len(preview)} reservaciones detectadas.")
     st.dataframe(preview, use_container_width=True, hide_index=True, height=300)
 
-    if st.button("IMPORTAR A BASE DE DATOS", type="primary", use_container_width=True):
+    if st.button("IMPORTAR A BASE DE DATOS", type="primary", use_container_width=True, key=f"do_import_{context}"):
         records: list[dict] = []
         for _, row in preview.iterrows():
             record = {}
@@ -1134,9 +1178,23 @@ def render_import() -> None:
             st.error(f"No se completó la importación: {exc}")
 
 
-def render_export(df: pd.DataFrame) -> None:
-    st.subheader("Exportar reservaciones a Excel")
+@st.dialog("⬆ Importar Reservaciones", width="large")
+def import_dialog() -> None:
+    """Popup flotante para importar un Excel sin salir del dashboard."""
+    _import_body("dialog")
+    if st.button("Cerrar", use_container_width=True, key="close_import_dialog"):
+        st.rerun()
+
+
+def render_import() -> None:
+    """Vista legacy en pagina completa (se conserva por compatibilidad)."""
+    st.subheader("Importar reservaciones desde Excel")
     render_back_link()
+    _import_body("page")
+
+
+def _export_body(df: pd.DataFrame, context: str = "page") -> None:
+    """Exportador a Excel, reutilizable en pagina o en popup."""
     filtered, _ = apply_filters(df)
     st.info(f"Se exportarán {len(filtered)} reservaciones, organizadas por categoría.")
     st.dataframe(filtered[DISPLAY_COLUMNS], use_container_width=True, hide_index=True, height=300)
@@ -1269,13 +1327,28 @@ def render_export(df: pd.DataFrame) -> None:
             file_name=f"Arrivals_{datetime.now():%Y%m%d_%H%M}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
+            key=f"download_export_{context}",
         )
 
 
-def render_agenda(df: pd.DataFrame) -> None:
-    st.subheader("Agenda de reservaciones")
+@st.dialog("⬇ Exportar Reservaciones", width="large")
+def export_dialog() -> None:
+    """Popup flotante para exportar el Excel de llegadas."""
+    _export_body(cargar_reservaciones(), "dialog")
+    if st.button("Cerrar", use_container_width=True, key="close_export_dialog"):
+        st.rerun()
+
+
+def render_export(df: pd.DataFrame) -> None:
+    """Vista legacy en pagina completa (se conserva por compatibilidad)."""
+    st.subheader("Exportar reservaciones a Excel")
     render_back_link()
-    selected_date = st.date_input("Fecha", value=datetime.now().date())
+    _export_body(df, "page")
+
+
+def _agenda_body(df: pd.DataFrame, context: str = "page") -> None:
+    """Agenda de llegadas/salidas por fecha, reutilizable en pagina o popup."""
+    selected_date = st.date_input("Fecha", value=datetime.now().date(), key=f"agenda_date_{context}")
     formatted = selected_date.strftime("%B %d, %Y")
     arrivals = df[df["check_in"] == formatted]
     departures = df[df["check_out"] == formatted]
@@ -1290,9 +1363,23 @@ def render_agenda(df: pd.DataFrame) -> None:
         st.dataframe(departures[[column for column in DISPLAY_COLUMNS if column in departures]], use_container_width=True, hide_index=True)
 
 
-def render_report(df: pd.DataFrame) -> None:
-    st.subheader("Reporte de ocupación diario")
+@st.dialog("📅 Agenda de Reservaciones", width="large")
+def agenda_dialog() -> None:
+    """Popup flotante con llegadas y salidas de una fecha."""
+    _agenda_body(cargar_reservaciones(), "dialog")
+    if st.button("Cerrar", use_container_width=True, key="close_agenda_dialog"):
+        st.rerun()
+
+
+def render_agenda(df: pd.DataFrame) -> None:
+    """Vista legacy en pagina completa (se conserva por compatibilidad)."""
+    st.subheader("Agenda de reservaciones")
     render_back_link()
+    _agenda_body(df, "page")
+
+
+def _report_body(df: pd.DataFrame, context: str = "page") -> None:
+    """Reporte de ocupacion diario, reutilizable en pagina o popup."""
     today = datetime.now()
     tomorrow = today + timedelta(days=1)
     today_label, tomorrow_label = today.strftime("%B %d, %Y"), tomorrow.strftime("%B %d, %Y")
@@ -1330,7 +1417,23 @@ def render_report(df: pd.DataFrame) -> None:
         file_name=f"Reporte_Ocupacion_{today:%Y%m%d_%H%M}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True,
+        key=f"download_report_{context}",
     )
+
+
+@st.dialog("📊 Reporte de Ocupación", width="large")
+def report_dialog() -> None:
+    """Popup flotante con el reporte de ocupacion diario."""
+    _report_body(cargar_reservaciones(), "dialog")
+    if st.button("Cerrar", use_container_width=True, key="close_report_dialog"):
+        st.rerun()
+
+
+def render_report(df: pd.DataFrame) -> None:
+    """Vista legacy en pagina completa (se conserva por compatibilidad)."""
+    st.subheader("Reporte de ocupación diario")
+    render_back_link()
+    _report_body(df, "page")
 
 
 CALCULATOR_HTML = """
@@ -1737,15 +1840,8 @@ def render_calculator() -> None:
     calculator_dialog()
 
 
-def render_letter() -> None:
-    st.subheader("Carta de despedida")
-    render_back_link()
-    reservations = cargar_reservaciones()
-    reservation = get_selected_reservation(reservations)
-    if not reservation:
-        st.error("Selecciona una reserva de la tabla antes de crear la carta.")
-        return
-
+def _letter_body(reservation: dict) -> None:
+    """Genera la carta de despedida; reutilizable en pagina o en popup."""
     guest_name = str(reservation.get("name", "")).strip()
     if not guest_name:
         st.error("La reserva seleccionada no tiene un nombre de huesped.")
@@ -1814,6 +1910,36 @@ def render_letter() -> None:
         )
     except Exception as exc:
         st.error(f"No se pudo generar la carta: {exc}")
+
+
+@st.dialog("💌 Carta de Despedida", width="small")
+def letter_dialog() -> None:
+    """Popup flotante con la carta de despedida lista para descargar."""
+    reservation = get_selected_reservation(cargar_reservaciones())
+    if not reservation:
+        st.error("Selecciona una reserva de la tabla antes de crear la carta.")
+    else:
+        st.markdown(
+            '<div style="color:#D4AF37;font:800 12px/1.2 \'Segoe UI\',sans-serif;letter-spacing:1.4px;'
+            'text-transform:uppercase;margin-bottom:10px;">'
+            f'{safe_text(reservation.get("name", ""))} &nbsp;·&nbsp; Room {safe_text(reservation.get("room", "—"))}</div>',
+            unsafe_allow_html=True,
+        )
+        _letter_body(reservation)
+
+    if st.button("Cerrar", use_container_width=True, key="close_letter_dialog"):
+        st.rerun()
+
+
+def render_letter() -> None:
+    """Vista legacy en pagina completa (se conserva por compatibilidad)."""
+    st.subheader("Carta de despedida")
+    render_back_link()
+    reservation = get_selected_reservation(cargar_reservaciones())
+    if not reservation:
+        st.error("Selecciona una reserva de la tabla antes de crear la carta.")
+        return
+    _letter_body(reservation)
 
 
 # -----------------------------------------------------------------------------
@@ -1954,18 +2080,12 @@ def render_bonus() -> None:
         st.markdown(f'<div style="background:#4ADE80;color:#0a0a0a;padding:8px 12px;border-radius:8px;text-align:center;font-weight:800;font-size:12px">AGUINALDO<br><span style="font-size:16px">{aguinaldo:,.2f}</span></div>', unsafe_allow_html=True)
 
 
-def render_delete() -> None:
-    st.subheader("Eliminar reservación")
-    render_back_link()
-    reservations = cargar_reservaciones()
-    reservation = get_selected_reservation(reservations)
-    if not reservation:
-        st.error("Selecciona una reserva antes de solicitar el borrado.")
-        return
+def _delete_form(reservation: dict, context: str = "page") -> None:
+    """Confirmacion de borrado, reutilizable en pagina o en popup."""
     st.warning(f"Se eliminará permanentemente la reserva de {reservation.get('name', 'este huésped')}.")
-    with st.form("delete_reservation"):
+    with st.form(f"delete_reservation_{context}"):
         password = st.text_input("Clave de autorización", type="password")
-        confirmed = st.form_submit_button("CONFIRMAR Y BORRAR", type="primary")
+        confirmed = st.form_submit_button("CONFIRMAR Y BORRAR", type="primary", use_container_width=True)
     if confirmed:
         expected_password = st.secrets.get("DELETE_PASSWORD", "")
         if not expected_password:
@@ -1976,6 +2096,36 @@ def render_delete() -> None:
             eliminar_reserva(reservation["id"])
             st.success("Reserva eliminada correctamente.")
             clear_page()
+
+
+@st.dialog("🗑️ Eliminar Reservación", width="small")
+def delete_reservation_dialog() -> None:
+    """Popup flotante de borrado sobre el dashboard."""
+    reservation = get_selected_reservation(cargar_reservaciones())
+    if not reservation:
+        st.error("Selecciona una reserva antes de solicitar el borrado.")
+    else:
+        st.markdown(
+            '<div style="color:#ff6b6b;font:800 12px/1.2 \'Segoe UI\',sans-serif;letter-spacing:1.4px;'
+            'text-transform:uppercase;margin-bottom:10px;">'
+            f'{safe_text(reservation.get("name", ""))} &nbsp;·&nbsp; Room {safe_text(reservation.get("room", "—"))}</div>',
+            unsafe_allow_html=True,
+        )
+        _delete_form(reservation, "dialog")
+
+    if st.button("Cancelar", use_container_width=True, key="close_delete_dialog"):
+        st.rerun()
+
+
+def render_delete() -> None:
+    """Vista legacy en pagina completa (se conserva por compatibilidad)."""
+    st.subheader("Eliminar reservación")
+    render_back_link()
+    reservation = get_selected_reservation(cargar_reservaciones())
+    if not reservation:
+        st.error("Selecciona una reserva antes de solicitar el borrado.")
+        return
+    _delete_form(reservation, "page")
 
 
 # -----------------------------------------------------------------------------
@@ -2387,15 +2537,51 @@ def render_dashboard(df: pd.DataFrame) -> None:
         sel_id = safe_text(str(selected.get("id", "")))
         name, room = safe_text(selected.get("name", "N/A")), safe_text(selected.get("room", "—"))
         st.markdown(f'<div class="selection-banner"><b>RESERVA SELECCIONADA</b> &nbsp; {name} &nbsp;|&nbsp; Room: {room}</div>', unsafe_allow_html=True)
+        # Botones reales (no links): abren popups flotantes sin cambiar de pagina.
         st.markdown(
-            '<div class="action-links" style="grid-template-columns:repeat(4,minmax(110px,1fr));max-width:700px">'
-            f'<a class="action-link" href="{url_with(action="editar", sel_id=sel_id)}" target="_self" style="background:#D97706">EDITAR</a>'
-            f'<a class="action-link" href="{url_with(action="carta", sel_id=sel_id)}" target="_self" style="background:#7C3AED">CARTA</a>'
-            f'<a class="action-link" href="{url_with(action="cancelar", sel_id=sel_id)}" target="_self" style="background:#E11D48">BORRAR</a>'
-            f'<a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#3a3a3a">DESELECCIONAR</a>'
-            '</div>',
+            """
+            <style>
+            .st-key-selection_actions { max-width:700px; }
+            .st-key-selection_actions button {
+                border:none !important;
+                border-radius:8px !important;
+                color:#fff !important;
+                font: 800 12px/1.1 'Segoe UI', sans-serif !important;
+                letter-spacing:1.1px !important;
+                text-transform:uppercase !important;
+                padding:9px 10px !important;
+                transition: all .12s ease !important;
+            }
+            .st-key-selection_actions button:hover {
+                filter:brightness(1.15) !important;
+                transform:translateY(-1px) !important;
+            }
+            .st-key-btn_sel_editar button { background:#D97706 !important; }
+            .st-key-btn_sel_carta  button { background:#7C3AED !important; }
+            .st-key-btn_sel_borrar button { background:#E11D48 !important; }
+            .st-key-btn_sel_deselect button { background:#3a3a3a !important; }
+            </style>
+            """,
             unsafe_allow_html=True,
         )
+        with st.container(key="selection_actions"):
+            act1, act2, act3, act4 = st.columns(4)
+            with act1:
+                with st.container(key="btn_sel_editar"):
+                    if st.button("EDITAR", use_container_width=True, key="do_sel_editar"):
+                        edit_reservation_dialog()
+            with act2:
+                with st.container(key="btn_sel_carta"):
+                    if st.button("CARTA", use_container_width=True, key="do_sel_carta"):
+                        letter_dialog()
+            with act3:
+                with st.container(key="btn_sel_borrar"):
+                    if st.button("BORRAR", use_container_width=True, key="do_sel_borrar"):
+                        delete_reservation_dialog()
+            with act4:
+                with st.container(key="btn_sel_deselect"):
+                    if st.button("DESELECCIONAR", use_container_width=True, key="do_sel_deselect"):
+                        clear_page()
     elif bulk_ids:
         st.markdown(
             f'<div class="selection-banner" style="border-color:#E11D48;background:#1a0000">'
@@ -2453,18 +2639,54 @@ if st.session_state.pop("open_calendar", False):
 if st.session_state.pop("open_logo", False):
     logo_dialog()
 
+# Auto-abrir los popups de reservas (nueva / editar / carta / borrar)
+if st.session_state.pop("open_nueva", False):
+    new_reservation_dialog()
+
+if st.session_state.pop("open_editar", False):
+    edit_reservation_dialog()
+
+if st.session_state.pop("open_carta", False):
+    letter_dialog()
+
+if st.session_state.pop("open_borrar", False):
+    delete_reservation_dialog()
+
+# Auto-abrir los popups de operaciones (importar / exportar / reporte / agenda)
+if st.session_state.pop("open_importar", False):
+    import_dialog()
+
+if st.session_state.pop("open_exportar", False):
+    export_dialog()
+
+if st.session_state.pop("open_reporte", False):
+    report_dialog()
+
+if st.session_state.pop("open_agenda", False):
+    agenda_dialog()
+
+
+def _redirect_to_dialog(flag: str) -> None:
+    """Quita `action` de la URL, conserva filtros y abre el popup en el dashboard."""
+    if "action" in st.query_params:
+        del st.query_params["action"]
+    st.query_params["skip_splash"] = "1"
+    st.session_state[flag] = True
+    st.rerun()
+
+
 if action == "nueva":
-    render_new_reservation()
+    _redirect_to_dialog("open_nueva")
 elif action == "editar":
-    render_edit_reservation()
+    _redirect_to_dialog("open_editar")
 elif action == "importar":
-    render_import()
+    _redirect_to_dialog("open_importar")
 elif action == "exportar":
-    render_export(reservations)
+    _redirect_to_dialog("open_exportar")
 elif action == "agenda":
-    render_agenda(reservations)
+    _redirect_to_dialog("open_agenda")
 elif action == "reporte":
-    render_report(reservations)
+    _redirect_to_dialog("open_reporte")
 elif action == "calculadora":
     # Redirigir al dashboard y abrir dialog automáticamente (preservar filtros)
     for key in list(st.query_params.keys()):
@@ -2483,8 +2705,8 @@ elif action == "almanaque":
 elif action == "bonus":
     render_bonus()
 elif action == "carta":
-    render_letter()
+    _redirect_to_dialog("open_carta")
 elif action == "cancelar":
-    render_delete()
+    _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
