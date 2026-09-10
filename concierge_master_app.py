@@ -763,12 +763,28 @@ def show_header() -> None:
                 filter:brightness(1.12) !important;
                 transform:translateY(-1px) !important;
             }
+            .st-key-header_qrcode_btn button {
+                background: linear-gradient(135deg,#0EA5E9,#22D3EE) !important;
+                color:#04212B !important;
+                border:1px solid rgba(34,211,238,.55) !important;
+                border-radius:10px !important;
+                font: 800 12px/1.1 'Segoe UI', sans-serif !important;
+                letter-spacing:1.1px !important;
+                text-transform:uppercase !important;
+                padding:10px 14px !important;
+                box-shadow:0 4px 14px rgba(34,211,238,.25) !important;
+                transition: all .12s ease !important;
+            }
+            .st-key-header_qrcode_btn button:hover {
+                filter:brightness(1.12) !important;
+                transform:translateY(-1px) !important;
+            }
             </style>
             """,
             unsafe_allow_html=True,
         )
         with st.container(key="header_center_btns"):
-            btn_col1, btn_col2 = st.columns(2)
+            btn_col1, btn_col2, btn_col3 = st.columns(3)
             with btn_col1:
                 with st.container(key="header_arrivals_btn"):
                     if st.button(
@@ -787,6 +803,15 @@ def show_header() -> None:
                         help="Ver y editar los avisos/reminders activos",
                     ):
                         reminders_dialog()
+            with btn_col3:
+                with st.container(key="header_qrcode_btn"):
+                    if st.button(
+                        "🔗 QR Code",
+                        key="btn_header_qrcode",
+                        use_container_width=True,
+                        help="Ver el QR Code para huespedes",
+                    ):
+                        qrcode_dialog()
     with header_right:
         components.html(
             """
@@ -1775,6 +1800,46 @@ def logo_dialog() -> None:
         )
 
     if st.button("Cerrar", use_container_width=True, key="close_logo_dialog"):
+        st.rerun()
+
+
+QRCODE_FILENAMES = ("QRCODE.png", "qrcode.png", "QrCode.png", "qr_code.png")
+
+
+def _find_qrcode_path() -> str | None:
+    """Devuelve la ruta del archivo QRCODE.png si existe junto a la app."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    for filename in QRCODE_FILENAMES:
+        candidate = os.path.join(base_dir, filename)
+        if os.path.exists(candidate):
+            return candidate
+    return None
+
+
+@st.dialog("🔗 QR Code", width="small")
+def qrcode_dialog() -> None:
+    """Muestra QRCODE.png como un modal flotante, igual que el popup de Fred Wayne."""
+    qr_path = _find_qrcode_path()
+    if qr_path:
+        encoded = base64.b64encode(open(qr_path, "rb").read()).decode("utf-8")
+        st.markdown(
+            '<div style="display:flex;flex-direction:column;align-items:center;gap:14px;'
+            'padding:18px 10px;background:#0d0d0d;border:1px solid #222222;border-radius:16px;">'
+            f'<img src="data:image/png;base64,{encoded}" alt="QR Code" '
+            'style="max-width:100%;max-height:420px;object-fit:contain;border-radius:12px;">'
+            '<div style="color:#22D3EE;font:800 13px/1.2 \'Segoe UI\',sans-serif;'
+            'letter-spacing:1.5px;text-transform:uppercase;">QR Code</div>'
+            "</div>",
+            unsafe_allow_html=True,
+        )
+    else:
+        st.warning(
+            "No se encontro el archivo `QRCODE.png`. Sube `QRCODE.png` a tu repositorio "
+            "junto a este archivo (tambien se aceptan `qrcode.png`, `QrCode.png` o "
+            "`qr_code.png`)."
+        )
+
+    if st.button("Cerrar", use_container_width=True, key="close_qrcode_dialog"):
         st.rerun()
 
 
