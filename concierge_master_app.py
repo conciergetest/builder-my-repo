@@ -475,6 +475,48 @@ def insertar_lote(records: list[dict]) -> None:
 
 
 # -----------------------------------------------------------------------------
+# Reminders (tabla `activity_logs`)
+# -----------------------------------------------------------------------------
+
+REMINDERS_TABLE = "activity_logs"
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def cargar_reminders() -> pd.DataFrame:
+    response = supabase.table(REMINDERS_TABLE).select("*").execute()
+    df = pd.DataFrame(response.data)
+    if df.empty:
+        return pd.DataFrame(columns=["id", "activity", "active_date", "due_date", "created_at"])
+    sort_key = df["active_date"].map(parse_fecha) if "active_date" in df.columns else None
+    if sort_key is not None:
+        df = df.assign(_sort=sort_key).sort_values(by="_sort", na_position="last").drop(columns="_sort")
+    return df.reset_index(drop=True)
+
+
+def insertar_reminder(activity: str, active_date: date, due_date: date) -> None:
+    supabase.table(REMINDERS_TABLE).insert({
+        "activity": activity,
+        "active_date": active_date.isoformat(),
+        "due_date": due_date.isoformat(),
+    }).execute()
+    st.cache_data.clear()
+
+
+def actualizar_reminder(reminder_id: object, activity: str, active_date: date, due_date: date) -> None:
+    supabase.table(REMINDERS_TABLE).update({
+        "activity": activity,
+        "active_date": active_date.isoformat(),
+        "due_date": due_date.isoformat(),
+    }).eq("id", reminder_id).execute()
+    st.cache_data.clear()
+
+
+def eliminar_reminder(reminder_id: object) -> None:
+    supabase.table(REMINDERS_TABLE).delete().eq("id", reminder_id).execute()
+    st.cache_data.clear()
+
+
+# -----------------------------------------------------------------------------
 # Bonus / Aguinaldo  -  Supabase CRUD
 # -----------------------------------------------------------------------------
 
@@ -683,12 +725,12 @@ def show_header() -> None:
             unsafe_allow_html=True,
         )
     with header_center:
-        # Boton central: reemplaza el logo Fred Wayne y abre el popup de
-        # "Arrivals By Date" con todas las fechas de check-in disponibles.
+        # Botones centrales: reemplazan el logo Fred Wayne. Abren popups de
+        # "Arrivals By Date" y "Reminders" sobre el dashboard.
         st.markdown(
             """
             <style>
-            .st-key-header_arrivals_btn { display:flex; justify-content:center; align-items:center; }
+            .st-key-header_center_btns { display:flex; justify-content:center; align-items:center; gap:8px; }
             .st-key-header_arrivals_btn button {
                 background: linear-gradient(135deg,#0891B2,#00e5ff) !important;
                 color:#001018 !important;
@@ -705,18 +747,46 @@ def show_header() -> None:
                 filter:brightness(1.12) !important;
                 transform:translateY(-1px) !important;
             }
+            .st-key-header_reminders_btn button {
+                background: linear-gradient(135deg,#D97706,#FACC15) !important;
+                color:#1C1300 !important;
+                border:1px solid rgba(250,204,21,.55) !important;
+                border-radius:10px !important;
+                font: 800 12px/1.1 'Segoe UI', sans-serif !important;
+                letter-spacing:1.1px !important;
+                text-transform:uppercase !important;
+                padding:10px 14px !important;
+                box-shadow:0 4px 14px rgba(250,204,21,.25) !important;
+                transition: all .12s ease !important;
+            }
+            .st-key-header_reminders_btn button:hover {
+                filter:brightness(1.12) !important;
+                transform:translateY(-1px) !important;
+            }
             </style>
             """,
             unsafe_allow_html=True,
         )
-        with st.container(key="header_arrivals_btn"):
-            if st.button(
-                "📅 Arrivals By Date",
-                key="btn_header_arrivals",
-                use_container_width=True,
-                help="Ver todas las fechas de check-in y filtrar la tabla",
-            ):
-                arrivals_dates_dialog()
+        with st.container(key="header_center_btns"):
+            btn_col1, btn_col2 = st.columns(2)
+            with btn_col1:
+                with st.container(key="header_arrivals_btn"):
+                    if st.button(
+                        "📅 Arrivals By Date",
+                        key="btn_header_arrivals",
+                        use_container_width=True,
+                        help="Ver todas las fechas de check-in y filtrar la tabla",
+                    ):
+                        arrivals_dates_dialog()
+            with btn_col2:
+                with st.container(key="header_reminders_btn"):
+                    if st.button(
+                        "🔔 Reminders",
+                        key="btn_header_reminders",
+                        use_container_width=True,
+                        help="Ver y editar los avisos/reminders activos",
+                    ):
+                        reminders_dialog()
     with header_right:
         components.html(
             """
@@ -1833,6 +1903,147 @@ def arrivals_dates_dialog() -> None:
         st.rerun()
 
 
+REMINDER_SLOTS = 10
+
+
+def _reminder_display_date(value: object) -> str:
+    parsed = parse_fecha(value)
+    return parsed.strftime("%B %d, %Y") if parsed else "—"
+
+
+def _reminder_input_date(value: object) -> date:
+    """Convierte lo que venga de Supabase (string ISO, Timestamp, None) a `date`."""
+    parsed = parse_fecha(value)
+    if parsed:
+        return parsed.date() if isinstance(parsed, datetime) else parsed
+    return datetime.today().date()
+
+
+@st.dialog("🔔 Reminders", width="large")
+def reminders_dialog() -> None:
+    """Popup con la lista de recordatorios (Activity / Active Date / Due Date)."""
+    df = cargar_reminders()
+
+    st.markdown(
+        "<div style='color:#8ca4ba;font-size:11px;font-weight:700;letter-spacing:1px;"
+        "text-transform:uppercase;text-align:center;margin-bottom:10px;'>"
+        "Avisos y restricciones vigentes</div>",
+        unsafe_allow_html=True,
+    )
+
+    if df.empty:
+        st.info("No hay reminders registrados todavia. Usa EDITAR para agregar el primero.")
+    else:
+        st.markdown(
+            """
+            <style>
+            .reminder-row {
+                display:grid;
+                grid-template-columns: 2.2fr 1fr 1fr;
+                gap:10px;
+                padding:9px 12px;
+                border:1px solid #2a2205;
+                border-radius:8px;
+                background:#120e02;
+                margin-bottom:6px;
+            }
+            .reminder-row.head {
+                background:transparent;
+                border:none;
+                color:#D97706;
+                font-size:10px;
+                font-weight:800;
+                letter-spacing:1.2px;
+                text-transform:uppercase;
+                padding:0 12px;
+            }
+            .reminder-row .activity { color:#FACC15; font-weight:700; font-size:13px; }
+            .reminder-row .date-cell { color:#eafaff; font-size:13px; font-weight:600; }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            "<div class='reminder-row head'><div>ACTIVITY</div><div>ACTIVE DATE</div>"
+            "<div>DUE DATE</div></div>",
+            unsafe_allow_html=True,
+        )
+        with st.container(height=360):
+            for _, row in df.iterrows():
+                activity = str(row.get("activity", "")).strip() or "—"
+                active_date = _reminder_display_date(row.get("active_date"))
+                due_date = _reminder_display_date(row.get("due_date"))
+                st.markdown(
+                    f"<div class='reminder-row'><div class='activity'>{activity}</div>"
+                    f"<div class='date-cell'>{active_date}</div>"
+                    f"<div class='date-cell'>{due_date}</div></div>",
+                    unsafe_allow_html=True,
+                )
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    left, right = st.columns(2)
+    if left.button("✏️ EDIT", use_container_width=True, key="open_reminders_edit_btn"):
+        st.session_state["open_reminders_edit"] = True
+        st.rerun()
+    if right.button("Cerrar", use_container_width=True, key="close_reminders_dialog"):
+        st.rerun()
+
+
+@st.dialog("✏️ Editar Reminders", width="large")
+def reminder_edit_dialog() -> None:
+    """Formulario con hasta 10 filas para crear/editar/borrar reminders."""
+    df = cargar_reminders()
+    existing = df.to_dict("records") if not df.empty else []
+
+    st.markdown(
+        "<div style='color:#8ca4ba;font-size:11px;font-weight:700;letter-spacing:1px;"
+        "text-transform:uppercase;text-align:center;margin-bottom:10px;'>"
+        "Completa la actividad para guardar la fila · borra el texto para eliminarla</div>",
+        unsafe_allow_html=True,
+    )
+
+    with st.form("reminder_edit_form"):
+        slots = []
+        for i in range(REMINDER_SLOTS):
+            row = existing[i] if i < len(existing) else {}
+            row_id = row.get("id")
+            st.markdown(f"**Fila {i + 1}**")
+            c1, c2, c3 = st.columns([2, 1, 1])
+            activity = c1.text_input(
+                "Activity", value=str(row.get("activity", "") or ""),
+                key=f"rem_activity_{i}", label_visibility="collapsed",
+                placeholder="Ej: La Finca restaurant cerrado",
+            )
+            active_date = c2.date_input(
+                "Active Date", value=_reminder_input_date(row.get("active_date")),
+                key=f"rem_active_{i}",
+            )
+            due_date = c3.date_input(
+                "Due Date", value=_reminder_input_date(row.get("due_date")),
+                key=f"rem_due_{i}",
+            )
+            slots.append((row_id, activity, active_date, due_date))
+
+        submitted = st.form_submit_button("💾 Guardar", use_container_width=True)
+
+    if submitted:
+        for row_id, activity, active_date, due_date in slots:
+            activity = (activity or "").strip()
+            if activity:
+                if row_id is not None:
+                    actualizar_reminder(row_id, activity, active_date, due_date)
+                else:
+                    insertar_reminder(activity, active_date, due_date)
+            elif row_id is not None:
+                eliminar_reminder(row_id)
+        st.session_state["open_reminders"] = True
+        st.rerun()
+
+    if st.button("Cerrar sin guardar", use_container_width=True, key="close_reminder_edit_dialog"):
+        st.session_state["open_reminders"] = True
+        st.rerun()
+
+
 def render_calculator() -> None:
     """Vista legacy de calculadora (redirige al dialog)."""
     st.subheader("Calculadora")
@@ -2664,6 +2875,13 @@ if st.session_state.pop("open_reporte", False):
 
 if st.session_state.pop("open_agenda", False):
     agenda_dialog()
+
+# Auto-abrir los popups de reminders (ver / editar)
+if st.session_state.pop("open_reminders", False):
+    reminders_dialog()
+
+if st.session_state.pop("open_reminders_edit", False):
+    reminder_edit_dialog()
 
 
 def _redirect_to_dialog(flag: str) -> None:
