@@ -707,7 +707,7 @@ def exportar_reporte_excel(data: dict[str, pd.DataFrame], report_date: datetime)
 def show_header() -> None:
     import streamlit.components.v1 as components
 
-    header_left, header_center, header_right = st.columns([1.4, 0.5, 1])
+    header_left, header_center, header_right = st.columns([1.15, 1.35, 0.85])
     with header_left:
         st.markdown(
             """
@@ -736,10 +736,12 @@ def show_header() -> None:
                 color:#001018 !important;
                 border:1px solid rgba(0,229,255,.55) !important;
                 border-radius:10px !important;
-                font: 800 12px/1.1 'Segoe UI', sans-serif !important;
-                letter-spacing:1.1px !important;
+                font: 800 11px/1.15 'Segoe UI', sans-serif !important;
+                letter-spacing:0.4px !important;
                 text-transform:uppercase !important;
-                padding:10px 14px !important;
+                padding:10px 8px !important;
+                white-space:nowrap !important;
+                overflow:visible !important;
                 box-shadow:0 4px 14px rgba(0,229,255,.25) !important;
                 transition: all .12s ease !important;
             }
@@ -752,10 +754,12 @@ def show_header() -> None:
                 color:#1C1300 !important;
                 border:1px solid rgba(250,204,21,.55) !important;
                 border-radius:10px !important;
-                font: 800 12px/1.1 'Segoe UI', sans-serif !important;
-                letter-spacing:1.1px !important;
+                font: 800 11px/1.15 'Segoe UI', sans-serif !important;
+                letter-spacing:0.4px !important;
                 text-transform:uppercase !important;
-                padding:10px 14px !important;
+                padding:10px 8px !important;
+                white-space:nowrap !important;
+                overflow:visible !important;
                 box-shadow:0 4px 14px rgba(250,204,21,.25) !important;
                 transition: all .12s ease !important;
             }
@@ -768,10 +772,12 @@ def show_header() -> None:
                 color:#04212B !important;
                 border:1px solid rgba(34,211,238,.55) !important;
                 border-radius:10px !important;
-                font: 800 12px/1.1 'Segoe UI', sans-serif !important;
-                letter-spacing:1.1px !important;
+                font: 800 11px/1.15 'Segoe UI', sans-serif !important;
+                letter-spacing:0.4px !important;
                 text-transform:uppercase !important;
-                padding:10px 14px !important;
+                padding:10px 8px !important;
+                white-space:nowrap !important;
+                overflow:visible !important;
                 box-shadow:0 4px 14px rgba(34,211,238,.25) !important;
                 transition: all .12s ease !important;
             }
