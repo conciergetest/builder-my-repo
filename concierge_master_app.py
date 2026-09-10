@@ -1921,13 +1921,19 @@ def _reminder_input_date(value: object) -> date:
 
 @st.dialog("🔔 Reminders", width="large")
 def reminders_dialog() -> None:
-    """Popup con la lista de recordatorios (Activity / Active Date / Due Date)."""
+    """Popup con la lista de recordatorios (Activity / Active Date / Due Date).
+
+    Un clic sobre la actividad la pone en modo edicion en la misma fila (sin
+    tener que abrir el popup EDIT de 10 filas). Streamlit no distingue doble
+    clic de clic simple, asi que un solo clic ya activa la edicion inline.
+    """
     df = cargar_reminders()
+    editing_id = st.session_state.get("reminder_inline_edit_id")
 
     st.markdown(
         "<div style='color:#8ca4ba;font-size:11px;font-weight:700;letter-spacing:1px;"
         "text-transform:uppercase;text-align:center;margin-bottom:10px;'>"
-        "Avisos y restricciones vigentes</div>",
+        "Avisos y restricciones vigentes · clic en la actividad para editarla</div>",
         unsafe_allow_html=True,
     )
 
@@ -1957,8 +1963,23 @@ def reminders_dialog() -> None:
                 text-transform:uppercase;
                 padding:0 12px;
             }
-            .reminder-row .activity { color:#FACC15; font-weight:700; font-size:13px; }
             .reminder-row .date-cell { color:#eafaff; font-size:13px; font-weight:600; }
+            .st-key-reminders_list .st-key-reminder_activity_btn_container button,
+            [class*="st-key-reminder_activity_btn_"] button {
+                background:transparent !important;
+                border:none !important;
+                color:#FACC15 !important;
+                font-weight:700 !important;
+                font-size:13px !important;
+                text-align:left !important;
+                justify-content:flex-start !important;
+                padding:0 !important;
+                width:100% !important;
+            }
+            [class*="st-key-reminder_activity_btn_"] button:hover {
+                color:#FFE580 !important;
+                text-decoration:underline !important;
+            }
             </style>
             """,
             unsafe_allow_html=True,
@@ -1968,17 +1989,26 @@ def reminders_dialog() -> None:
             "<div>DUE DATE</div></div>",
             unsafe_allow_html=True,
         )
-        with st.container(height=360):
+        with st.container(height=420, key="reminders_list"):
             for _, row in df.iterrows():
+                row_id = row.get("id")
+                if editing_id is not None and row_id == editing_id:
+                    _reminder_inline_edit_row(row)
+                    continue
+
                 activity = str(row.get("activity", "")).strip() or "—"
                 active_date = _reminder_display_date(row.get("active_date"))
                 due_date = _reminder_display_date(row.get("due_date"))
-                st.markdown(
-                    f"<div class='reminder-row'><div class='activity'>{activity}</div>"
-                    f"<div class='date-cell'>{active_date}</div>"
-                    f"<div class='date-cell'>{due_date}</div></div>",
-                    unsafe_allow_html=True,
-                )
+                c1, c2, c3 = st.columns([2.2, 1, 1])
+                with c1:
+                    if st.button(
+                        activity, key=f"reminder_activity_btn_{row_id}",
+                        use_container_width=True,
+                    ):
+                        st.session_state["reminder_inline_edit_id"] = row_id
+                        st.rerun()
+                c2.markdown(f"<div class='date-cell'>{active_date}</div>", unsafe_allow_html=True)
+                c3.markdown(f"<div class='date-cell'>{due_date}</div>", unsafe_allow_html=True)
 
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     left, right = st.columns(2)
@@ -1986,7 +2016,43 @@ def reminders_dialog() -> None:
         st.session_state["open_reminders_edit"] = True
         st.rerun()
     if right.button("Cerrar", use_container_width=True, key="close_reminders_dialog"):
+        st.session_state.pop("reminder_inline_edit_id", None)
         st.rerun()
+
+
+def _reminder_inline_edit_row(row: dict) -> None:
+    """Renderiza la fila `row` en modo edicion inline dentro de reminders_dialog."""
+    row_id = row.get("id")
+    c1, c2, c3 = st.columns([2.2, 1, 1])
+    activity = c1.text_input(
+        "Activity", value=str(row.get("activity", "") or ""),
+        key=f"reminder_inline_activity_{row_id}", label_visibility="collapsed",
+    )
+    active_date = c2.date_input(
+        "Active Date", value=_reminder_input_date(row.get("active_date")),
+        key=f"reminder_inline_active_{row_id}", label_visibility="collapsed",
+    )
+    due_date = c3.date_input(
+        "Due Date", value=_reminder_input_date(row.get("due_date")),
+        key=f"reminder_inline_due_{row_id}", label_visibility="collapsed",
+    )
+    s1, s2, s3 = st.columns(3)
+    if s1.button("💾 Guardar", key=f"reminder_inline_save_{row_id}", use_container_width=True):
+        activity = (activity or "").strip()
+        if activity:
+            actualizar_reminder(row_id, activity, active_date, due_date)
+        else:
+            eliminar_reminder(row_id)
+        st.session_state.pop("reminder_inline_edit_id", None)
+        st.rerun()
+    if s2.button("🗑️ Borrar", key=f"reminder_inline_delete_{row_id}", use_container_width=True):
+        eliminar_reminder(row_id)
+        st.session_state.pop("reminder_inline_edit_id", None)
+        st.rerun()
+    if s3.button("Cancelar", key=f"reminder_inline_cancel_{row_id}", use_container_width=True):
+        st.session_state.pop("reminder_inline_edit_id", None)
+        st.rerun()
+    st.markdown("<hr style='border-color:#2a2205;margin:8px 0;'>", unsafe_allow_html=True)
 
 
 @st.dialog("✏️ Editar Reminders", width="large")
