@@ -797,27 +797,27 @@ def show_header() -> None:
                         "📅 Arrivals By Date",
                         key="btn_header_arrivals",
                         use_container_width=True,
-                        help="Ver todas las fechas de check-in y filtrar la tabla",
                     ):
-                        arrivals_dates_dialog()
+                        st.session_state["open_arrivals"] = True
+                        st.rerun()
             with btn_col2:
                 with st.container(key="header_reminders_btn"):
                     if st.button(
                         "🔔 Reminders",
                         key="btn_header_reminders",
                         use_container_width=True,
-                        help="Ver y editar los avisos/reminders activos",
                     ):
-                        reminders_dialog()
+                        st.session_state["open_reminders"] = True
+                        st.rerun()
             with btn_col3:
                 with st.container(key="header_qrcode_btn"):
                     if st.button(
                         "🔗 QR Code",
                         key="btn_header_qrcode",
                         use_container_width=True,
-                        help="Ver el QR Code para huespedes",
                     ):
-                        qrcode_dialog()
+                        st.session_state["open_qrcode"] = True
+                        st.rerun()
     with header_right:
         components.html(
             """
@@ -2077,6 +2077,7 @@ def reminders_dialog() -> None:
                         use_container_width=True,
                     ):
                         st.session_state["reminder_inline_edit_id"] = row_id
+                        st.session_state["open_reminders"] = True
                         st.rerun()
                 c2.markdown(f"<div class='date-cell'>{active_date}</div>", unsafe_allow_html=True)
                 c3.markdown(f"<div class='date-cell'>{due_date}</div>", unsafe_allow_html=True)
@@ -2115,13 +2116,16 @@ def _reminder_inline_edit_row(row: dict) -> None:
         else:
             eliminar_reminder(row_id)
         st.session_state.pop("reminder_inline_edit_id", None)
+        st.session_state["open_reminders"] = True
         st.rerun()
     if s2.button("🗑️ Borrar", key=f"reminder_inline_delete_{row_id}", use_container_width=True):
         eliminar_reminder(row_id)
         st.session_state.pop("reminder_inline_edit_id", None)
+        st.session_state["open_reminders"] = True
         st.rerun()
     if s3.button("Cancelar", key=f"reminder_inline_cancel_{row_id}", use_container_width=True):
         st.session_state.pop("reminder_inline_edit_id", None)
+        st.session_state["open_reminders"] = True
         st.rerun()
     st.markdown("<hr style='border-color:#2a2205;margin:8px 0;'>", unsafe_allow_html=True)
 
@@ -2917,15 +2921,18 @@ def render_dashboard(df: pd.DataFrame) -> None:
             with act1:
                 with st.container(key="btn_sel_editar"):
                     if st.button("EDITAR", use_container_width=True, key="do_sel_editar"):
-                        edit_reservation_dialog()
+                        st.session_state["open_editar"] = True
+                        st.rerun()
             with act2:
                 with st.container(key="btn_sel_carta"):
                     if st.button("CARTA", use_container_width=True, key="do_sel_carta"):
-                        letter_dialog()
+                        st.session_state["open_carta"] = True
+                        st.rerun()
             with act3:
                 with st.container(key="btn_sel_borrar"):
                     if st.button("BORRAR", use_container_width=True, key="do_sel_borrar"):
-                        delete_reservation_dialog()
+                        st.session_state["open_borrar"] = True
+                        st.rerun()
             with act4:
                 with st.container(key="btn_sel_deselect"):
                     if st.button("DESELECCIONAR", use_container_width=True, key="do_sel_deselect"):
@@ -2986,6 +2993,13 @@ if st.session_state.pop("open_calendar", False):
 # Auto-abrir el logo Fred Wayne desde el menu de Herramientas
 if st.session_state.pop("open_logo", False):
     logo_dialog()
+
+# Auto-abrir los popups del header (arrivals / QR code)
+if st.session_state.pop("open_arrivals", False):
+    arrivals_dates_dialog()
+
+if st.session_state.pop("open_qrcode", False):
+    qrcode_dialog()
 
 # Auto-abrir los popups de reservas (nueva / editar / carta / borrar)
 if st.session_state.pop("open_nueva", False):
