@@ -544,6 +544,62 @@ def eliminar_reminder(reminder_id: object) -> None:
 
 
 # -----------------------------------------------------------------------------
+# Directorio Telefónico (tabla `directorio_personal`)  -  Supabase CRUD
+# -----------------------------------------------------------------------------
+
+DIRECTORIO_TABLE = "directorio_personal"
+DIRECTORIO_COLUMNS = [
+    "colaborador", "departamento", "nombre_puesto",
+    "correo_electronico", "extension", "telefono_contacto",
+]
+# Encabezados tal cual vienen en "Directorio Telefonico.xlsx", para poder
+# importar el Excel original directamente sin tener que renombrar columnas.
+DIRECTORIO_EXCEL_HEADERS = {
+    "Colaborador": "colaborador",
+    "Departamento": "departamento",
+    "Nombre / Puesto": "nombre_puesto",
+    "Correo Electrónico": "correo_electronico",
+    "Extensión": "extension",
+    "Teléfono de Contacto": "telefono_contacto",
+}
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def cargar_directorio() -> pd.DataFrame:
+    response = supabase.table(DIRECTORIO_TABLE).select("*").execute()
+    df = pd.DataFrame(response.data)
+    if df.empty:
+        return pd.DataFrame(columns=["id"] + DIRECTORIO_COLUMNS)
+    for column in DIRECTORIO_COLUMNS:
+        if column not in df.columns:
+            df[column] = ""
+    return df.sort_values(
+        by=["departamento", "colaborador"], na_position="last", key=lambda s: s.fillna("").astype(str).str.lower()
+    ).reset_index(drop=True)
+
+
+def insertar_colaborador(data: dict) -> None:
+    supabase.table(DIRECTORIO_TABLE).insert(data).execute()
+    st.cache_data.clear()
+
+
+def actualizar_colaborador(colaborador_id: object, data: dict) -> None:
+    supabase.table(DIRECTORIO_TABLE).update(data).eq("id", colaborador_id).execute()
+    st.cache_data.clear()
+
+
+def eliminar_colaborador(colaborador_id: object) -> None:
+    supabase.table(DIRECTORIO_TABLE).delete().eq("id", colaborador_id).execute()
+    st.cache_data.clear()
+
+
+def insertar_colaboradores_lote(records: list[dict]) -> None:
+    if records:
+        supabase.table(DIRECTORIO_TABLE).insert(records).execute()
+        st.cache_data.clear()
+
+
+# -----------------------------------------------------------------------------
 # Bonus / Aguinaldo  -  Supabase CRUD
 # -----------------------------------------------------------------------------
 
@@ -969,7 +1025,7 @@ def render_menu() -> None:
 
         # ── Herramientas ──
         st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #a78bfa;padding-left:8px;'>Herramientas</div>", unsafe_allow_html=True)
-        h1, h2, h3 = st.columns(3)
+        h1, h2, h3, h4 = st.columns(4)
         if h1.button("🧮 CALCULADORA", use_container_width=True):
             st.query_params["action"] = "calculadora"
             st.rerun()
@@ -978,6 +1034,10 @@ def render_menu() -> None:
             st.rerun()
         if h3.button("🏷️ FRED WAYNE", use_container_width=True):
             st.session_state["open_logo"] = True
+            st.rerun()
+        if h4.button("📇 DIRECTORIO", use_container_width=True):
+            st.session_state["open_directorio"] = True
+            st.query_params["skip_splash"] = "1"
             st.rerun()
 
         st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
@@ -2212,6 +2272,264 @@ def reminder_edit_dialog() -> None:
         st.rerun()
 
 
+# -----------------------------------------------------------------------------
+# Directorio Telefónico — popups
+# -----------------------------------------------------------------------------
+
+def _directorio_inline_edit_row(row: dict) -> None:
+    """Renderiza `row` en modo edición inline dentro de directorio_dialog()."""
+    row_id = row.get("id")
+    c1, c2 = st.columns(2)
+    colaborador = c1.text_input(
+        "Colaborador", value=str(row.get("colaborador", "") or ""),
+        key=f"dir_inline_colaborador_{row_id}",
+    )
+    departamento = c2.text_input(
+        "Departamento *", value=str(row.get("departamento", "") or ""),
+        key=f"dir_inline_departamento_{row_id}",
+    )
+    nombre_puesto = st.text_input(
+        "Nombre / Puesto *", value=str(row.get("nombre_puesto", "") or ""),
+        key=f"dir_inline_puesto_{row_id}",
+    )
+    c3, c4, c5 = st.columns(3)
+    correo = c3.text_input(
+        "Correo Electrónico", value=str(row.get("correo_electronico", "") or ""),
+        key=f"dir_inline_correo_{row_id}",
+    )
+    extension = c4.text_input(
+        "Extensión", value=str(row.get("extension", "") or ""),
+        key=f"dir_inline_ext_{row_id}",
+    )
+    telefono = c5.text_input(
+        "Teléfono de Contacto", value=str(row.get("telefono_contacto", "") or ""),
+        key=f"dir_inline_tel_{row_id}",
+    )
+    s1, s2, s3 = st.columns(3)
+    if s1.button("💾 Guardar", key=f"dir_inline_save_{row_id}", use_container_width=True):
+        if not departamento.strip() or not nombre_puesto.strip():
+            st.error("Departamento y Nombre / Puesto son obligatorios.")
+        else:
+            actualizar_colaborador(row_id, {
+                "colaborador": colaborador.strip(),
+                "departamento": departamento.strip(),
+                "nombre_puesto": nombre_puesto.strip(),
+                "correo_electronico": correo.strip(),
+                "extension": extension.strip(),
+                "telefono_contacto": telefono.strip(),
+            })
+            st.session_state.pop("directorio_inline_edit_id", None)
+            st.session_state["open_directorio"] = True
+            st.rerun()
+    if s2.button("🗑️ Borrar", key=f"dir_inline_delete_{row_id}", use_container_width=True):
+        eliminar_colaborador(row_id)
+        st.session_state.pop("directorio_inline_edit_id", None)
+        st.session_state["open_directorio"] = True
+        st.rerun()
+    if s3.button("Cancelar", key=f"dir_inline_cancel_{row_id}", use_container_width=True):
+        st.session_state.pop("directorio_inline_edit_id", None)
+        st.session_state["open_directorio"] = True
+        st.rerun()
+    st.markdown("<hr style='border-color:#1a1a1a;margin:8px 0;'>", unsafe_allow_html=True)
+
+
+@st.dialog("📇 Directorio Telefónico", width="large")
+def directorio_dialog() -> None:
+    """Popup con el directorio de personal: ver, buscar, editar y agregar."""
+    df = cargar_directorio()
+    editing_id = st.session_state.get("directorio_inline_edit_id")
+
+    st.markdown(
+        "<div style='color:#8ca4ba;font-size:11px;font-weight:700;letter-spacing:1px;"
+        "text-transform:uppercase;text-align:center;margin-bottom:10px;'>"
+        "Directorio telefónico y de contactos del personal · clic en un nombre para editarlo</div>",
+        unsafe_allow_html=True,
+    )
+
+    top1, top2, top3 = st.columns([2.4, 1, 1])
+    search = top1.text_input(
+        "Buscar", key="directorio_search", label_visibility="collapsed",
+        placeholder="🔍 Buscar por nombre, departamento, puesto, correo, extensión o teléfono...",
+    )
+    if top2.button("➕ NUEVO", use_container_width=True, key="open_directorio_new_btn"):
+        st.session_state["open_directorio_new"] = True
+        st.rerun()
+    if top3.button("⬆ IMPORTAR", use_container_width=True, key="open_directorio_import_btn"):
+        st.session_state["open_directorio_import"] = True
+        st.rerun()
+
+    view = df
+    if search and search.strip():
+        text = search.strip().lower()
+        view = df[df.astype(str).apply(
+            lambda row: row.str.lower().str.contains(text, na=False).any(), axis=1
+        )]
+
+    st.markdown(f"<div style='color:#4a5a6a;font-size:10px;margin:4px 0 8px;'>{len(view)} de {len(df)} registros</div>", unsafe_allow_html=True)
+
+    if df.empty:
+        st.info("No hay colaboradores registrados todavía. Usa ➕ NUEVO o ⬆ IMPORTAR para cargar el directorio.")
+    elif view.empty:
+        st.warning("Ningún colaborador coincide con la búsqueda.")
+    else:
+        st.markdown(
+            """
+            <style>
+            .directorio-row {
+                display:grid;
+                grid-template-columns: 1.6fr 1.4fr 1.8fr 1.8fr .7fr 1.1fr;
+                gap:8px;
+                padding:7px 10px;
+                border-bottom:1px solid #141414;
+                align-items:center;
+            }
+            .directorio-row.head {
+                color:#00e5ff; font-size:9px; font-weight:800; letter-spacing:1px;
+                text-transform:uppercase; border-bottom:1px solid #1a1a1a;
+            }
+            .directorio-row .cell { color:#dfeff8; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            .directorio-row .dept { color:#8ca4ba; font-size:11px; }
+            [class*="st-key-dir_name_btn_"] button {
+                background:transparent !important; border:none !important; color:#00e5ff !important;
+                font-weight:700 !important; font-size:12px !important; text-align:left !important;
+                justify-content:flex-start !important; padding:0 !important; width:100% !important;
+            }
+            [class*="st-key-dir_name_btn_"] button:hover { color:#7cf3ff !important; text-decoration:underline !important; }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            "<div class='directorio-row head'><div>COLABORADOR</div><div>DEPARTAMENTO</div>"
+            "<div>PUESTO</div><div>CORREO</div><div>EXT.</div><div>TELÉFONO</div></div>",
+            unsafe_allow_html=True,
+        )
+        with st.container(height=430, key="directorio_list"):
+            for _, row in view.iterrows():
+                row_id = row.get("id")
+                if editing_id is not None and row_id == editing_id:
+                    _directorio_inline_edit_row(row)
+                    continue
+                c1, c2, c3, c4, c5, c6 = st.columns([1.6, 1.4, 1.8, 1.8, .7, 1.1])
+                with c1:
+                    if st.button(
+                        str(row.get("colaborador", "") or "—"),
+                        key=f"dir_name_btn_{row_id}", use_container_width=True,
+                    ):
+                        st.session_state["directorio_inline_edit_id"] = row_id
+                        st.session_state["open_directorio"] = True
+                        st.rerun()
+                c2.markdown(f"<div class='cell dept'>{safe_text(row.get('departamento', ''))}</div>", unsafe_allow_html=True)
+                c3.markdown(f"<div class='cell'>{safe_text(row.get('nombre_puesto', ''))}</div>", unsafe_allow_html=True)
+                c4.markdown(f"<div class='cell'>{safe_text(row.get('correo_electronico', ''))}</div>", unsafe_allow_html=True)
+                c5.markdown(f"<div class='cell'>{safe_text(row.get('extension', ''))}</div>", unsafe_allow_html=True)
+                c6.markdown(f"<div class='cell'>{safe_text(row.get('telefono_contacto', ''))}</div>", unsafe_allow_html=True)
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    if st.button("Cerrar", use_container_width=True, key="close_directorio_dialog"):
+        st.session_state.pop("directorio_inline_edit_id", None)
+        st.rerun()
+
+
+@st.dialog("➕ Nuevo Colaborador", width="large")
+def directorio_new_dialog() -> None:
+    """Popup para agregar un colaborador nuevo al directorio."""
+    with st.form("directorio_new_form"):
+        c1, c2 = st.columns(2)
+        colaborador = c1.text_input("Colaborador", placeholder="Nombre del colaborador")
+        departamento = c2.text_input("Departamento *", placeholder="Ej: Human Resources")
+        nombre_puesto = st.text_input("Nombre / Puesto *", placeholder="Ej: HR Coordinator")
+        c3, c4, c5 = st.columns(3)
+        correo = c3.text_input("Correo Electrónico", placeholder="nombre.apellido@waldorfastoria.com")
+        extension = c4.text_input("Extensión", placeholder="7210")
+        telefono = c5.text_input("Teléfono de Contacto", placeholder="506 8888-8888")
+        submitted = st.form_submit_button("💾 GUARDAR", use_container_width=True, type="primary")
+
+    if submitted:
+        if not departamento.strip() or not nombre_puesto.strip():
+            st.error("Departamento y Nombre / Puesto son obligatorios.")
+        else:
+            insertar_colaborador({
+                "colaborador": colaborador.strip(),
+                "departamento": departamento.strip(),
+                "nombre_puesto": nombre_puesto.strip(),
+                "correo_electronico": correo.strip(),
+                "extension": extension.strip(),
+                "telefono_contacto": telefono.strip(),
+            })
+            st.success("Colaborador agregado correctamente.")
+            st.session_state["open_directorio"] = True
+            st.rerun()
+
+    if st.button("Cerrar sin guardar", use_container_width=True, key="close_directorio_new_dialog"):
+        st.session_state["open_directorio"] = True
+        st.rerun()
+
+
+@st.dialog("⬆ Importar Directorio desde Excel", width="large")
+def directorio_import_dialog() -> None:
+    """Popup para cargar el archivo `Directorio Telefonico.xlsx` (u otro con las
+    mismas columnas) directamente a Supabase. Cada importación AGREGA filas
+    nuevas; no reemplaza ni actualiza registros existentes."""
+    st.markdown(
+        "<div style='color:#8ca4ba;font-size:11px;margin-bottom:8px;'>"
+        "Sube un archivo .xlsx con las columnas: Colaborador, Departamento, "
+        "Nombre / Puesto, Correo Electrónico, Extensión, Teléfono de Contacto "
+        "(o sus equivalentes en snake_case). Cada fila se agrega como un registro nuevo.</div>",
+        unsafe_allow_html=True,
+    )
+    uploaded = st.file_uploader("Archivo Excel", type=["xlsx", "xls"], key="directorio_import_file")
+
+    if uploaded is not None:
+        try:
+            raw = pd.read_excel(uploaded)
+        except Exception as exc:
+            st.error(f"No se pudo leer el archivo: {exc}")
+            return
+
+        # Normaliza encabezados: acepta tanto los del Excel original
+        # ("Colaborador", "Nombre / Puesto", ...) como snake_case.
+        rename_map = {}
+        for col in raw.columns:
+            key = str(col).strip()
+            if key in DIRECTORIO_EXCEL_HEADERS:
+                rename_map[col] = DIRECTORIO_EXCEL_HEADERS[key]
+            else:
+                normalized = key.strip().lower().replace(" ", "_")
+                if normalized in DIRECTORIO_COLUMNS:
+                    rename_map[col] = normalized
+        raw = raw.rename(columns=rename_map)
+
+        missing = [c for c in ("departamento", "nombre_puesto") if c not in raw.columns]
+        if missing:
+            st.error(f"Al archivo le faltan columnas obligatorias: {', '.join(missing)}.")
+            return
+
+        for column in DIRECTORIO_COLUMNS:
+            if column not in raw.columns:
+                raw[column] = ""
+
+        preview = raw[DIRECTORIO_COLUMNS].copy()
+        preview = preview.dropna(subset=["departamento", "nombre_puesto"], how="all")
+        for column in DIRECTORIO_COLUMNS:
+            preview[column] = preview[column].apply(lambda v: "" if pd.isna(v) else str(v).strip())
+        preview = preview[(preview["departamento"] != "") | (preview["nombre_puesto"] != "")]
+
+        st.markdown(f"<div style='color:#00e5ff;font-size:11px;margin:6px 0;'>{len(preview)} filas listas para importar:</div>", unsafe_allow_html=True)
+        st.dataframe(preview, use_container_width=True, height=280)
+
+        if st.button(f"⬆ IMPORTAR {len(preview)} REGISTROS", use_container_width=True, type="primary", key="confirm_directorio_import"):
+            records = preview.to_dict("records")
+            insertar_colaboradores_lote(records)
+            st.success(f"{len(records)} colaboradores importados correctamente.")
+            st.session_state["open_directorio"] = True
+            st.rerun()
+
+    if st.button("Cerrar", use_container_width=True, key="close_directorio_import_dialog"):
+        st.session_state["open_directorio"] = True
+        st.rerun()
+
+
 def render_calculator() -> None:
     """Vista legacy de calculadora (redirige al dialog)."""
     st.subheader("Calculadora")
@@ -3069,6 +3387,16 @@ if st.session_state.pop("open_reminders", False):
 
 if st.session_state.pop("open_reminders_edit", False):
     reminder_edit_dialog()
+
+# Auto-abrir los popups del directorio telefónico
+if st.session_state.pop("open_directorio", False):
+    directorio_dialog()
+
+if st.session_state.pop("open_directorio_new", False):
+    directorio_new_dialog()
+
+if st.session_state.pop("open_directorio_import", False):
+    directorio_import_dialog()
 
 
 def _redirect_to_dialog(flag: str) -> None:
