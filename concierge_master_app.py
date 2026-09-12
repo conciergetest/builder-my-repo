@@ -400,9 +400,31 @@ def get_selected_reservation(df: pd.DataFrame) -> dict | None:
     return None
 
 
+def bump_grid_version() -> None:
+    """Fuerza que AgGrid se vuelva a montar desde cero en el próximo render.
+
+    CORRECCIÓN (tabla en blanco tras Guardar Cambios): streamlit-aggrid es un
+    componente basado en iframe. Cuando reutilizamos el mismo `key` en cada
+    `st.rerun()`, el componente NO se destruye/recrea: solo recibe props
+    nuevas dentro del mismo iframe/instancia de AG Grid. Justo después de
+    editar/borrar/crear una reserva, la fila que estaba seleccionada ya no
+    calza con los datos nuevos (no usamos `getRowId`), y el grid queda en un
+    estado interno inconsistente que se renderiza en blanco. Solo una
+    recarga real de página (como el link "APLICAR FECHA", que navega con
+    <a href>) fuerza un iframe nuevo y "arregla" la tabla — por eso el
+    workaround manual funcionaba.
+
+    La solución real: cambiar el `key` del AgGrid cada vez que los datos
+    cambian, para que Streamlit destruya el iframe viejo y monte uno nuevo,
+    sin depender de una recarga de página manual.
+    """
+    st.session_state["grid_version"] = st.session_state.get("grid_version", 0) + 1
+
+
 def clear_page() -> None:
     clear_selection()
     st.session_state.bulk_selected_ids = []
+    bump_grid_version()
     # Preservar filtros; solo eliminamos parámetros de navegación
     for key in list(st.query_params.keys()):
         if key in ("action", "sel_id"):
@@ -450,28 +472,33 @@ def cargar_reservaciones() -> pd.DataFrame:
 def insertar_reserva(data: dict) -> None:
     supabase.table(TABLE_NAME).insert(data).execute()
     st.cache_data.clear()
+    bump_grid_version()
 
 
 def actualizar_reserva(reservation_id: object, data: dict) -> None:
     supabase.table(TABLE_NAME).update(data).eq("id", reservation_id).execute()
     st.cache_data.clear()
+    bump_grid_version()
 
 
 def eliminar_reserva(reservation_id: object) -> None:
     supabase.table(TABLE_NAME).delete().eq("id", reservation_id).execute()
     st.cache_data.clear()
+    bump_grid_version()
 
 
 def eliminar_reservas(reservation_ids: list) -> None:
     if reservation_ids:
         supabase.table(TABLE_NAME).delete().in_("id", reservation_ids).execute()
         st.cache_data.clear()
+        bump_grid_version()
 
 
 def insertar_lote(records: list[dict]) -> None:
     if records:
         supabase.table(TABLE_NAME).insert(records).execute()
         st.cache_data.clear()
+        bump_grid_version()
 
 
 # -----------------------------------------------------------------------------
@@ -2726,6 +2753,15 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
             config["filter"] = True
         builder.configure_column(field, **config)
 
+    # CORRECCIÓN (tabla en blanco tras Guardar Cambios / Borrar): el `key` de
+    # AgGrid incluye ahora `grid_version`, que se incrementa en cada escritura
+    # a Supabase (ver `bump_grid_version`). Esto obliga a Streamlit a destruir
+    # y volver a montar el iframe del grid en el siguiente rerun, en vez de
+    # reutilizar la instancia vieja (que quedaba en blanco porque su fila
+    # seleccionada ya no calzaba con los datos actualizados). Antes solo una
+    # recarga real de página (el link "APLICAR FECHA") lograba este mismo
+    # efecto; ahora ocurre automáticamente tras cada Guardar/Borrar.
+    grid_key = f"concierge_reservations_grid_{st.session_state.get('grid_version', 0)}"
     response = AgGrid(
         visible,
         gridOptions=builder.build(),
@@ -2735,7 +2771,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         fit_columns_on_grid_load=False,
         allow_unsafe_jscode=True,
         update_mode=GridUpdateMode.SELECTION_CHANGED,
-        key="concierge_reservations_grid",
+        key=grid_key,
     )
 
     selected = response.get("selected_rows", [])
