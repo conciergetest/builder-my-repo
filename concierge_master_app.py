@@ -2339,6 +2339,21 @@ def directorio_dialog() -> None:
     df = cargar_directorio()
     editing_id = st.session_state.get("directorio_inline_edit_id")
 
+    # Ensanchar SOLO este popup (Streamlit tope en width="large" ~800px).
+    # Como los dialogs son exclusivos (solo uno montado a la vez), este CSS
+    # aplica únicamente mientras el Directorio está abierto.
+    st.markdown(
+        """
+        <style>
+        div[role="dialog"] {
+            width: 96vw !important;
+            max-width: 1400px !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     st.markdown(
         "<div style='color:#8ca4ba;font-size:11px;font-weight:700;letter-spacing:1px;"
         "text-transform:uppercase;text-align:center;margin-bottom:10px;'>"
