@@ -3186,6 +3186,11 @@ _VIP_KEYWORDS: list[tuple[int, str, tuple[str, ...]]] = [
     (4, "Solicitud de agencia de viajes", ("TRAVEL AGENT", "AGENCIA DE VIAJES", "TRAVEL AGENCY")),
     (5, "Gold client", ("GOLD",)),
     (5, "Forbes / Auditor / Amex", ("FORBES", "AUDITOR", "AMERICAN EXPRESS", "AMEX")),
+    # Marca manual genérica: si alguien escribió "VIP" a mano en INFORMATION
+    # sin que calce con ninguno de los criterios formales de arriba, igual
+    # se debe listar como candidato (nivel 5 = el más bajo, ya que no hay
+    # forma de saber a cuál nivel formal correspondía cuando se escribió a mano).
+    (5, "Mención manual \"VIP\" en Information", ("VIP",)),
 ]
 
 # Rangos de tarifa (USD por noche) por nivel: (mínimo inclusive, máximo inclusive o None = sin tope).
