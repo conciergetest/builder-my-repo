@@ -3127,6 +3127,209 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
                 st.rerun()
 
 
+# -----------------------------------------------------------------------------
+# Detección de posibles VIP (criterios de tarifa + palabras clave en INFO)
+# -----------------------------------------------------------------------------
+
+def _extraer_numeros_rate(rate_value: object) -> list[float]:
+    """Extrae todos los números presentes en el campo `rate` (texto libre).
+
+    Soporta formatos como "$250", "1,800", "1000-1700", "USD 900 por noche".
+    """
+    text = "" if rate_value is None or pd.isna(rate_value) else str(rate_value)
+    raw_numbers = re.findall(r"[\d,]+(?:\.\d+)?", text)
+    numbers = []
+    for raw in raw_numbers:
+        cleaned = raw.replace(",", "")
+        try:
+            numbers.append(float(cleaned))
+        except ValueError:
+            continue
+    return numbers
+
+
+def _rate_representativo(rate_value: object) -> float | None:
+    """Devuelve un único valor numérico representativo de `rate` para comparar
+    contra los rangos de tarifa de cada nivel VIP.
+
+    Si el campo trae un rango ("1000-1700"), se usa el promedio; si trae un
+    solo número, se usa tal cual.
+    """
+    numbers = _extraer_numeros_rate(rate_value)
+    if not numbers:
+        return None
+    if len(numbers) == 1:
+        return numbers[0]
+    return sum(numbers[:2]) / 2
+
+
+# (nivel, etiqueta, color) — nivel 1 es el más alto/exclusivo.
+VIP_LEVELS = {
+    1: ("VIP 1", "#FFFFFF"),
+    2: ("VIP 2", "#00E5FF"),
+    3: ("VIP 3", "#4ADE80"),
+    4: ("VIP 4", "#FACC15"),
+    5: ("VIP 5", "#F472B6"),
+}
+
+# Palabras/frases clave por nivel. Se revisan en orden de especificidad para
+# que "DIAMOND RESERVE" y "LIFETIME DIAMOND" no caigan también en el genérico
+# "DIAMOND" del nivel 4.
+_VIP_KEYWORDS: list[tuple[int, str, tuple[str, ...]]] = [
+    (1, "Owner", ("OWNER",)),
+    (2, "Diamond Reserve", ("DIAMOND RESERVE",)),
+    (3, "Lifetime Diamond", ("LIFETIME DIAMOND",)),
+    (3, "Amigo de dueño", ("OWNER'S FRIEND", "OWNERS FRIEND", "FRIEND OF OWNER", "AMIGO DEL DUEÑO", "AMIGO DE DUENO")),
+    (3, "Welcome back", ("WELCOME BACK",)),
+    (3, "Influencer / celebridad", ("INFLUENCER", "CELEBRITY", "SOCIAL MEDIA")),
+    (4, "Diamond", ("DIAMOND",)),
+    (4, "Solicitud de agencia de viajes", ("TRAVEL AGENT", "AGENCIA DE VIAJES", "TRAVEL AGENCY")),
+    (5, "Gold client", ("GOLD",)),
+    (5, "Forbes / Auditor / Amex", ("FORBES", "AUDITOR", "AMERICAN EXPRESS", "AMEX")),
+]
+
+# Rangos de tarifa (USD por noche) por nivel: (mínimo inclusive, máximo inclusive o None = sin tope).
+_VIP_RATE_RANGES: list[tuple[int, float, float | None]] = [
+    (1, 3000.0, None),
+    (2, 1800.0, 3000.0),
+    (3, 1000.0, 1700.0),
+    (4, 700.0, 900.0),
+]
+
+
+def evaluar_vip(info_value: object, rate_value: object) -> tuple[int | None, list[str]]:
+    """Determina el nivel VIP (1 = más alto) que le corresponde a una reserva
+    según las palabras clave del campo INFORMATION y el valor de RATE.
+
+    Devuelve (nivel_mas_alto_o_None, lista_de_razones_detectadas).
+    """
+    text = "" if info_value is None or pd.isna(info_value) else str(info_value).upper()
+    reasons: list[str] = []
+    best_level: int | None = None
+
+    for level, label, keywords in _VIP_KEYWORDS:
+        if any(keyword in text for keyword in keywords):
+            reasons.append(f"{label} (Nivel {level})")
+            if best_level is None or level < best_level:
+                best_level = level
+
+    rate_number = _rate_representativo(rate_value)
+    if rate_number is not None:
+        for level, low, high in _VIP_RATE_RANGES:
+            if rate_number >= low and (high is None or rate_number <= high):
+                reasons.append(f"Tarifa ${rate_number:,.0f}/noche (Nivel {level})")
+                if best_level is None or level < best_level:
+                    best_level = level
+                break
+
+    return best_level, reasons
+
+
+def calcular_posibles_vip(df: pd.DataFrame) -> pd.DataFrame:
+    """Devuelve las filas de `df` que califican como posible VIP, con su
+    nivel y las razones detectadas, ordenadas del nivel más alto al más bajo."""
+    if df.empty:
+        return df.assign(vip_nivel=pd.Series(dtype="Int64"), vip_razones=pd.Series(dtype=str))
+
+    niveles, razones = [], []
+    for _, row in df.iterrows():
+        nivel, motivos = evaluar_vip(row.get("info"), row.get("rate"))
+        niveles.append(nivel)
+        razones.append(" · ".join(motivos))
+
+    result = df.assign(vip_nivel=niveles, vip_razones=razones)
+    result = result[result["vip_nivel"].notna()]
+    return result.sort_values(by=["vip_nivel", "name"], na_position="last")
+
+
+@st.dialog("🌟 Posibles VIP", width="large")
+def vip_candidates_dialog() -> None:
+    """Popup: analiza las reservas actualmente filtradas y sugiere cuáles
+    califican como VIP según tarifa y palabras clave en INFORMATION."""
+    df = cargar_reservaciones()
+    filtered, filters = apply_filters(df)
+
+    if filters:
+        captions = []
+        if "checkout" in filters:
+            captions.append("Check-out: " + safe_text(filters["checkout"]))
+        if "arrival" in filters:
+            captions.append("Check-in: " + safe_text(filters["arrival"]))
+        if "search" in filters:
+            captions.append("Búsqueda: " + safe_text(filters["search"]))
+        st.markdown(
+            "<div style='color:#8ca4ba;font-size:11px;margin-bottom:8px;'>Analizando reservas filtradas — "
+            + " | ".join(captions) + "</div>",
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            "<div style='color:#8ca4ba;font-size:11px;margin-bottom:8px;'>Analizando TODAS las reservas "
+            "(no hay filtro de fecha/checkout/búsqueda activo).</div>",
+            unsafe_allow_html=True,
+        )
+
+    candidatos = calcular_posibles_vip(filtered)
+
+    st.markdown(
+        "<div style='color:#8ca4ba;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;"
+        "margin-bottom:6px;'>Criterios: Owners / Diamond Reserve / Lifetime Diamond / Amigos de dueño / "
+        "Welcome back / Influencers / Gold / Forbes-Auditor-Amex, y tarifa por noche "
+        "(&gt;$3000 → VIP1 · $1800–3000 → VIP2 · $1000–1700 → VIP3 · $700–900 → VIP4)</div>",
+        unsafe_allow_html=True,
+    )
+
+    if candidatos.empty:
+        st.info("Ninguna reserva del filtro actual cumple los criterios de VIP.")
+    else:
+        st.markdown(
+            f"<div style='color:#00e5ff;font-size:12px;font-weight:800;margin:6px 0 10px;'>"
+            f"{len(candidatos)} posible(s) VIP detectado(s)</div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            """
+            <style>
+            .vip-cand-row {
+                display:grid; grid-template-columns: .8fr 1.6fr .9fr 1fr 1fr 2.6fr;
+                gap:10px; padding:8px 10px; border-bottom:1px solid #141414; align-items:center;
+            }
+            .vip-cand-row.head {
+                color:#00e5ff; font-size:9px; font-weight:800; letter-spacing:1px;
+                text-transform:uppercase; border-bottom:1px solid #1a1a1a;
+            }
+            .vip-cand-row .cell { color:#dfeff8; font-size:12px; overflow:hidden; text-overflow:ellipsis; }
+            .vip-cand-row .reasons { color:#8ca4ba; font-size:10.5px; white-space:normal; }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            "<div class='vip-cand-row head'><div>NIVEL</div><div>NOMBRE</div><div>ROOM</div>"
+            "<div>CHECK-IN</div><div>RATE</div><div>RAZONES DETECTADAS</div></div>",
+            unsafe_allow_html=True,
+        )
+        with st.container(height=420):
+            for _, row in candidatos.iterrows():
+                nivel = int(row["vip_nivel"])
+                label, color = VIP_LEVELS.get(nivel, (f"VIP {nivel}", "#00E5FF"))
+                st.markdown(
+                    "<div class='vip-cand-row'>"
+                    f"<div class='cell' style='color:{color};font-weight:800;'>{label}</div>"
+                    f"<div class='cell'>{safe_text(row.get('name', ''))}</div>"
+                    f"<div class='cell'>{safe_text(row.get('room', ''))}</div>"
+                    f"<div class='cell'>{safe_text(row.get('check_in', ''))}</div>"
+                    f"<div class='cell'>{safe_text(row.get('rate', ''))}</div>"
+                    f"<div class='cell reasons'>{safe_text(row.get('vip_razones', ''))}</div>"
+                    "</div>",
+                    unsafe_allow_html=True,
+                )
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    if st.button("Cerrar", use_container_width=True, key="close_vip_candidates_dialog"):
+        st.rerun()
+
+
 def render_dashboard(df: pd.DataFrame) -> None:
     vip_count = int(df["info"].fillna("").astype(str).str.upper().str.contains("VIP", na=False).sum())
     relaxury_count = int(df.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
@@ -3208,6 +3411,32 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with f4:
         render_menu()
+        st.markdown(
+            """
+            <style>
+            .st-key-btn_vip_candidates button {
+                background: linear-gradient(135deg,#7C3AED,#00E5FF) !important;
+                color:#04070d !important;
+                border:1px solid rgba(0,229,255,.5) !important;
+                border-radius:8px !important;
+                font: 800 10.5px/1.1 'Segoe UI', sans-serif !important;
+                letter-spacing:.6px !important;
+                text-transform:uppercase !important;
+                margin-top:6px !important;
+            }
+            .st-key-btn_vip_candidates button:hover {
+                filter:brightness(1.15) !important;
+                transform:translateY(-1px) !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        with st.container(key="btn_vip_candidates"):
+            if st.button("🌟 POSIBLES VIP", use_container_width=True, key="do_open_vip_candidates"):
+                st.session_state["open_vip_candidates"] = True
+                st.query_params["skip_splash"] = "1"
+                st.rerun()
     st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
@@ -3412,6 +3641,10 @@ if st.session_state.pop("open_directorio_new", False):
 
 if st.session_state.pop("open_directorio_import", False):
     directorio_import_dialog()
+
+# Auto-abrir el popup de posibles VIP (analiza el filtro actual)
+if st.session_state.pop("open_vip_candidates", False):
+    vip_candidates_dialog()
 
 
 def _redirect_to_dialog(flag: str) -> None:
