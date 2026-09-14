@@ -3085,7 +3085,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         # CHECK IN / CHECK OUT ahora se muestran cortos ("Sep 14, 2026"), así
         # que se les reduce el ancho y ese espacio se reparte entre ETA,
         # NAME, RESERVATION, PHONE, RATE y TRANS para que se lean mejor.
-        "eta":      ("ETA",          140),
+        "eta":      ("ETA",          175),
         "name":     ("NAME",         190),
         "qty":      ("QTY",          60),
         "room":     ("ROOM",         70),
@@ -3094,12 +3094,12 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         "nights":   ("🌙",            60),
         "res_number":("RESERVATION", 220),
         "phone":    ("PHONE",        220),
-        "email":    ("EMAIL",        140),
+        "email":    ("EMAIL",        130),
         "info":     ("INFORMATION",  220),
         "ird":      ("IRD",          160),
         "hsk":      ("HSK",          110),
         "rate":     ("RATE",         100),
-        "trans":    ("TRANS",        250),
+        "trans":    ("TRANS",        235),
     }
     for field, (header, width) in fields.items():
         if field not in visible.columns:
@@ -3114,7 +3114,14 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         if field == "qty":
             config["cellRenderer"] = QTY_RENDERER
         if field == "eta":
-            config["cellStyle"] = JsCode("function(params){ return { color: '#D4AF37', fontWeight: '700' }; }")
+            # Ancho ampliado (140 -> 175) porque valores como "11:00 AM" se
+            # veían cortados ("11:00 ..."); además se fuerza overflow visible
+            # y sin recorte por si el ancho de columna se reduce en pantallas
+            # chicas.
+            config["cellStyle"] = JsCode(
+                "function(params){ return { color: '#D4AF37', fontWeight: '700', "
+                "overflow: 'visible', textOverflow: 'unset', whiteSpace: 'nowrap' }; }"
+            )
         # Solo CHECK IN tiene filtro habilitado
         if field == "check_in":
             config["filter"] = True
@@ -3147,10 +3154,16 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
     if selected:
         selected_id = selected[0].get("id")
         # AgGrid recibe una vista sin `id`; la buscamos con una combinación estable de datos.
+        # CORRECCIÓN: la columna check_in que ve AgGrid ahora está en formato
+        # corto ("Sep 14, 2026"), pero `df["check_in"]` sigue en formato largo
+        # ("September 14, 2026") — comparar como texto crudo ya nunca calzaba
+        # y la selección se perdía (no aparecía el banner EDITAR/CARTA/BORRAR).
+        # Se parsea ambos lados a fecha real antes de comparar.
+        selected_checkin = parse_fecha(selected[0].get("check_in", ""))
         candidate = df[
             (df["name"].astype(str) == str(selected[0].get("name", "")))
             & (df["res_number"].astype(str) == str(selected[0].get("res_number", "")))
-            & (df["check_in"].astype(str) == str(selected[0].get("check_in", "")))
+            & (df["check_in"].map(parse_fecha) == selected_checkin)
         ]
         if not candidate.empty:
             row = candidate.iloc[0].to_dict()
