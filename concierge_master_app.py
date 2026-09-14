@@ -318,6 +318,30 @@ def normalizar_fecha(value: object) -> str:
     return "" if value is None or pd.isna(value) else str(value).strip()
 
 
+def formatear_fecha_corta(value: object) -> str:
+    """Formatea una fecha para MOSTRARSE en la tabla como "Sep 14, 2026" en
+    vez de "September 14, 2026".
+
+    IMPORTANTE: esto es solo para presentación en el grid. Los valores que
+    se guardan en Supabase (via `normalizar_fecha`, `check_in.strftime(...)`,
+    etc.) y los que usan los filtros (`apply_filters`, los links de checkout
+    por fecha, `fecha_date` en la URL) siguen usando el formato largo
+    "%B %d, %Y" sin ningún cambio. Esta función solo interviene al construir
+    el DataFrame `visible` que se le pasa a AgGrid.
+    """
+    if value is None or pd.isna(value):
+        return ""
+    text = str(value).strip()
+    if not text:
+        return ""
+    parsed = parse_fecha(text)
+    if not parsed:
+        return text
+    if parsed.year == 1900:
+        parsed = parsed.replace(year=datetime.now().year)
+    return parsed.strftime("%b %d, %Y")
+
+
 def generate_eta_options() -> list[str]:
     """Genera lista de horas cada 30 min en formato 12h AM/PM."""
     options = ["-- Sin hora --"]
@@ -3009,6 +3033,12 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         if col not in ("qty",):
             visible[col] = visible[col].apply(lambda x: "" if pd.isna(x) or str(x).lower() in ("nan", "none", "null") else str(x))
 
+    # Mostrar CHECK IN / CHECK OUT en formato corto ("Sep 14, 2026") solo en
+    # esta tabla. Lo guardado en Supabase y lo usado por los filtros sigue
+    # en formato largo ("September 14, 2026") — ver `formatear_fecha_corta`.
+    if "check_in" in visible.columns:
+        visible["check_in"] = visible["check_in"].apply(formatear_fecha_corta)
+
     # Agregar icono de checkout (🏃) solo para reservas que YA hicieron checkout
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     if "check_out" in visible.columns:
@@ -3019,9 +3049,10 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
             # Quitar todo despues del año (4 digitos) — elimina emojis/iconos guardados
             cleaned = re.sub(r"(\d{4})\s*[^\d]*$", r"\1", val_str).strip()
             dt = parse_fecha(cleaned)
+            corta = formatear_fecha_corta(cleaned)
             if dt and dt.replace(hour=0, minute=0, second=0, microsecond=0) <= today:
-                return cleaned + " 🏃"
-            return cleaned
+                return corta + " 🏃"
+            return corta
         visible["check_out"] = visible["check_out"].apply(_checkout_with_icon)
 
     # Formatear QTY como "2+1" en vez de "2.1"
@@ -3051,21 +3082,24 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
     )
 
     fields = {
-        "eta":      ("ETA",          130),
-        "name":     ("NAME",         170),
+        # CHECK IN / CHECK OUT ahora se muestran cortos ("Sep 14, 2026"), así
+        # que se les reduce el ancho y ese espacio se reparte entre ETA,
+        # NAME, RESERVATION, PHONE, RATE y TRANS para que se lean mejor.
+        "eta":      ("ETA",          140),
+        "name":     ("NAME",         190),
         "qty":      ("QTY",          60),
         "room":     ("ROOM",         70),
-        "check_in": ("CHECK IN",     200),
-        "check_out":("CHECK OUT",    220),
+        "check_in": ("CHECK IN",     130),
+        "check_out":("CHECK OUT",    150),
         "nights":   ("🌙",            60),
-        "res_number":("RESERVATION", 210),
-        "phone":    ("PHONE",        210),
+        "res_number":("RESERVATION", 220),
+        "phone":    ("PHONE",        220),
         "email":    ("EMAIL",        140),
         "info":     ("INFORMATION",  220),
         "ird":      ("IRD",          160),
         "hsk":      ("HSK",          110),
-        "rate":     ("RATE",         80),
-        "trans":    ("TRANS",        230),
+        "rate":     ("RATE",         100),
+        "trans":    ("TRANS",        250),
     }
     for field, (header, width) in fields.items():
         if field not in visible.columns:
