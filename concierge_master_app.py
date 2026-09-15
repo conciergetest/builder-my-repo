@@ -216,6 +216,10 @@ st.markdown(
     .summary-card.gold .summary-value { color:#d4af37; }
     .summary-card.pink .summary-value { color:#f472b6; }
     .summary-card.purple .summary-value { color:#a78bfa; }
+    .summary-grid-3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:8px 0; }
+    .total-badge { display:flex; align-items:center; gap:8px; background:#080808; border:1px solid #1a1a1a; border-radius:8px; padding:8px 14px; margin:4px 0 6px; }
+    .total-badge .summary-label { font-size:10px; }
+    .total-badge .summary-value { margin-top:0; font-size:18px; }
     .category-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
     .category-card { min-height:46px; border-radius:7px; padding:9px 11px 7px; }
     .category-card-head { display:flex; justify-content:space-between; gap:5px; color:var(--category-color); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.4px; }
@@ -228,6 +232,7 @@ st.markdown(
     .category-value { color:#e8f8ff; font-size:11px; font-weight:700; width:22px; }
     @media (max-width: 980px) {
         .summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .summary-grid-3 { grid-template-columns:repeat(2,minmax(0,1fr)); }
         .category-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
     }
     .selection-banner { margin: 8px 0; padding:8px 11px; background:#001111; border:1px solid #00e5ff; color:#edfaff; border-radius:8px; font-size:12px; }
@@ -259,6 +264,91 @@ def safe_text(value: object) -> str:
     if value is None or pd.isna(value):
         return ""
     return html.escape(str(value))
+
+
+# -----------------------------------------------------------------------------
+# Exportar tablas a Excel / PDF (usado por el Directorio Telefónico, etc.)
+# -----------------------------------------------------------------------------
+
+def exportar_excel_bytes(df: pd.DataFrame, headers: dict[str, str] | None = None, sheet_name: str = "Datos") -> bytes:
+    """Genera un .xlsx en memoria a partir de un DataFrame.
+
+    `headers` (opcional) mapea nombre_de_columna -> encabezado bonito para
+    mostrar en el Excel (ej: {"colaborador": "Colaborador"}).
+    """
+    export_df = df.copy()
+    if headers:
+        export_df = export_df.rename(columns=headers)
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        export_df.to_excel(writer, index=False, sheet_name=sheet_name)
+        worksheet = writer.sheets[sheet_name]
+        for idx, column in enumerate(export_df.columns):
+            max_len = max(
+                [len(str(column))] + [len(str(v)) for v in export_df[column].astype(str).tolist()]
+            )
+            worksheet.column_dimensions[chr(65 + idx) if idx < 26 else "A"].width = min(max_len + 3, 45)
+    return buffer.getvalue()
+
+
+def exportar_pdf_bytes(df: pd.DataFrame, headers: dict[str, str] | None = None, title: str = "Reporte") -> bytes:
+    """Genera un PDF en memoria con una tabla simple a partir de un DataFrame."""
+    from fpdf import FPDF
+
+    export_df = df.copy()
+    if headers:
+        export_df = export_df.rename(columns=headers)
+    export_df = export_df.fillna("").astype(str)
+
+    pdf = FPDF(orientation="L", unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=True, margin=10)
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.cell(0, 8, title, ln=1)
+    pdf.set_font("Helvetica", "", 8)
+    pdf.cell(0, 5, f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}  ·  {len(export_df)} registros", ln=1)
+    pdf.ln(2)
+
+    columns = list(export_df.columns)
+    page_width = pdf.w - 20
+    row_height = 6
+
+    def _clip(text: str, width_mm: float, font_size: float) -> str:
+        """Recorta `text` con '...' si no entra en `width_mm` al tamaño de fuente actual."""
+        pdf.set_font("Helvetica", "", font_size)
+        max_w = width_mm - 2
+        if pdf.get_string_width(text) <= max_w:
+            return text
+        clipped = text
+        while clipped and pdf.get_string_width(clipped + "...") > max_w:
+            clipped = clipped[:-1]
+        return (clipped + "...") if clipped else text[:1]
+
+    # Anchos proporcionales al contenido más largo de cada columna (con topes
+    # razonables) en vez de dividir el ancho de página en partes iguales —
+    # así "Nombre / Puesto" (texto largo) no se encima con la columna vecina.
+    raw_widths = []
+    for col in columns:
+        longest = max([len(str(col))] + [len(v) for v in export_df[col].tolist()] or [1])
+        raw_widths.append(min(max(longest, 6), 45))
+    total_raw = sum(raw_widths) or 1
+    col_widths = [w / total_raw * page_width for w in raw_widths]
+
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.set_fill_color(20, 20, 20)
+    pdf.set_text_color(255, 255, 255)
+    for col, width_mm in zip(columns, col_widths):
+        pdf.cell(width_mm, row_height, _clip(str(col), width_mm, 8), border=1, fill=True)
+    pdf.ln(row_height)
+
+    pdf.set_font("Helvetica", "", 7.5)
+    pdf.set_text_color(0, 0, 0)
+    for _, row in export_df.iterrows():
+        for col, width_mm in zip(columns, col_widths):
+            pdf.cell(width_mm, row_height, _clip(str(row[col]), width_mm, 7.5), border=1)
+        pdf.ln(row_height)
+
+    return bytes(pdf.output())
 
 
 def parse_fecha(value: object) -> datetime | None:
@@ -2404,7 +2494,23 @@ def directorio_dialog() -> None:
             lambda row: row.str.lower().str.contains(text, na=False).any(), axis=1
         )]
 
-    st.markdown(f"<div style='color:#4a5a6a;font-size:10px;margin:4px 0 8px;'>{len(view)} de {len(df)} registros</div>", unsafe_allow_html=True)
+    count_col, export_xlsx_col, export_pdf_col = st.columns([2.6, 1, 1])
+    count_col.markdown(f"<div style='color:#4a5a6a;font-size:10px;margin:4px 0 8px;'>{len(view)} de {len(df)} registros</div>", unsafe_allow_html=True)
+    # Exportar EXACTAMENTE lo que se está viendo en la tabla (respeta la
+    # búsqueda activa), con los encabezados "bonitos" en español.
+    export_headers = {v: k for k, v in DIRECTORIO_EXCEL_HEADERS.items()}
+    export_view = view[[c for c in DIRECTORIO_COLUMNS if c in view.columns]] if not view.empty else view
+    export_xlsx_col.download_button(
+        "⬇ EXCEL", data=exportar_excel_bytes(export_view, headers=export_headers, sheet_name="Directorio"),
+        file_name="directorio_telefonico.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True, disabled=view.empty, key="directorio_export_xlsx",
+    )
+    export_pdf_col.download_button(
+        "⬇ PDF", data=exportar_pdf_bytes(export_view, headers=export_headers, title="Directorio Telefónico - Waldorf Astoria"),
+        file_name="directorio_telefonico.pdf", mime="application/pdf",
+        use_container_width=True, disabled=view.empty, key="directorio_export_pdf",
+    )
 
     if df.empty:
         st.info("No hay colaboradores registrados todavía. Usa ➕ NUEVO o ⬆ IMPORTAR para cargar el directorio.")
@@ -3090,7 +3196,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         "qty":      ("QTY",          60),
         "room":     ("ROOM",         70),
         "check_in": ("CHECK IN",     130),
-        "check_out":("CHECK OUT",    150),
+        "check_out":("CHECK OUT",    175),
         "nights":   ("🌙",            60),
         "res_number":("RESERVATION", 220),
         "phone":    ("PHONE",        220),
@@ -3099,7 +3205,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         "ird":      ("IRD",          160),
         "hsk":      ("HSK",          110),
         "rate":     ("RATE",         100),
-        "trans":    ("TRANS",        235),
+        "trans":    ("TRANS",        210),
     }
     for field, (header, width) in fields.items():
         if field not in visible.columns:
@@ -3121,6 +3227,17 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
             config["cellStyle"] = JsCode(
                 "function(params){ return { color: '#D4AF37', fontWeight: '700', "
                 "overflow: 'visible', textOverflow: 'unset', whiteSpace: 'nowrap' }; }"
+            )
+        if field == "check_out":
+            # Mismo problema que ETA: el icono de checkout "🏃" quedaba
+            # recortado por el ancho fijo de la columna en algunas filas (el
+            # texto + icono no calzaba en 150px) y por eso parecía aparecer
+            # "a veces sí, a veces no", cuando en realidad se agregaba siempre
+            # que el checkout ya pasó — solo que el recorte lo escondía.
+            # Ancho ampliado (150 -> 175) y overflow forzado a visible.
+            config["cellStyle"] = JsCode(
+                "function(params){ return { overflow: 'visible', textOverflow: 'unset', "
+                "whiteSpace: 'nowrap' }; }"
             )
         # Solo CHECK IN tiene filtro habilitado
         if field == "check_in":
@@ -3392,9 +3509,11 @@ def render_dashboard(df: pd.DataFrame) -> None:
     total_display = len(filtered_preview) if active_filters else len(df)
     total_label = "RESERVAS FILTRADAS" if active_filters else "TOTAL RESERVAS"
 
+    # NOTA: "TOTAL RESERVAS" / "RESERVAS FILTRADAS" ya no va en esta fila de
+    # arriba — a pedido del usuario se movió justo encima del buscador rápido
+    # (ver más abajo, cerca de `st.text_input("Búsqueda rápida", ...)`).
     st.markdown(
-        f'<div class="summary-grid">'
-        f'<div class="summary-card"><div class="summary-label">{total_label} <span></span></div><div class="summary-value">{total_display}</div></div>'
+        f'<div class="summary-grid-3">'
         f'<div class="summary-card gold"><div class="summary-label">VIP ARRIVALS <span></span></div><div class="summary-value">{vip_count}</div></div>'
         f'<div class="summary-card pink"><div class="summary-label">RELAXURY <span></span></div><div class="summary-value">{relaxury_count}</div></div>'
         f'<div class="summary-card purple"><div class="summary-label">NOCHES RESERVADAS <span></span></div><div class="summary-value">{nights_count}</div></div>'
@@ -3503,6 +3622,14 @@ def render_dashboard(df: pd.DataFrame) -> None:
         }
         </style>
         """,
+        unsafe_allow_html=True,
+    )
+    # "TOTAL RESERVAS" (o "RESERVAS FILTRADAS" si hay filtros activos) se
+    # muestra aquí, justo encima del buscador rápido: primero la etiqueta,
+    # luego el número — a pedido del usuario.
+    st.markdown(
+        f'<div class="total-badge"><div class="summary-label">{total_label}</div>'
+        f'<div class="summary-value">{total_display}</div></div>',
         unsafe_allow_html=True,
     )
     st.text_input(
