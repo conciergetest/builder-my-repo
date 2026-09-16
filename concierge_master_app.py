@@ -18,6 +18,7 @@ import re
 import html
 import os
 from datetime import datetime, timedelta, date
+from datetime import time as time_cls
 from io import BytesIO
 from urllib.parse import urlencode
 
@@ -432,6 +433,42 @@ def formatear_fecha_corta(value: object) -> str:
     return parsed.strftime("%b %d, %Y")
 
 
+def normalizar_eta(value: object) -> str:
+    """Normaliza un valor de ETA a la misma forma que usan las opciones del
+    selector de horas ("9:00 AM", "11:00 AM", sin cero a la izquierda).
+
+    Soporta:
+    - Texto ya en formato "hh:mm AM/PM" CON o SIN cero a la izquierda
+      (ej. "09:00 AM", "9:00 AM", "03:00 PM") — así se puede importar el
+      Excel con el formato "11:00 AM", "09:00 AM", "03:00 PM" tal cual lo
+      pide el usuario.
+    - Texto en formato 24 horas ("09:00", "15:00").
+    - Objetos `datetime.time` / `datetime.datetime` / `pandas.Timestamp`,
+      por si Excel guardó la celda con formato de hora real en vez de texto.
+    - Vacío / "-- Sin hora --" / valores no reconocibles -> se devuelve "".
+    """
+    if value is None or pd.isna(value):
+        return ""
+    if isinstance(value, datetime):
+        return value.strftime("%I:%M %p").lstrip("0")
+    if isinstance(value, time_cls):
+        return value.strftime("%I:%M %p").lstrip("0")
+
+    text = str(value).strip()
+    if not text or text.lower() in ("nan", "none", "null", "-- sin hora --"):
+        return ""
+
+    for pattern in ("%I:%M %p", "%I:%M%p", "%H:%M", "%H:%M:%S"):
+        try:
+            return datetime.strptime(text.upper(), pattern).strftime("%I:%M %p").lstrip("0")
+        except ValueError:
+            continue
+    # No se pudo reconocer el formato: se deja el texto tal cual llegó en
+    # vez de perderlo (mejor que mostrar vacío si el usuario escribió algo
+    # que no calza con los patrones de arriba).
+    return text
+
+
 def generate_eta_options() -> list[str]:
     """Genera lista de horas cada 30 min en formato 12h AM/PM."""
     options = ["-- Sin hora --"]
@@ -443,12 +480,28 @@ def generate_eta_options() -> list[str]:
 
 
 def parse_eta_index(current: str, options: list[str]) -> int:
-    """Devuelve el indice de la opcion que coincida con current, o 0."""
+    """Devuelve el indice de la opcion que coincida con current, o 0.
+
+    Primero intenta un match exacto de texto; si no calza (por ejemplo,
+    datos importados con cero a la izquierda: "09:00 AM" en vez de
+    "9:00 AM"), reintenta comparando la hora real en vez del texto.
+    """
     if not current or current.strip() in ("", "nan", "none"):
         return 0
     current_clean = current.strip().upper()
     for i, opt in enumerate(options):
         if opt.upper() == current_clean:
+            return i
+    try:
+        parsed_time = datetime.strptime(current_clean, "%I:%M %p").time()
+    except ValueError:
+        return 0
+    for i, opt in enumerate(options):
+        try:
+            opt_time = datetime.strptime(opt.upper(), "%I:%M %p").time()
+        except ValueError:
+            continue
+        if opt_time == parsed_time:
             return i
     return 0
 
@@ -1355,10 +1408,16 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
     check_out_default = parse_fecha(reservation.get("check_out")) or datetime.now() + timedelta(days=1)
     qty_default = pd.to_numeric(reservation.get("qty", 0), errors="coerce")
     qty_default = 0.0 if pd.isna(qty_default) else float(qty_default)
+    # ETA ahora se edita con el mismo selector de horas (cada 30 min,
+    # formato 12h AM/PM) que ya usaba "Nueva Reservación", en vez de un
+    # cuadro de texto libre — evita horas mal escritas y hace que calce con
+    # lo que se importa desde el Excel.
+    eta_options = generate_eta_options()
+    eta_index = parse_eta_index(str(reservation.get("eta", "")), eta_options)
 
     with st.form(f"edit_reservation_{context}"):
         first = st.columns(4)
-        eta = first[0].text_input("ETA", value=str(reservation.get("eta", "")))
+        eta = first[0].selectbox("ETA", options=eta_options, index=eta_index)
         name = first[1].text_input("Nombre *", value=str(reservation.get("name", "")))
         qty = first[2].number_input("Huéspedes", min_value=0.0, step=0.1, format="%.1f", value=float(qty_default))
         room = first[3].text_input("Habitación", value=str(reservation.get("room", "")))
@@ -1385,7 +1444,7 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
             st.error("La fecha de check-out no puede ser anterior al check-in.")
             return
         actualizar_reserva(reservation["id"], {
-            "eta": eta.strip(), "name": name.strip(), "qty": float(qty), "room": room.strip(),
+            "eta": eta if eta != "-- Sin hora --" else "", "name": name.strip(), "qty": float(qty), "room": room.strip(),
             "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
             "check_out": check_out.strftime("%B %d, %Y"), "res_number": res_number.strip(),
             "phone": phone.strip(), "info": info.strip(), "ird": ird.strip(), "hsk": hsk.strip(),
@@ -1450,10 +1509,20 @@ def _import_body(context: str = "page") -> None:
     preview = frame[IMPORT_COLUMNS].copy()
     preview["check_in"] = preview["check_in"].map(normalizar_fecha)
     preview["check_out"] = preview["check_out"].map(normalizar_fecha)
+    # ETA: acepta "11:00 AM", "09:00 AM", "03:00 PM" (con o sin cero a la
+    # izquierda) tal cual vienen en Plantilla_Importar.xlsx, y las deja en
+    # el mismo formato que usa el selector de horas del formulario.
+    preview["eta"] = preview["eta"].map(normalizar_eta)
     # Reemplazar NaN/None por cadena vacia (o 0 para qty) para visualizacion limpia
     for col in preview.columns:
         if col == "qty":
-            preview[col] = preview[col].apply(lambda x: 0 if pd.isna(x) or str(x).lower() in ("nan", "none", "null", "") else int(float(x)))
+            # CORRECCIÓN: antes se truncaba a entero con int(float(x)), lo
+            # que perdía el decimal que indica niños (2.1 -> 2, perdiendo el
+            # "+1"). Ahora se conserva 1 decimal para que la tabla lo pueda
+            # mostrar como "2+1" (ver `format_qty`).
+            preview[col] = preview[col].apply(lambda x: 0.0 if pd.isna(x) or str(x).lower() in ("nan", "none", "null", "") else round(float(x), 1))
+        elif col == "eta":
+            continue
         else:
             preview[col] = preview[col].apply(lambda x: "" if pd.isna(x) or str(x).lower() in ("nan", "none", "null") else x)
     st.success(f"Archivo válido: {len(preview)} reservaciones detectadas.")
@@ -1465,10 +1534,15 @@ def _import_body(context: str = "page") -> None:
             record = {}
             for column in IMPORT_COLUMNS:
                 value = row[column]
-                if pd.isna(value) or str(value).lower() in ("nan", "none", "null"):
+                if column == "eta":
+                    # Ya viene normalizado arriba; puede ser "" legítimamente.
+                    value = "" if pd.isna(value) else str(value).strip()
+                elif pd.isna(value) or str(value).lower() in ("nan", "none", "null"):
                     value = ""
                 elif column == "qty":
-                    value = int(pd.to_numeric(value, errors="coerce") or 0)
+                    # Igual que en el preview: conservar el decimal (2.1),
+                    # no truncar a entero.
+                    value = round(float(pd.to_numeric(value, errors="coerce") or 0), 1)
                 else:
                     value = str(value).strip()
                 record[column] = value
