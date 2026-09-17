@@ -433,6 +433,24 @@ def formatear_fecha_corta(value: object) -> str:
     return parsed.strftime("%b %d, %Y")
 
 
+def es_checkout_pasado(check_out_value: object) -> bool:
+    """True si `check_out_value` (fecha guardada, con o sin el icono 🏃 ya
+    pegado) ya pasó (es hoy o antes de hoy). Usado tanto para pintar el
+    icono 🏃 en la tabla principal como para saber en HUÉSPEDES cuáles
+    reservas ya hicieron checkout."""
+    if check_out_value is None or pd.isna(check_out_value):
+        return False
+    val_str = str(check_out_value).strip()
+    if not val_str:
+        return False
+    cleaned = re.sub(r"(\d{4})\s*[^\d]*$", r"\1", val_str).strip()
+    dt = parse_fecha(cleaned)
+    if not dt:
+        return False
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    return dt.replace(hour=0, minute=0, second=0, microsecond=0) <= today
+
+
 def normalizar_eta(value: object) -> str:
     """Normaliza un valor de ETA a la misma forma que usan las opciones del
     selector de horas ("9:00 AM", "11:00 AM", sin cero a la izquierda).
@@ -816,6 +834,35 @@ def actualizar_guest(guest_id: object, data: dict) -> None:
 def eliminar_guest(guest_id: object) -> None:
     supabase.table(GUESTS_TABLE).delete().eq("id", guest_id).execute()
     st.cache_data.clear()
+
+
+def limpiar_guests_checkout() -> None:
+    """Borra automáticamente de `guests` los contactos de huéspedes cuyas
+    reservas YA hicieron checkout (o que ya no existen en la tabla
+    principal), para que en HUÉSPEDES solo queden los datos de reservas que
+    todavía no han hecho checkout. Se corre cada vez que se abre el popup
+    de Huéspedes."""
+    guests_df = cargar_guests()
+    if guests_df.empty:
+        return
+
+    reservas_df = cargar_reservaciones()
+    activos = set()
+    if not reservas_df.empty:
+        for _, row in reservas_df.iterrows():
+            if es_checkout_pasado(row.get("check_out")):
+                continue
+            nombre = str(row.get("name", "")).strip().lower()
+            if nombre:
+                activos.add(nombre)
+
+    to_delete = [
+        row["id"] for _, row in guests_df.iterrows()
+        if str(row.get("nombre", "")).strip().lower() not in activos
+    ]
+    if to_delete:
+        supabase.table(GUESTS_TABLE).delete().in_("id", to_delete).execute()
+        st.cache_data.clear()
 
 
 # -----------------------------------------------------------------------------
@@ -2807,6 +2854,7 @@ def guests_dialog() -> None:
     tabla principal (respeta los filtros de fecha/checkout/búsqueda que
     estén activos en ese momento). Clic en un nombre abre su ficha de
     contacto extra (teléfono + detalles), guardada en la tabla `guests`."""
+    limpiar_guests_checkout()
     df = cargar_reservaciones()
     filtered, filters = apply_filters(df)
 
@@ -2830,7 +2878,18 @@ def guests_dialog() -> None:
             unsafe_allow_html=True,
         )
 
-    names = sorted({str(n).strip() for n in filtered.get("name", pd.Series(dtype=str)).dropna().tolist() if str(n).strip()})
+    # Un mismo nombre puede tener varias reservas en el filtro actual; si
+    # AL MENOS una ya hizo checkout, se marca con el mismo icono 🏃 que usa
+    # la tabla principal.
+    status_by_name: dict[str, bool] = {}
+    for _, row in filtered.iterrows():
+        nombre = str(row.get("name", "")).strip()
+        if not nombre:
+            continue
+        checked_out = es_checkout_pasado(row.get("check_out"))
+        status_by_name[nombre] = status_by_name.get(nombre, False) or checked_out
+
+    names = sorted(status_by_name.keys())
 
     search = st.text_input(
         "Buscar", key="guests_list_search", label_visibility="collapsed",
@@ -2864,7 +2923,8 @@ def guests_dialog() -> None:
     else:
         with st.container(height=430, key="guests_list_container"):
             for idx, name in enumerate(names):
-                if st.button(name, key=f"guest_name_btn_{idx}", use_container_width=True):
+                label = f"{name}  🏃" if status_by_name.get(name) else name
+                if st.button(label, key=f"guest_name_btn_{idx}", use_container_width=True):
                     st.session_state["guests_selected_name"] = name
                     st.session_state["guest_detail_edit_mode"] = False
                     st.session_state["open_guests_detail"] = True
@@ -3414,7 +3474,6 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         visible["check_in"] = visible["check_in"].apply(formatear_fecha_corta)
 
     # Agregar icono de checkout (🏃) solo para reservas que YA hicieron checkout
-    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     if "check_out" in visible.columns:
         def _checkout_with_icon(val):
             if not val or pd.isna(val):
@@ -3422,9 +3481,8 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
             val_str = str(val).strip()
             # Quitar todo despues del año (4 digitos) — elimina emojis/iconos guardados
             cleaned = re.sub(r"(\d{4})\s*[^\d]*$", r"\1", val_str).strip()
-            dt = parse_fecha(cleaned)
             corta = formatear_fecha_corta(cleaned)
-            if dt and dt.replace(hour=0, minute=0, second=0, microsecond=0) <= today:
+            if es_checkout_pasado(cleaned):
                 return corta + " 🏃"
             return corta
         visible["check_out"] = visible["check_out"].apply(_checkout_with_icon)
