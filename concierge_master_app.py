@@ -767,6 +767,58 @@ def insertar_colaboradores_lote(records: list[dict]) -> None:
 
 
 # -----------------------------------------------------------------------------
+# Huéspedes / Contactos extra (tabla `guests`)  -  Supabase CRUD
+#
+# Columnas en Supabase: id (uuid), nombre (text), telefono (text),
+# detalles (text), created_at (timestamptz, autogenerado).
+# -----------------------------------------------------------------------------
+
+GUESTS_TABLE = "guests"
+GUESTS_COLUMNS = ["nombre", "telefono", "detalles"]
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def cargar_guests() -> pd.DataFrame:
+    response = supabase.table(GUESTS_TABLE).select("*").execute()
+    df = pd.DataFrame(response.data)
+    if df.empty:
+        return pd.DataFrame(columns=["id"] + GUESTS_COLUMNS + ["created_at"])
+    for column in GUESTS_COLUMNS:
+        if column not in df.columns:
+            df[column] = ""
+    return df
+
+
+def buscar_guest_por_nombre(nombre: str, guests_df: pd.DataFrame | None = None) -> dict | None:
+    """Busca en `guests` (por nombre, sin distinguir mayúsculas/espacios) el
+    contacto extra guardado para un huésped de la tabla principal."""
+    if guests_df is None:
+        guests_df = cargar_guests()
+    if guests_df.empty or not nombre:
+        return None
+    text = nombre.strip().lower()
+    matches = guests_df[guests_df["nombre"].astype(str).str.strip().str.lower() == text]
+    if matches.empty:
+        return None
+    return matches.iloc[0].to_dict()
+
+
+def insertar_guest(data: dict) -> None:
+    supabase.table(GUESTS_TABLE).insert(data).execute()
+    st.cache_data.clear()
+
+
+def actualizar_guest(guest_id: object, data: dict) -> None:
+    supabase.table(GUESTS_TABLE).update(data).eq("id", guest_id).execute()
+    st.cache_data.clear()
+
+
+def eliminar_guest(guest_id: object) -> None:
+    supabase.table(GUESTS_TABLE).delete().eq("id", guest_id).execute()
+    st.cache_data.clear()
+
+
+# -----------------------------------------------------------------------------
 # Bonus / Aguinaldo  -  Supabase CRUD
 # -----------------------------------------------------------------------------
 
@@ -2749,6 +2801,148 @@ def directorio_import_dialog() -> None:
         st.rerun()
 
 
+@st.dialog("👥 Huéspedes", width="large")
+def guests_dialog() -> None:
+    """Popup: lista los nombres de huéspedes que aparecen actualmente en la
+    tabla principal (respeta los filtros de fecha/checkout/búsqueda que
+    estén activos en ese momento). Clic en un nombre abre su ficha de
+    contacto extra (teléfono + detalles), guardada en la tabla `guests`."""
+    df = cargar_reservaciones()
+    filtered, filters = apply_filters(df)
+
+    if filters:
+        captions = []
+        if "checkout" in filters:
+            captions.append("Check-out: " + safe_text(filters["checkout"]))
+        if "arrival" in filters:
+            captions.append("Check-in: " + safe_text(filters["arrival"]))
+        if "search" in filters:
+            captions.append("Búsqueda: " + safe_text(filters["search"]))
+        st.markdown(
+            "<div style='color:#8ca4ba;font-size:11px;margin-bottom:8px;'>Mostrando huéspedes de las reservas "
+            "filtradas — " + " | ".join(captions) + "</div>",
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            "<div style='color:#8ca4ba;font-size:11px;margin-bottom:8px;'>Mostrando TODOS los huéspedes "
+            "(no hay filtro de fecha/checkout/búsqueda activo).</div>",
+            unsafe_allow_html=True,
+        )
+
+    names = sorted({str(n).strip() for n in filtered.get("name", pd.Series(dtype=str)).dropna().tolist() if str(n).strip()})
+
+    search = st.text_input(
+        "Buscar", key="guests_list_search", label_visibility="collapsed",
+        placeholder="🔍 Buscar por nombre...",
+    )
+    if search and search.strip():
+        text = search.strip().lower()
+        names = [n for n in names if text in n.lower()]
+
+    st.markdown(
+        f"<div style='color:#00e5ff;font-size:12px;font-weight:800;margin:6px 0 10px;'>{len(names)} huésped(es)</div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        """
+        <style>
+        [class*="st-key-guest_name_btn_"] button {
+            background:transparent !important; border:none !important; color:#dfeff8 !important;
+            font-weight:600 !important; font-size:13px !important; text-align:left !important;
+            justify-content:flex-start !important; padding:7px 4px !important; width:100% !important;
+            border-bottom:1px solid #141414 !important; border-radius:0 !important;
+        }
+        [class*="st-key-guest_name_btn_"] button:hover { color:#00e5ff !important; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if not names:
+        st.info("No hay huéspedes para mostrar con el filtro actual.")
+    else:
+        with st.container(height=430, key="guests_list_container"):
+            for idx, name in enumerate(names):
+                if st.button(name, key=f"guest_name_btn_{idx}", use_container_width=True):
+                    st.session_state["guests_selected_name"] = name
+                    st.session_state["guest_detail_edit_mode"] = False
+                    st.session_state["open_guests_detail"] = True
+                    st.rerun()
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    if st.button("Cerrar", use_container_width=True, key="close_guests_dialog"):
+        st.rerun()
+
+
+@st.dialog("📇 Ficha de Huésped", width="large")
+def guests_detail_dialog() -> None:
+    """Popup con los datos extra (teléfono + detalles) de un huésped puntual,
+    guardados en la tabla `guests` de Supabase, ligados por nombre a la fila
+    correspondiente de la tabla principal."""
+    name = st.session_state.get("guests_selected_name", "")
+    guests_df = cargar_guests()
+    existing = buscar_guest_por_nombre(name, guests_df)
+    edit_mode = st.session_state.get("guest_detail_edit_mode", existing is None)
+
+    st.markdown(
+        f"<div style='color:#00e5ff;font-size:16px;font-weight:800;margin-bottom:14px;'>{safe_text(name)}</div>",
+        unsafe_allow_html=True,
+    )
+
+    if existing is None and not edit_mode:
+        edit_mode = True
+
+    telefono = st.text_input(
+        "Teléfono",
+        value=str(existing.get("telefono", "") or "") if existing else "",
+        placeholder="Ej: 506 8888-8888",
+        disabled=not edit_mode,
+        key="guest_detail_telefono",
+    )
+    detalles = st.text_area(
+        "Detalles",
+        value=str(existing.get("detalles", "") or "") if existing else "",
+        placeholder="Preferencias, notas, alergias, ocasiones especiales, etc.",
+        disabled=not edit_mode,
+        height=180,
+        key="guest_detail_detalles",
+    )
+
+    c1, c2, c3, c4 = st.columns(4)
+    if c1.button("🗑 ELIMINAR", use_container_width=True, disabled=existing is None, key="guest_detail_delete"):
+        eliminar_guest(existing["id"])
+        st.success("Registro eliminado.")
+        st.session_state["open_guests"] = True
+        st.rerun()
+
+    if c2.button("💾 GUARDAR", use_container_width=True, type="primary", disabled=not edit_mode, key="guest_detail_save"):
+        data = {"nombre": name.strip(), "telefono": telefono.strip(), "detalles": detalles.strip()}
+        if existing is not None:
+            actualizar_guest(existing["id"], data)
+        else:
+            insertar_guest(data)
+        st.success("Guardado correctamente.")
+        st.session_state["guest_detail_edit_mode"] = False
+        st.session_state["open_guests_detail"] = True
+        st.rerun()
+
+    if c3.button("✏ EDITAR", use_container_width=True, disabled=edit_mode, key="guest_detail_edit"):
+        st.session_state["guest_detail_edit_mode"] = True
+        st.session_state["open_guests_detail"] = True
+        st.rerun()
+
+    if c4.button("CERRAR", use_container_width=True, key="guest_detail_close"):
+        st.session_state.pop("guest_detail_edit_mode", None)
+        st.rerun()
+
+    st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+    if st.button("« Volver a la lista de huéspedes", use_container_width=True, key="guest_detail_back_to_list"):
+        st.session_state.pop("guest_detail_edit_mode", None)
+        st.session_state["open_guests"] = True
+        st.rerun()
+
+
 def render_calculator() -> None:
     """Vista legacy de calculadora (redirige al dialog)."""
     st.subheader("Calculadora")
@@ -3673,15 +3867,37 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 filter:brightness(1.15) !important;
                 transform:translateY(-1px) !important;
             }
+            .st-key-btn_guests_directory button {
+                background: linear-gradient(135deg,#0F766E,#00E5FF) !important;
+                color:#04070d !important;
+                border:1px solid rgba(0,229,255,.5) !important;
+                border-radius:8px !important;
+                font: 800 10.5px/1.1 'Segoe UI', sans-serif !important;
+                letter-spacing:.6px !important;
+                text-transform:uppercase !important;
+                margin-top:6px !important;
+            }
+            .st-key-btn_guests_directory button:hover {
+                filter:brightness(1.15) !important;
+                transform:translateY(-1px) !important;
+            }
             </style>
             """,
             unsafe_allow_html=True,
         )
-        with st.container(key="btn_vip_candidates"):
-            if st.button("🌟 POSIBLES VIP", use_container_width=True, key="do_open_vip_candidates"):
-                st.session_state["open_vip_candidates"] = True
-                st.query_params["skip_splash"] = "1"
-                st.rerun()
+        vip_col, guests_col = st.columns(2)
+        with vip_col:
+            with st.container(key="btn_vip_candidates"):
+                if st.button("🌟 POSIBLES VIP", use_container_width=True, key="do_open_vip_candidates"):
+                    st.session_state["open_vip_candidates"] = True
+                    st.query_params["skip_splash"] = "1"
+                    st.rerun()
+        with guests_col:
+            with st.container(key="btn_guests_directory"):
+                if st.button("👥 HUÉSPEDES", use_container_width=True, key="do_open_guests_directory"):
+                    st.session_state["open_guests"] = True
+                    st.query_params["skip_splash"] = "1"
+                    st.rerun()
     st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
@@ -3898,6 +4114,13 @@ if st.session_state.pop("open_directorio_import", False):
 # Auto-abrir el popup de posibles VIP (analiza el filtro actual)
 if st.session_state.pop("open_vip_candidates", False):
     vip_candidates_dialog()
+
+# Auto-abrir los popups de Huéspedes (lista + ficha de contacto extra)
+if st.session_state.pop("open_guests", False):
+    guests_dialog()
+
+if st.session_state.pop("open_guests_detail", False):
+    guests_detail_dialog()
 
 
 def _redirect_to_dialog(flag: str) -> None:
