@@ -1211,6 +1211,21 @@ def render_menu() -> None:
         current["action"] = action
         return "?" + urlencode(current)
 
+    # El popover de Streamlit guarda su estado "abierto/cerrado" ligado a su
+    # key/label. Si un botón DE ADENTRO del popover dispara un st.rerun()
+    # para abrir otro popup (Directorio, Nueva, etc.), el popover se queda
+    # marcado como abierto en el siguiente render y ambos quedan visibles a
+    # la vez (lo que causaba la confusión). Truco: cambiarle la key al
+    # popover cada vez que se elige una opción del menú, para que en el
+    # próximo render sea un widget "nuevo" y arranque cerrado.
+    menu_nonce = st.session_state.get("main_menu_nonce", 0)
+
+    def _select_and_rerun(**flags) -> None:
+        st.session_state["main_menu_nonce"] = menu_nonce + 1
+        for key, value in flags.items():
+            st.session_state[key] = value
+        st.rerun()
+
     st.markdown(
         """
         <style>
@@ -1255,7 +1270,7 @@ def render_menu() -> None:
         unsafe_allow_html=True,
     )
 
-    with st.popover("☰ MENÚ", use_container_width=True):
+    with st.popover("☰ MENÚ", use_container_width=True, key=f"main_menu_popover_{menu_nonce}"):
         st.markdown("<div style='color:#d4af37;font-size:14px;font-weight:800;letter-spacing:1.5px;text-align:center;margin-bottom:14px;'>CONCIERGE MASTER</div>", unsafe_allow_html=True)
 
         # ── Operaciones ──
@@ -1263,29 +1278,24 @@ def render_menu() -> None:
         c1, c2, c3 = st.columns(3)
         if c1.button("➕ NUEVA", use_container_width=True):
             # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
-            st.session_state["open_nueva"] = True
             st.query_params["skip_splash"] = "1"
-            st.rerun()
+            _select_and_rerun(open_nueva=True)
         if c2.button("⬆ IMPORTAR", use_container_width=True):
-            st.session_state["open_importar"] = True
             st.query_params["skip_splash"] = "1"
-            st.rerun()
+            _select_and_rerun(open_importar=True)
         if c3.button("⬇ EXPORTAR", use_container_width=True):
-            st.session_state["open_exportar"] = True
             st.query_params["skip_splash"] = "1"
-            st.rerun()
+            _select_and_rerun(open_exportar=True)
         c4, c5, c6 = st.columns(3)
         if c4.button("📊 REPORTE", use_container_width=True):
-            st.session_state["open_reporte"] = True
             st.query_params["skip_splash"] = "1"
-            st.rerun()
+            _select_and_rerun(open_reporte=True)
         if c5.button("📅 AGENDA", use_container_width=True):
-            st.session_state["open_agenda"] = True
             st.query_params["skip_splash"] = "1"
-            st.rerun()
+            _select_and_rerun(open_agenda=True)
         if c6.button("💰 BONUS", use_container_width=True):
             st.query_params["action"] = "bonus"
-            st.rerun()
+            _select_and_rerun()
 
         st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
@@ -1294,17 +1304,15 @@ def render_menu() -> None:
         h1, h2, h3, h4 = st.columns(4)
         if h1.button("🧮 CALCULADORA", use_container_width=True):
             st.query_params["action"] = "calculadora"
-            st.rerun()
+            _select_and_rerun()
         if h2.button("📆 ALMANAQUE", use_container_width=True):
             st.query_params["action"] = "almanaque"
-            st.rerun()
+            _select_and_rerun()
         if h3.button("🏷️ FRED WAYNE", use_container_width=True):
-            st.session_state["open_logo"] = True
-            st.rerun()
+            _select_and_rerun(open_logo=True)
         if h4.button("📇 DIRECTORIO", use_container_width=True):
-            st.session_state["open_directorio"] = True
             st.query_params["skip_splash"] = "1"
-            st.rerun()
+            _select_and_rerun(open_directorio=True)
 
         st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
