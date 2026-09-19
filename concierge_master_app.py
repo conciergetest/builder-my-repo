@@ -866,6 +866,62 @@ def limpiar_guests_checkout() -> None:
 
 
 # -----------------------------------------------------------------------------
+# Pending  -  Supabase CRUD
+# Columnas en Supabase: id (int8, autogenerado), numero_orden (int,
+# 1 a 15), contenido (text), actualizado_at (timestamptz).
+# -----------------------------------------------------------------------------
+
+PENDING_TABLE = "block_notas"
+PENDING_LINES = 15
+
+
+@st.cache_data(ttl=15, show_spinner=False)
+def cargar_pending() -> dict:
+    """Devuelve {numero_orden: {"id": ..., "contenido": ...}} con lo que
+    haya guardado en `block_notas`."""
+    response = supabase.table(PENDING_TABLE).select("*").execute()
+    data = {}
+    for row in response.data or []:
+        try:
+            numero = int(row.get("numero_orden"))
+        except (TypeError, ValueError):
+            continue
+        data[numero] = {"id": row.get("id"), "contenido": row.get("contenido", "") or ""}
+    return data
+
+
+def guardar_pending_linea(numero: int, texto: str) -> None:
+    """Guarda (o borra si queda vacío) el contenido de una línea puntual."""
+    texto = (texto or "").strip()
+    existentes = cargar_pending()
+    existente = existentes.get(numero)
+
+    if not texto:
+        if existente:
+            eliminar_pending_linea(numero)
+        return
+
+    payload = {"numero_orden": numero, "contenido": texto, "actualizado_at": datetime.utcnow().isoformat()}
+    if existente:
+        supabase.table(PENDING_TABLE).update(payload).eq("id", existente["id"]).execute()
+    else:
+        supabase.table(PENDING_TABLE).insert(payload).execute()
+    st.cache_data.clear()
+
+
+def eliminar_pending_linea(numero: int) -> None:
+    """Borra de la base de datos la línea `numero` (queda vacía)."""
+    supabase.table(PENDING_TABLE).delete().eq("numero_orden", numero).execute()
+    st.cache_data.clear()
+
+
+def eliminar_pending_todo() -> None:
+    """Borra de la base de datos las 15 líneas."""
+    supabase.table(PENDING_TABLE).delete().gte("numero_orden", 1).lte("numero_orden", PENDING_LINES).execute()
+    st.cache_data.clear()
+
+
+# -----------------------------------------------------------------------------
 # Bonus / Aguinaldo  -  Supabase CRUD
 # -----------------------------------------------------------------------------
 
@@ -3011,6 +3067,67 @@ def guests_detail_dialog() -> None:
         st.rerun()
 
 
+@st.dialog("📌 Pending", width="large")
+def pending_dialog() -> None:
+    """Popup: block de notas con 15 líneas numeradas, guardadas en la
+    tabla `block_notas` de Supabase. Cada línea se puede editar y borrar
+    (de la base de datos) por separado."""
+    data = cargar_pending()
+
+    st.markdown(
+        """
+        <style>
+        [class*="st-key-pending_del_"] button {
+            background:#3a1a1a !important; border:1px solid #E11D48 !important; color:#ff6b81 !important;
+            padding:2px 0 !important; font-size:13px !important; min-height:38px !important;
+        }
+        [class*="st-key-pending_del_"] button:hover { background:#E11D48 !important; color:#fff !important; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    for numero in range(1, PENDING_LINES + 1):
+        valor_actual = data.get(numero, {}).get("contenido", "")
+        col_num, col_text, col_del = st.columns([0.5, 5, 0.6])
+        with col_num:
+            st.markdown(
+                f"<div style='color:#00e5ff;font-weight:800;font-size:13px;margin-top:10px;text-align:right;'>{numero}.</div>",
+                unsafe_allow_html=True,
+            )
+        with col_text:
+            st.text_input(
+                f"linea_{numero}", value=valor_actual, key=f"pending_line_{numero}",
+                label_visibility="collapsed", placeholder="Escribe aquí...",
+            )
+        with col_del:
+            if st.button("🗑", key=f"pending_del_{numero}", use_container_width=True):
+                eliminar_pending_linea(numero)
+                st.session_state.pop(f"pending_line_{numero}", None)
+                st.success(f"Línea {numero} borrada.")
+                st.session_state["open_pending"] = True
+                st.rerun()
+
+    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    if c1.button("💾 GUARDAR TODO", use_container_width=True, type="primary", key="pending_save_all"):
+        for numero in range(1, PENDING_LINES + 1):
+            texto = st.session_state.get(f"pending_line_{numero}", "")
+            guardar_pending_linea(numero, texto)
+        st.success("Pending guardado correctamente.")
+        st.session_state["open_pending"] = True
+        st.rerun()
+    if c2.button("🗑 BORRAR TODO", use_container_width=True, key="pending_delete_all"):
+        eliminar_pending_todo()
+        for numero in range(1, PENDING_LINES + 1):
+            st.session_state.pop(f"pending_line_{numero}", None)
+        st.success("Pending vaciado.")
+        st.session_state["open_pending"] = True
+        st.rerun()
+    if c3.button("CERRAR", use_container_width=True, key="pending_close"):
+        st.rerun()
+
+
 def render_calculator() -> None:
     """Vista legacy de calculadora (redirige al dialog)."""
     st.subheader("Calculadora")
@@ -3947,11 +4064,25 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 filter:brightness(1.15) !important;
                 transform:translateY(-1px) !important;
             }
+            .st-key-btn_pending button {
+                background: linear-gradient(135deg,#D97706,#00E5FF) !important;
+                color:#04070d !important;
+                border:1px solid rgba(0,229,255,.5) !important;
+                border-radius:8px !important;
+                font: 800 10.5px/1.1 'Segoe UI', sans-serif !important;
+                letter-spacing:.6px !important;
+                text-transform:uppercase !important;
+                margin-top:6px !important;
+            }
+            .st-key-btn_pending button:hover {
+                filter:brightness(1.15) !important;
+                transform:translateY(-1px) !important;
+            }
             </style>
             """,
             unsafe_allow_html=True,
         )
-        vip_col, guests_col = st.columns(2)
+        vip_col, guests_col, pending_col = st.columns(3)
         with vip_col:
             with st.container(key="btn_vip_candidates"):
                 if st.button("🌟 POSIBLES VIP", use_container_width=True, key="do_open_vip_candidates"):
@@ -3962,6 +4093,12 @@ def render_dashboard(df: pd.DataFrame) -> None:
             with st.container(key="btn_guests_directory"):
                 if st.button("👥 HUÉSPEDES", use_container_width=True, key="do_open_guests_directory"):
                     st.session_state["open_guests"] = True
+                    st.query_params["skip_splash"] = "1"
+                    st.rerun()
+        with pending_col:
+            with st.container(key="btn_pending"):
+                if st.button("📌 PENDING", use_container_width=True, key="do_open_pending"):
+                    st.session_state["open_pending"] = True
                     st.query_params["skip_splash"] = "1"
                     st.rerun()
     st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
@@ -4187,6 +4324,10 @@ if st.session_state.pop("open_guests", False):
 
 if st.session_state.pop("open_guests_detail", False):
     guests_detail_dialog()
+
+# Auto-abrir el popup de Pending (block de notas de 15 líneas)
+if st.session_state.pop("open_pending", False):
+    pending_dialog()
 
 
 def _redirect_to_dialog(flag: str) -> None:
