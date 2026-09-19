@@ -3016,62 +3016,48 @@ def guests_detail_dialog() -> None:
     name = st.session_state.get("guests_selected_name", "")
     guests_df = cargar_guests()
     existing = buscar_guest_por_nombre(name, guests_df)
-    edit_mode = st.session_state.get("guest_detail_edit_mode", existing is None)
 
     st.markdown(
         f"<div style='color:#00e5ff;font-size:16px;font-weight:800;margin-bottom:14px;'>{safe_text(name)}</div>",
         unsafe_allow_html=True,
     )
 
-    if existing is None and not edit_mode:
-        edit_mode = True
-
     telefono = st.text_input(
         "Teléfono",
         value=str(existing.get("telefono", "") or "") if existing else "",
         placeholder="Ej: 506 8888-8888",
-        disabled=not edit_mode,
         key="guest_detail_telefono",
     )
     detalles = st.text_area(
         "Detalles",
         value=str(existing.get("detalles", "") or "") if existing else "",
         placeholder="Preferencias, notas, alergias, ocasiones especiales, etc.",
-        disabled=not edit_mode,
         height=180,
         key="guest_detail_detalles",
     )
 
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3 = st.columns(3)
     if c1.button("🗑 ELIMINAR", use_container_width=True, disabled=existing is None, key="guest_detail_delete"):
         eliminar_guest(existing["id"])
         st.success("Registro eliminado.")
         st.session_state["open_guests"] = True
         st.rerun()
 
-    if c2.button("💾 GUARDAR", use_container_width=True, type="primary", disabled=not edit_mode, key="guest_detail_save"):
+    if c2.button("💾 GUARDAR", use_container_width=True, type="primary", key="guest_detail_save"):
         data = {"nombre": name.strip(), "telefono": telefono.strip(), "detalles": detalles.strip()}
         if existing is not None:
             actualizar_guest(existing["id"], data)
         else:
             insertar_guest(data)
         st.success("Guardado correctamente.")
-        st.session_state["guest_detail_edit_mode"] = False
         st.session_state["open_guests_detail"] = True
         st.rerun()
 
-    if c3.button("✏ EDITAR", use_container_width=True, disabled=edit_mode, key="guest_detail_edit"):
-        st.session_state["guest_detail_edit_mode"] = True
-        st.session_state["open_guests_detail"] = True
-        st.rerun()
-
-    if c4.button("CERRAR", use_container_width=True, key="guest_detail_close"):
-        st.session_state.pop("guest_detail_edit_mode", None)
+    if c3.button("CERRAR", use_container_width=True, key="guest_detail_close"):
         st.rerun()
 
     st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
     if st.button("« Volver a la lista de huéspedes", use_container_width=True, key="guest_detail_back_to_list"):
-        st.session_state.pop("guest_detail_edit_mode", None)
         st.session_state["open_guests"] = True
         st.rerun()
 
