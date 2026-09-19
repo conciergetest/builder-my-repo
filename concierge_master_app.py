@@ -911,13 +911,22 @@ def guardar_pending_linea(numero: int, texto: str) -> None:
 
 def eliminar_pending_linea(numero: int) -> None:
     """Borra de la base de datos la línea `numero` (queda vacía)."""
-    supabase.table(PENDING_TABLE).delete().eq("numero_orden", numero).execute()
+    existentes = cargar_pending()
+    existente = existentes.get(numero)
+    if existente and existente.get("id") is not None:
+        supabase.table(PENDING_TABLE).delete().eq("id", existente["id"]).execute()
+    else:
+        # Respaldo: por si no se encontró por id, intenta por numero_orden.
+        supabase.table(PENDING_TABLE).delete().eq("numero_orden", numero).execute()
     st.cache_data.clear()
 
 
 def eliminar_pending_todo() -> None:
     """Borra de la base de datos las 15 líneas."""
-    supabase.table(PENDING_TABLE).delete().gte("numero_orden", 1).lte("numero_orden", PENDING_LINES).execute()
+    existentes = cargar_pending()
+    ids = [v["id"] for v in existentes.values() if v.get("id") is not None]
+    if ids:
+        supabase.table(PENDING_TABLE).delete().in_("id", ids).execute()
     st.cache_data.clear()
 
 
@@ -3102,26 +3111,35 @@ def pending_dialog() -> None:
             )
         with col_del:
             if st.button("🗑", key=f"pending_del_{numero}", use_container_width=True):
-                eliminar_pending_linea(numero)
-                st.session_state.pop(f"pending_line_{numero}", None)
-                st.success(f"Línea {numero} borrada.")
+                try:
+                    eliminar_pending_linea(numero)
+                    st.session_state.pop(f"pending_line_{numero}", None)
+                    st.success(f"Línea {numero} borrada.")
+                except Exception as exc:
+                    st.error(f"No se pudo borrar la línea {numero}: {exc}")
                 st.session_state["open_pending"] = True
                 st.rerun()
 
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
     if c1.button("💾 GUARDAR TODO", use_container_width=True, type="primary", key="pending_save_all"):
-        for numero in range(1, PENDING_LINES + 1):
-            texto = st.session_state.get(f"pending_line_{numero}", "")
-            guardar_pending_linea(numero, texto)
-        st.success("Pending guardado correctamente.")
+        try:
+            for numero in range(1, PENDING_LINES + 1):
+                texto = st.session_state.get(f"pending_line_{numero}", "")
+                guardar_pending_linea(numero, texto)
+            st.success("Pending guardado correctamente.")
+        except Exception as exc:
+            st.error(f"No se pudo guardar: {exc}")
         st.session_state["open_pending"] = True
         st.rerun()
     if c2.button("🗑 BORRAR TODO", use_container_width=True, key="pending_delete_all"):
-        eliminar_pending_todo()
-        for numero in range(1, PENDING_LINES + 1):
-            st.session_state.pop(f"pending_line_{numero}", None)
-        st.success("Pending vaciado.")
+        try:
+            eliminar_pending_todo()
+            for numero in range(1, PENDING_LINES + 1):
+                st.session_state.pop(f"pending_line_{numero}", None)
+            st.success("Pending vaciado.")
+        except Exception as exc:
+            st.error(f"No se pudo vaciar: {exc}")
         st.session_state["open_pending"] = True
         st.rerun()
     if c3.button("CERRAR", use_container_width=True, key="pending_close"):
@@ -4033,74 +4051,79 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with f4:
         render_menu()
-        st.markdown(
-            """
-            <style>
-            .st-key-btn_vip_candidates button {
-                background: linear-gradient(135deg,#7C3AED,#00E5FF) !important;
-                color:#04070d !important;
-                border:1px solid rgba(0,229,255,.5) !important;
-                border-radius:8px !important;
-                font: 800 10.5px/1.1 'Segoe UI', sans-serif !important;
-                letter-spacing:.6px !important;
-                text-transform:uppercase !important;
-                margin-top:6px !important;
-            }
-            .st-key-btn_vip_candidates button:hover {
-                filter:brightness(1.15) !important;
-                transform:translateY(-1px) !important;
-            }
-            .st-key-btn_guests_directory button {
-                background: linear-gradient(135deg,#0F766E,#00E5FF) !important;
-                color:#04070d !important;
-                border:1px solid rgba(0,229,255,.5) !important;
-                border-radius:8px !important;
-                font: 800 10.5px/1.1 'Segoe UI', sans-serif !important;
-                letter-spacing:.6px !important;
-                text-transform:uppercase !important;
-                margin-top:6px !important;
-            }
-            .st-key-btn_guests_directory button:hover {
-                filter:brightness(1.15) !important;
-                transform:translateY(-1px) !important;
-            }
-            .st-key-btn_pending button {
-                background: linear-gradient(135deg,#D97706,#00E5FF) !important;
-                color:#04070d !important;
-                border:1px solid rgba(0,229,255,.5) !important;
-                border-radius:8px !important;
-                font: 800 10.5px/1.1 'Segoe UI', sans-serif !important;
-                letter-spacing:.6px !important;
-                text-transform:uppercase !important;
-                margin-top:6px !important;
-            }
-            .st-key-btn_pending button:hover {
-                filter:brightness(1.15) !important;
-                transform:translateY(-1px) !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-        vip_col, guests_col, pending_col = st.columns(3)
-        with vip_col:
-            with st.container(key="btn_vip_candidates"):
-                if st.button("🌟 POSIBLES VIP", use_container_width=True, key="do_open_vip_candidates"):
-                    st.session_state["open_vip_candidates"] = True
-                    st.query_params["skip_splash"] = "1"
-                    st.rerun()
-        with guests_col:
-            with st.container(key="btn_guests_directory"):
-                if st.button("👥 HUÉSPEDES", use_container_width=True, key="do_open_guests_directory"):
-                    st.session_state["open_guests"] = True
-                    st.query_params["skip_splash"] = "1"
-                    st.rerun()
-        with pending_col:
-            with st.container(key="btn_pending"):
-                if st.button("📌 PENDING", use_container_width=True, key="do_open_pending"):
-                    st.session_state["open_pending"] = True
-                    st.query_params["skip_splash"] = "1"
-                    st.rerun()
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <style>
+        .st-key-btn_vip_candidates button {
+            background: linear-gradient(135deg,#7C3AED,#00E5FF) !important;
+            color:#04070d !important;
+            border:1px solid rgba(0,229,255,.5) !important;
+            border-radius:8px !important;
+            font: 800 11.5px/1.1 'Segoe UI', sans-serif !important;
+            letter-spacing:.4px !important;
+            text-transform:uppercase !important;
+            white-space:nowrap !important;
+            padding:0 6px !important;
+        }
+        .st-key-btn_vip_candidates button:hover {
+            filter:brightness(1.15) !important;
+            transform:translateY(-1px) !important;
+        }
+        .st-key-btn_guests_directory button {
+            background: linear-gradient(135deg,#0F766E,#00E5FF) !important;
+            color:#04070d !important;
+            border:1px solid rgba(0,229,255,.5) !important;
+            border-radius:8px !important;
+            font: 800 11.5px/1.1 'Segoe UI', sans-serif !important;
+            letter-spacing:.4px !important;
+            text-transform:uppercase !important;
+            white-space:nowrap !important;
+            padding:0 6px !important;
+        }
+        .st-key-btn_guests_directory button:hover {
+            filter:brightness(1.15) !important;
+            transform:translateY(-1px) !important;
+        }
+        .st-key-btn_pending button {
+            background: linear-gradient(135deg,#D97706,#00E5FF) !important;
+            color:#04070d !important;
+            border:1px solid rgba(0,229,255,.5) !important;
+            border-radius:8px !important;
+            font: 800 11.5px/1.1 'Segoe UI', sans-serif !important;
+            letter-spacing:.4px !important;
+            text-transform:uppercase !important;
+            white-space:nowrap !important;
+            padding:0 6px !important;
+        }
+        .st-key-btn_pending button:hover {
+            filter:brightness(1.15) !important;
+            transform:translateY(-1px) !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    vip_col, guests_col, pending_col = st.columns(3)
+    with vip_col:
+        with st.container(key="btn_vip_candidates"):
+            if st.button("🌟 POSIBLES VIP", use_container_width=True, key="do_open_vip_candidates"):
+                st.session_state["open_vip_candidates"] = True
+                st.query_params["skip_splash"] = "1"
+                st.rerun()
+    with guests_col:
+        with st.container(key="btn_guests_directory"):
+            if st.button("👥 HUÉSPEDES", use_container_width=True, key="do_open_guests_directory"):
+                st.session_state["open_guests"] = True
+                st.query_params["skip_splash"] = "1"
+                st.rerun()
+    with pending_col:
+        with st.container(key="btn_pending"):
+            if st.button("📌 PENDING", use_container_width=True, key="do_open_pending"):
+                st.session_state["open_pending"] = True
+                st.query_params["skip_splash"] = "1"
+                st.rerun()
     st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
