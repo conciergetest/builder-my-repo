@@ -3044,7 +3044,6 @@ def guests_dialog() -> None:
                             info_abiertos.add(name)
                         st.session_state["guests_info_open"] = info_abiertos
                         st.session_state["open_guests"] = True
-                        st.rerun()
 
                 if name in info_abiertos and info_by_name.get(name):
                     st.markdown(
