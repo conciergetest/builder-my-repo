@@ -3043,7 +3043,6 @@ def guests_dialog() -> None:
                         else:
                             info_abiertos.add(name)
                         st.session_state["guests_info_open"] = info_abiertos
-                        st.session_state["open_guests"] = True
 
                 if name in info_abiertos and info_by_name.get(name):
                     st.markdown(
@@ -4378,12 +4377,16 @@ if st.session_state.pop("open_directorio_import", False):
 if st.session_state.pop("open_vip_candidates", False):
     vip_candidates_dialog()
 
-# Auto-abrir los popups de Huéspedes (lista + ficha de contacto extra)
-if st.session_state.pop("open_guests", False):
-    guests_dialog()
-
-if st.session_state.pop("open_guests_detail", False):
+# Auto-abrir los popups de Huéspedes (lista + ficha de contacto extra).
+# Nunca deben abrirse los dos en el mismo ciclo (Streamlit no permite
+# dialogs anidados) — si por algún residuo ambas banderas quedaron en
+# True, gana la ficha de detalle (la más específica).
+_open_guests = st.session_state.pop("open_guests", False)
+_open_guests_detail = st.session_state.pop("open_guests_detail", False)
+if _open_guests_detail:
     guests_detail_dialog()
+elif _open_guests:
+    guests_dialog()
 
 # Auto-abrir el popup de Pending (block de notas de 15 líneas)
 if st.session_state.pop("open_pending", False):
