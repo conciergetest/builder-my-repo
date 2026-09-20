@@ -3118,6 +3118,9 @@ def pending_dialog() -> None:
     tabla `block_notas` de Supabase. Cada línea se puede editar y borrar
     (de la base de datos) por separado."""
     data = cargar_pending()
+    if "pending_nonce" not in st.session_state:
+        st.session_state["pending_nonce"] = 0
+    nonce = st.session_state["pending_nonce"]
 
     st.markdown(
         """
@@ -3142,14 +3145,15 @@ def pending_dialog() -> None:
             )
         with col_text:
             st.text_input(
-                f"linea_{numero}", value=valor_actual, key=f"pending_line_{numero}",
+                f"linea_{numero}", value=valor_actual, key=f"pending_line_{numero}_{nonce}",
                 label_visibility="collapsed", placeholder="Escribe aquí...",
             )
         with col_del:
             if st.button("🗑", key=f"pending_del_{numero}", use_container_width=True):
                 try:
                     eliminar_pending_linea(numero)
-                    st.session_state.pop(f"pending_line_{numero}", None)
+                    st.session_state.pop(f"pending_line_{numero}_{nonce}", None)
+                    st.session_state["pending_nonce"] = nonce + 1
                     st.success(f"Línea {numero} borrada.")
                 except Exception as exc:
                     st.error(f"No se pudo borrar la línea {numero}: {exc}")
@@ -3161,8 +3165,9 @@ def pending_dialog() -> None:
     if c1.button("💾 GUARDAR TODO", use_container_width=True, type="primary", key="pending_save_all"):
         try:
             for numero in range(1, PENDING_LINES + 1):
-                texto = st.session_state.get(f"pending_line_{numero}", "")
+                texto = st.session_state.get(f"pending_line_{numero}_{nonce}", "")
                 guardar_pending_linea(numero, texto)
+            st.session_state["pending_nonce"] = nonce + 1
             st.success("Pending guardado correctamente.")
         except Exception as exc:
             st.error(f"No se pudo guardar: {exc}")
@@ -3172,7 +3177,8 @@ def pending_dialog() -> None:
         try:
             eliminar_pending_todo()
             for numero in range(1, PENDING_LINES + 1):
-                st.session_state.pop(f"pending_line_{numero}", None)
+                st.session_state.pop(f"pending_line_{numero}_{nonce}", None)
+            st.session_state["pending_nonce"] = nonce + 1
             st.success("Pending vaciado.")
         except Exception as exc:
             st.error(f"No se pudo vaciar: {exc}")
