@@ -2991,20 +2991,70 @@ def guests_dialog() -> None:
         unsafe_allow_html=True,
     )
 
+    # Info (columnas INFORMATION + IRD) por nombre, tomada de las reservas
+    # filtradas actuales. Un mismo nombre puede tener varias reservas; se
+    # juntan las combinaciones únicas.
+    info_by_name: dict[str, str] = {}
+    for _, row in filtered.iterrows():
+        nombre = str(row.get("name", "")).strip()
+        if not nombre:
+            continue
+        info_txt = str(row.get("info", "") or "").strip()
+        ird_txt = str(row.get("ird", "") or "").strip()
+        combo = " | ".join(part for part in [info_txt, ird_txt] if part)
+        if not combo:
+            continue
+        existentes = info_by_name.setdefault(nombre, "")
+        if combo not in existentes:
+            info_by_name[nombre] = (existentes + " || " + combo).strip(" |") if existentes else combo
+
+    info_abiertos: set[str] = st.session_state.setdefault("guests_info_open", set())
+
+    st.markdown(
+        """
+        <style>
+        [class*="st-key-guest_info_btn_"] button {
+            background:#1a2733 !important; border:1px solid #00e5ff55 !important; color:#00e5ff !important;
+            padding:2px 0 !important; font-size:13px !important; min-height:34px !important;
+        }
+        [class*="st-key-guest_info_btn_"] button:hover { background:#00e5ff !important; color:#04070d !important; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     if not names:
         st.info("No hay huéspedes para mostrar con el filtro actual.")
     else:
         with st.container(height=430, key="guests_list_container"):
             for idx, name in enumerate(names):
                 label = f"{name}  🏃" if status_by_name.get(name) else name
-                if st.button(label, key=f"guest_name_btn_{idx}", use_container_width=True):
-                    st.session_state["guests_selected_name"] = name
-                    st.session_state["guest_detail_edit_mode"] = False
-                    st.session_state["open_guests_detail"] = True
-                    st.rerun()
+                col_name, col_info = st.columns([8, 1])
+                with col_name:
+                    if st.button(label, key=f"guest_name_btn_{idx}", use_container_width=True):
+                        st.session_state["guests_selected_name"] = name
+                        st.session_state["guest_detail_edit_mode"] = False
+                        st.session_state["open_guests_detail"] = True
+                        st.rerun()
+                with col_info:
+                    if info_by_name.get(name) and st.button("ℹ️", key=f"guest_info_btn_{idx}", use_container_width=True):
+                        if name in info_abiertos:
+                            info_abiertos.discard(name)
+                        else:
+                            info_abiertos.add(name)
+                        st.rerun()
+
+                if name in info_abiertos and info_by_name.get(name):
+                    st.markdown(
+                        f"<div style='background:#0a0a0a;border:1px solid #00e5ff55;border-radius:6px;"
+                        f"padding:10px 12px;margin:2px 0 8px;color:#dfeff8;font-size:12.5px;font-weight:700;"
+                        f"white-space:pre-wrap;'>{safe_text(info_by_name[name])}</div>",
+                        unsafe_allow_html=True,
+                    )
 
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     if st.button("Cerrar", use_container_width=True, key="close_guests_dialog"):
+        st.session_state["guests_info_open"] = set()
         st.rerun()
 
 
