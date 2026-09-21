@@ -251,8 +251,7 @@ st.markdown(
         .clock { display:none; }
     }
     /* Borde cyan intenso alrededor de TODOS los popups (st.dialog) */
-    div[data-testid="stDialog"] div[role="dialog"],
-    div[role="dialog"][aria-modal="true"] {
+    div[data-testid="stDialog"] > div:first-child {
         border: 2px solid #00e5ff !important;
         border-radius: 14px !important;
         box-shadow: 0 0 18px rgba(0,229,255,.65), 0 0 40px rgba(0,229,255,.25) !important;
