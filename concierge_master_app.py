@@ -728,6 +728,33 @@ def eliminar_reminder(reminder_id: object) -> None:
     st.cache_data.clear()
 
 
+def reminders_tiene_contenido() -> bool:
+    """True si hay al menos un reminder con actividad (texto) guardado."""
+    df = cargar_reminders()
+    if df.empty or "activity" not in df.columns:
+        return False
+    return df["activity"].astype(str).str.strip().ne("").any()
+
+
+def limpiar_reminders_vencidos() -> None:
+    """Borra automáticamente los reminders cuyo Due Date ya pasó (antes de hoy)."""
+    df = cargar_reminders()
+    if df.empty or "due_date" not in df.columns or "id" not in df.columns:
+        return
+    hoy = datetime.today().date()
+    vencidos = []
+    for _, row in df.iterrows():
+        due = parse_fecha(row.get("due_date"))
+        if due is None:
+            continue
+        due_date_only = due.date() if isinstance(due, datetime) else due
+        if due_date_only < hoy:
+            vencidos.append(row.get("id"))
+    if vencidos:
+        supabase.table(REMINDERS_TABLE).delete().in_("id", vencidos).execute()
+        st.cache_data.clear()
+
+
 # -----------------------------------------------------------------------------
 # Directorio Telefónico (tabla `directorio_personal`)  -  Supabase CRUD
 # -----------------------------------------------------------------------------
@@ -928,6 +955,12 @@ def eliminar_pending_todo() -> None:
     if ids:
         supabase.table(PENDING_TABLE).delete().in_("id", ids).execute()
     st.cache_data.clear()
+
+
+def pending_tiene_contenido() -> bool:
+    """True si alguna de las 15 líneas del Pending tiene texto."""
+    data = cargar_pending()
+    return any((v.get("contenido") or "").strip() for v in data.values())
 
 
 # -----------------------------------------------------------------------------
@@ -1203,6 +1236,25 @@ def show_header() -> None:
             """,
             unsafe_allow_html=True,
         )
+        if reminders_tiene_contenido():
+            st.markdown(
+                """
+                <style>
+                .st-key-header_reminders_btn button {
+                    background: linear-gradient(135deg,#B91C1C,#FF1744) !important;
+                    color:#ffffff !important;
+                    border:1px solid rgba(255,23,68,.7) !important;
+                    box-shadow:0 0 14px rgba(255,23,68,.55) !important;
+                    animation: reminderPulse 1.6s ease-in-out infinite;
+                }
+                @keyframes reminderPulse {
+                    0%, 100% { box-shadow:0 0 10px rgba(255,23,68,.45); }
+                    50% { box-shadow:0 0 20px rgba(255,23,68,.85); }
+                }
+                </style>
+                """,
+                unsafe_allow_html=True,
+            )
         with st.container(key="header_center_btns"):
             btn_col1, btn_col2, btn_col3 = st.columns(3)
             with btn_col1:
@@ -4011,6 +4063,16 @@ def vip_candidates_dialog() -> None:
 
 
 def render_dashboard(df: pd.DataFrame) -> None:
+    # Borra automáticamente los reminders cuyo Due Date ya pasó (una vez por
+    # día por sesión, para no golpear Supabase en cada rerun).
+    _hoy_iso = datetime.today().date().isoformat()
+    if st.session_state.get("reminders_cleanup_date") != _hoy_iso:
+        try:
+            limpiar_reminders_vencidos()
+        except Exception:
+            pass
+        st.session_state["reminders_cleanup_date"] = _hoy_iso
+
     vip_count = int(df["info"].fillna("").astype(str).str.upper().str.contains("VIP", na=False).sum())
     relaxury_count = int(df.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
     nights_count = int(pd.to_numeric(df["nights"], errors="coerce").fillna(0).sum())
@@ -4147,6 +4209,25 @@ def render_dashboard(df: pd.DataFrame) -> None:
         """,
         unsafe_allow_html=True,
     )
+    if pending_tiene_contenido():
+        st.markdown(
+            """
+            <style>
+            .st-key-btn_pending button {
+                background: linear-gradient(135deg,#B91C1C,#FF1744) !important;
+                color:#ffffff !important;
+                border:1px solid rgba(255,23,68,.7) !important;
+                box-shadow:0 0 14px rgba(255,23,68,.55) !important;
+                animation: pendingPulse 1.6s ease-in-out infinite;
+            }
+            @keyframes pendingPulse {
+                0%, 100% { box-shadow:0 0 10px rgba(255,23,68,.45); }
+                50% { box-shadow:0 0 20px rgba(255,23,68,.85); }
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
     vip_col, guests_col, pending_col = st.columns(3)
     with vip_col:
         with st.container(key="btn_vip_candidates"):
