@@ -742,6 +742,14 @@ def reminders_tiene_contenido() -> bool:
     return df["activity"].astype(str).str.strip().ne("").any()
 
 
+def reminders_contar_activos() -> int:
+    """Cuenta cuántos reminders tienen actividad (texto) guardada."""
+    df = cargar_reminders()
+    if df.empty or "activity" not in df.columns:
+        return 0
+    return int(df["activity"].astype(str).str.strip().ne("").sum())
+
+
 def limpiar_reminders_vencidos() -> None:
     """Borra automáticamente los reminders cuyo Due Date ya pasó (antes de hoy)."""
     df = cargar_reminders()
@@ -967,6 +975,12 @@ def pending_tiene_contenido() -> bool:
     """True si alguna de las 15 líneas del Pending tiene texto."""
     data = cargar_pending()
     return any((v.get("contenido") or "").strip() for v in data.values())
+
+
+def pending_contar_lineas() -> int:
+    """Cuenta cuántas de las 15 líneas del Pending tienen texto."""
+    data = cargar_pending()
+    return sum(1 for v in data.values() if (v.get("contenido") or "").strip())
 
 
 # -----------------------------------------------------------------------------
@@ -1274,8 +1288,12 @@ def show_header() -> None:
                         st.rerun()
             with btn_col2:
                 with st.container(key="header_reminders_btn"):
+                    _reminders_count = reminders_contar_activos()
+                    _reminders_label = (
+                        f"🔔 Reminders  {_reminders_count}" if _reminders_count > 0 else "🔔 Reminders"
+                    )
                     if st.button(
-                        "🔔 Reminders",
+                        _reminders_label,
                         key="btn_header_reminders",
                         use_container_width=True,
                     ):
@@ -4249,7 +4267,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 st.rerun()
     with pending_col:
         with st.container(key="btn_pending"):
-            if st.button("📌 PENDING", use_container_width=True, key="do_open_pending"):
+            _pending_count = pending_contar_lineas()
+            _pending_label = f"📌 PENDING  {_pending_count}" if _pending_count > 0 else "📌 PENDING"
+            if st.button(_pending_label, use_container_width=True, key="do_open_pending"):
                 st.session_state["open_pending"] = True
                 st.query_params["skip_splash"] = "1"
                 st.rerun()
