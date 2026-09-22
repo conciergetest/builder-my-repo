@@ -160,7 +160,7 @@ QUICK_LINKS = [
     ),
     (
         "OUTLOOK-RES",
-        "https://outlook.cloud.microsoft/mail/Lirgu.conciergeresidencias@waldorfasroria.com/",
+        "https://outlook.cloud.microsoft/mail/LIRGU.ConciergeResidencias@waldorfastoria.com/",
         "#7C3AED",
     ),
     ("RELAXURY", "https://relaxury.agilesd.com/", "#DB2777"),
