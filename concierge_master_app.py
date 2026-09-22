@@ -158,6 +158,11 @@ QUICK_LINKS = [
         "https://outlook.cloud.microsoft/mail/personalconcierge.costarica@waldorfastoria.com/",
         "#0078D4",
     ),
+    (
+        "OUTLOOK-RES",
+        "mailto:Lirgu.conciergeresidencias@waldorfasroria.com",
+        "#7C3AED",
+    ),
     ("RELAXURY", "https://relaxury.agilesd.com/", "#DB2777"),
 ]
 
@@ -1475,7 +1480,10 @@ def render_menu() -> None:
         l7, l8, l9 = st.columns(3)
         l7.markdown(f'<a href="{html.escape(QUICK_LINKS[6][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#60a5fa;">OUTLOOK-FW</a>', unsafe_allow_html=True)
         l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
-        l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
+        l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#c4b5fd;">OUTLOOK-RES</a>', unsafe_allow_html=True)
+
+        l10, _l11, _l12 = st.columns(3)
+        l10.markdown(f'<a href="{html.escape(QUICK_LINKS[9][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
 
         st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1a1a1a;text-align:center;color:#4a5a6a;font-size:10px;'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
 
@@ -3237,31 +3245,55 @@ def pending_dialog() -> None:
                 st.rerun()
 
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    if c1.button("💾 GUARDAR TODO", use_container_width=True, type="primary", key="pending_save_all"):
-        try:
-            for numero in range(1, PENDING_LINES + 1):
-                texto = st.session_state.get(f"pending_line_{numero}_{nonce}", "")
-                guardar_pending_linea(numero, texto)
-            st.session_state["pending_nonce"] = nonce + 1
-            st.success("Pending guardado correctamente.")
-        except Exception as exc:
-            st.error(f"No se pudo guardar: {exc}")
-        st.session_state["open_pending"] = True
-        st.rerun()
-    if c2.button("🗑 BORRAR TODO", use_container_width=True, key="pending_delete_all"):
-        try:
-            eliminar_pending_todo()
-            for numero in range(1, PENDING_LINES + 1):
-                st.session_state.pop(f"pending_line_{numero}_{nonce}", None)
-            st.session_state["pending_nonce"] = nonce + 1
-            st.success("Pending vaciado.")
-        except Exception as exc:
-            st.error(f"No se pudo vaciar: {exc}")
-        st.session_state["open_pending"] = True
-        st.rerun()
-    if c3.button("CERRAR", use_container_width=True, key="pending_close"):
-        st.rerun()
+
+    if st.session_state.get("pending_confirm_delete_all"):
+        st.warning("Se borrarán permanentemente las 15 líneas del Pending. Ingresa la clave de autorización para confirmar.")
+        with st.form("pending_delete_all_form"):
+            pending_password = st.text_input("Clave de autorización", type="password", key="pending_delete_all_password")
+            fc1, fc2 = st.columns(2)
+            confirmar = fc1.form_submit_button("CONFIRMAR Y BORRAR", type="primary", use_container_width=True)
+            cancelar = fc2.form_submit_button("Cancelar", use_container_width=True)
+        if confirmar:
+            expected_password = st.secrets.get("DELETE_PASSWORD", "")
+            if not expected_password:
+                st.error("Configura `DELETE_PASSWORD` en los Secrets antes de habilitar el borrado.")
+            elif pending_password != expected_password:
+                st.error("Clave incorrecta.")
+            else:
+                try:
+                    eliminar_pending_todo()
+                    for numero in range(1, PENDING_LINES + 1):
+                        st.session_state.pop(f"pending_line_{numero}_{nonce}", None)
+                    st.session_state["pending_nonce"] = nonce + 1
+                    st.session_state.pop("pending_confirm_delete_all", None)
+                    st.success("Pending vaciado.")
+                except Exception as exc:
+                    st.error(f"No se pudo vaciar: {exc}")
+                st.session_state["open_pending"] = True
+                st.rerun()
+        if cancelar:
+            st.session_state.pop("pending_confirm_delete_all", None)
+            st.session_state["open_pending"] = True
+            st.rerun()
+    else:
+        c1, c2, c3 = st.columns(3)
+        if c1.button("💾 GUARDAR TODO", use_container_width=True, type="primary", key="pending_save_all"):
+            try:
+                for numero in range(1, PENDING_LINES + 1):
+                    texto = st.session_state.get(f"pending_line_{numero}_{nonce}", "")
+                    guardar_pending_linea(numero, texto)
+                st.session_state["pending_nonce"] = nonce + 1
+                st.success("Pending guardado correctamente.")
+            except Exception as exc:
+                st.error(f"No se pudo guardar: {exc}")
+            st.session_state["open_pending"] = True
+            st.rerun()
+        if c2.button("🗑 BORRAR TODO", use_container_width=True, key="pending_delete_all"):
+            st.session_state["pending_confirm_delete_all"] = True
+            st.session_state["open_pending"] = True
+            st.rerun()
+        if c3.button("CERRAR", use_container_width=True, key="pending_close"):
+            st.rerun()
 
 
 def render_calculator() -> None:
