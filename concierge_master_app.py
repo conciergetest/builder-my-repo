@@ -3960,6 +3960,8 @@ VIP_LEVELS = {
 # "DIAMOND" del nivel 4.
 _VIP_KEYWORDS: list[tuple[int, str, tuple[str, ...]]] = [
     (1, "Owner", ("OWNER",)),
+    (1, "Inspirato", ("INSPIRATO",)),
+    (1, "Centurion", ("CENTURION",)),
     (2, "Diamond Reserve", ("DIAMOND RESERVE",)),
     (3, "Lifetime Diamond", ("LIFETIME DIAMOND",)),
     (3, "Amigo de dueño", ("OWNER'S FRIEND", "OWNERS FRIEND", "FRIEND OF OWNER", "AMIGO DEL DUEÑO", "AMIGO DE DUENO")),
