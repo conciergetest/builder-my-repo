@@ -231,6 +231,9 @@ st.markdown(
     .category-card-head { display:flex; justify-content:space-between; gap:5px; color:var(--category-color); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.4px; }
     .category-card-track { height:4px; margin-top:7px; border-radius:3px; background:rgba(0,0,0,.25); overflow:hidden; }
     .category-card-fill { height:100%; border-radius:3px; background:var(--category-color); }
+    .st-key-category_chart_panel { background:transparent !important; border:0 !important; padding:0 !important; }
+    .st-key-category_chart_panel [data-testid="stVerticalBlock"] { gap:.22rem !important; }
+    .category-chart-title { color:#00e5ff; font-size:10px; font-weight:900; letter-spacing:.7px; text-transform:uppercase; margin:0 0 5px 1px; }
     .category-row { display:flex; align-items:center; gap:8px; margin:6px 0; }
     .category-label { color:#b9cad8; font-size:10px; width:92px; text-align:right; white-space:nowrap; }
     .category-track { flex:1; height:13px; background:#111111; border-radius:5px; overflow:hidden; }
@@ -1591,53 +1594,56 @@ def render_category_chart(df: pd.DataFrame) -> None:
     # tiene su propia barra debajo).
     chart_categories = {k: v for k, v in CATEGORY_CHART_COLORS.items() if k != "RELAXURY"}
 
-    st.markdown('<div class="panel"><div class="panel-title">Guest categories</div>', unsafe_allow_html=True)
+    with st.container(key="category_chart_panel"):
+        st.markdown('<div class="category-chart-title">Guest categories</div>', unsafe_allow_html=True)
 
-    counts: dict[str, int] = {}
-    for category in chart_categories:
-        counts[category] = int(category_match_mask(df, category).sum())
-    max_count = max(counts.values()) if counts and max(counts.values()) > 0 else 1
+        counts: dict[str, int] = {}
+        for category in chart_categories:
+            counts[category] = int(category_match_mask(df, category).sum())
+        max_count = max(counts.values()) if counts and max(counts.values()) > 0 else 1
 
-    items = list(chart_categories.items())
-    row1 = st.columns(4)
-    row2 = st.columns(3)
-    slots = list(row1) + list(row2)
+        items = list(chart_categories.items())
+        # Ocho slots iguales dejan la segunda fila alineada con la primera.
+        # El octavo slot queda vacío porque actualmente hay siete categorías.
+        row1 = st.columns(4, gap="small")
+        row2 = st.columns(4, gap="small")
+        slots = list(row1) + list(row2)
 
-    style_rules = []
-    for (category, color), col in zip(items, slots):
-        slug = re.sub(r"[^A-Z0-9]+", "_", category.upper())
-        count = counts[category]
-        pct = max(4, min(100, round(count / max_count * 100)))
-        with col:
-            with st.container(key=f"catcard_{slug}"):
-                st.markdown(
-                    f'<div class="category-card" style="--category-color:{color};background:{color}14;border:1px solid {color}40;">'
-                    f'<div class="category-card-head"><span>{category}</span><span style="padding-right:22px">{count}</span></div>'
-                    f'<div class="category-card-track"><div class="category-card-fill" style="width:{pct}%;"></div></div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-                clicked = st.button("📊", key=f"do_open_cat_{slug}")
-            if clicked:
-                st.session_state["category_detail_name"] = category
-                st.session_state["open_category_detail"] = True
-                st.query_params["skip_splash"] = "1"
-                st.rerun()
-        style_rules.append(
-            f'.st-key-catcard_{slug} {{ position:relative !important; }}'
-            f'.st-key-do_open_cat_{slug} {{'
-            f' position:absolute !important; top:6px !important; right:9px !important;'
-            f' width:20px !important; height:20px !important; z-index:5 !important; margin:0 !important;}}'
-            f'.st-key-do_open_cat_{slug} button {{'
-            f' width:20px !important; height:20px !important; min-height:20px !important; padding:0 !important;'
-            f' background:transparent !important; border:none !important; color:{color} !important;'
-            f' font-size:11px !important; line-height:1 !important; box-shadow:none !important;}}'
-            f'.st-key-do_open_cat_{slug} button:hover {{'
-            f' background:{color}33 !important; border-radius:5px !important;}}'
-            f'.st-key-do_open_cat_{slug} [data-testid="stTooltipIcon"] {{ display:none !important; }}'
-        )
-    st.markdown("<style>" + "".join(style_rules) + "</style>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+        style_rules = []
+        for (category, color), col in zip(items, slots):
+            slug = re.sub(r"[^A-Z0-9]+", "_", category.upper())
+            count = counts[category]
+            pct = max(4, min(100, round(count / max_count * 100)))
+            with col:
+                with st.container(key=f"catcard_{slug}"):
+                    st.markdown(
+                        f'<div class="category-card" style="--category-color:{color};background:{color}14;border:1px solid {color}40;">'
+                        f'<div class="category-card-head"><span>{category}</span><span style="padding-right:22px">{count}</span></div>'
+                        f'<div class="category-card-track"><div class="category-card-fill" style="width:{pct}%;"></div></div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    clicked = st.button("📊", key=f"do_open_cat_{slug}")
+                if clicked:
+                    st.session_state["category_detail_name"] = category
+                    st.session_state["open_category_detail"] = True
+                    st.query_params["skip_splash"] = "1"
+                    st.rerun()
+            style_rules.append(
+                f'.st-key-catcard_{slug} {{ position:relative !important; min-height:54px !important; }}'
+                f'.st-key-catcard_{slug} [data-testid="stVerticalBlock"] {{ gap:0 !important; }}'
+                f'.st-key-do_open_cat_{slug} {{'
+                f' position:absolute !important; top:6px !important; right:9px !important;'
+                f' width:20px !important; height:20px !important; z-index:5 !important; margin:0 !important;}}'
+                f'.st-key-do_open_cat_{slug} button {{'
+                f' width:20px !important; height:20px !important; min-height:20px !important; padding:0 !important;'
+                f' background:transparent !important; border:none !important; color:{color} !important;'
+                f' font-size:11px !important; line-height:1 !important; box-shadow:none !important;}}'
+                f'.st-key-do_open_cat_{slug} button:hover {{'
+                f' background:{color}33 !important; border-radius:5px !important;}}'
+                f'.st-key-do_open_cat_{slug} [data-testid="stTooltipIcon"] {{ display:none !important; }}'
+            )
+        st.markdown("<style>" + "".join(style_rules) + "</style>", unsafe_allow_html=True)
 
 
 # -----------------------------------------------------------------------------
