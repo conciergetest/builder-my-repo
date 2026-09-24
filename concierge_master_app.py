@@ -1,4 +1,4 @@
-""Concierge Master — Streamlit + Supabase.
+"""Concierge Master — Streamlit + Supabase.
 
 Instalación:
     pip install -r requirements_streamlit.txt
@@ -1545,99 +1545,43 @@ def apply_filters(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
     return result, filters
 
 
-# Categorías del panel "Guest categories" (incluye RELAXURY, que tiene su
-# propia barra debajo del grid pero comparte la misma lógica de click).
-CATEGORY_CHART_COLORS: dict[str, str] = {
-    "VIP": "#00E5FF",
-    "BIRTHDAY": "#FF5252",
-    "HONEYMOON": "#FF9800",
-    "BABYMOON": "#A78BFA",
-    "ANNIVERSARY": "#4ADE80",
-    "TEAM MEMBER": "#FACC15",
-    "LEISURE": "#22D3EE",
-    "RELAXURY": "#F472B6",
-}
-
-# Categorías especiales que "consumen" una reserva (todas menos LEISURE, que
-# es la categoría "sobrante": todo lo que no calzó con ninguna otra).
-_SPECIAL_CATEGORIES = ["VIP", "BIRTHDAY", "HONEYMOON", "BABYMOON", "ANNIVERSARY", "RELAXURY", "TEAM MEMBER"]
-
-
-def category_match_mask(df: pd.DataFrame, category: str) -> pd.Series:
-    """Devuelve la máscara booleana de las filas de `df` que pertenecen a
-    `category`, con la misma lógica usada para contar en el panel de
-    Guest categories — así el popup de detalle siempre calza con el número
-    mostrado en la tarjeta."""
-    if df.empty:
-        return pd.Series([], dtype=bool)
-
-    info = df["info"].fillna("").astype(str).str.upper() if "info" in df.columns else pd.Series([""] * len(df), index=df.index)
-
-    if category == "LEISURE":
-        has_special = info.apply(lambda text: any(cat in text for cat in _SPECIAL_CATEGORIES) if pd.notna(text) else False)
-        has_special = has_special.fillna(False).astype(bool)
-        return ~has_special
-
-    if category == "RELAXURY":
-        # RELAXURY puede aparecer en cualquier columna (no solo INFORMATION),
-        # igual que el conteo ya usado en el dashboard y la tira inferior.
-        return df.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1)
-
-    return info.str.contains(category, na=False)
-
-
 def render_category_chart(df: pd.DataFrame) -> None:
-    # Categorías que se muestran en el grid (RELAXURY se excluye de aquí;
-    # tiene su propia barra debajo).
-    chart_categories = {k: v for k, v in CATEGORY_CHART_COLORS.items() if k != "RELAXURY"}
+    info = df["info"].fillna("").astype(str).str.upper() if "info" in df.columns else pd.Series(dtype=str)
+    cards = []
 
-    st.markdown('<div class="panel"><div class="panel-title">Guest categories</div>', unsafe_allow_html=True)
+    # Categorías que se muestran en el gráfico (RELAXURY se excluye; tiene su propia barra debajo)
+    chart_categories = {
+        "VIP": "#00E5FF",
+        "BIRTHDAY": "#FF5252",
+        "HONEYMOON": "#FF9800",
+        "BABYMOON": "#A78BFA",
+        "ANNIVERSARY": "#4ADE80",
+        "TEAM MEMBER": "#FACC15",
+        "LEISURE": "#22D3EE",
+    }
 
-    counts: dict[str, int] = {}
-    for category in chart_categories:
-        counts[category] = int(category_match_mask(df, category).sum())
-    max_count = max(counts.values()) if counts and max(counts.values()) > 0 else 1
+    # Categorías especiales que "consumen" una reserva (excluyendo LEISURE)
+    special_categories = ["VIP", "BIRTHDAY", "HONEYMOON", "BABYMOON", "ANNIVERSARY", "RELAXURY", "TEAM MEMBER"]
+    has_special = info.apply(lambda text: any(cat in text for cat in special_categories) if pd.notna(text) else False)
+    # Asegurar tipo bool para evitar ValueError con operador ~ en Series vacías
+    has_special = has_special.fillna(False).astype(bool)
 
-    items = list(chart_categories.items())
-    row1 = st.columns(4)
-    row2 = st.columns(3)
-    slots = list(row1) + list(row2)
-
-    style_rules = []
-    for (category, color), col in zip(items, slots):
-        slug = re.sub(r"[^A-Z0-9]+", "_", category.upper())
-        count = counts[category]
-        pct = max(4, min(100, round(count / max_count * 100)))
-        with col:
-            with st.container(key=f"catcard_{slug}"):
-                st.markdown(
-                    f'<div class="category-card" style="--category-color:{color};background:{color}14;border:1px solid {color}40;">'
-                    f'<div class="category-card-head"><span>{category}</span><span style="padding-right:22px">{count}</span></div>'
-                    f'<div class="category-card-track"><div class="category-card-fill" style="width:{pct}%;"></div></div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-                clicked = st.button("📊", key=f"do_open_cat_{slug}")
-            if clicked:
-                st.session_state["category_detail_name"] = category
-                st.session_state["open_category_detail"] = True
-                st.query_params["skip_splash"] = "1"
-                st.rerun()
-        style_rules.append(
-            f'.st-key-catcard_{slug} {{ position:relative !important; }}'
-            f'.st-key-do_open_cat_{slug} {{'
-            f' position:absolute !important; top:6px !important; right:9px !important;'
-            f' width:20px !important; height:20px !important; z-index:5 !important; margin:0 !important;}}'
-            f'.st-key-do_open_cat_{slug} button {{'
-            f' width:20px !important; height:20px !important; min-height:20px !important; padding:0 !important;'
-            f' background:transparent !important; border:none !important; color:{color} !important;'
-            f' font-size:11px !important; line-height:1 !important; box-shadow:none !important;}}'
-            f'.st-key-do_open_cat_{slug} button:hover {{'
-            f' background:{color}33 !important; border-radius:5px !important;}}'
-            f'.st-key-do_open_cat_{slug} [data-testid="stTooltipIcon"] {{ display:none !important; }}'
+    for category, color in chart_categories.items():
+        if category == "LEISURE":
+            count = int((~has_special).sum())
+        else:
+            count = int(info.str.contains(category, na=False).sum())
+        width = count / max(len(df), 1) * 100
+        cards.append(
+            f'<div class="category-card" style="--category-color:{color};background:{color}22">'
+            f'<div class="category-card-head"><span>{category}</span><span>{count}</span></div>'
+            f'<div class="category-card-track"><div class="category-card-fill" style="width:{width:.1f}%"></div></div></div>'
         )
-    st.markdown("<style>" + "".join(style_rules) + "</style>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown(
+        '<div class="panel"><div class="panel-title">Guest categories</div>'
+        '<div class="category-grid">' + "".join(cards) + '</div></div>',
+        unsafe_allow_html=True,
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -4176,96 +4120,6 @@ def vip_candidates_dialog() -> None:
         st.rerun()
 
 
-@st.dialog("Categoría", width="large")
-def category_detail_dialog() -> None:
-    """Popup: muestra las reservas de la tabla actualmente filtrada que
-    pertenecen a la categoría en la que se hizo click (VIP, BIRTHDAY,
-    HONEYMOON, BABYMOON, ANNIVERSARY, TEAM MEMBER, LEISURE o RELAXURY)."""
-    category = st.session_state.get("category_detail_name", "")
-    color = CATEGORY_CHART_COLORS.get(category, "#00E5FF")
-
-    df = cargar_reservaciones()
-    filtered, filters = apply_filters(df)
-
-    st.markdown(
-        f"<div style='color:{color};font-size:16px;font-weight:900;letter-spacing:.6px;"
-        f"text-transform:uppercase;margin-bottom:2px;'>{safe_text(category)}</div>",
-        unsafe_allow_html=True,
-    )
-
-    if filters:
-        captions = []
-        if "checkout" in filters:
-            captions.append("Check-out: " + safe_text(filters["checkout"]))
-        if "arrival" in filters:
-            captions.append("Check-in: " + safe_text(filters["arrival"]))
-        if "search" in filters:
-            captions.append("Búsqueda: " + safe_text(filters["search"]))
-        st.markdown(
-            "<div style='color:#8ca4ba;font-size:11px;margin-bottom:8px;'>Reservas filtradas — "
-            + " | ".join(captions) + "</div>",
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(
-            "<div style='color:#8ca4ba;font-size:11px;margin-bottom:8px;'>Todas las reservas "
-            "(no hay filtro de fecha/checkout/búsqueda activo).</div>",
-            unsafe_allow_html=True,
-        )
-
-    mask = category_match_mask(filtered, category)
-    rows = filtered[mask] if len(mask) else filtered.iloc[0:0]
-
-    if rows.empty:
-        st.info(f"No hay reservas de {category} en la tabla actual.")
-    else:
-        st.markdown(
-            f"<div style='color:{color};font-size:12px;font-weight:800;margin:6px 0 10px;'>"
-            f"{len(rows)} reserva(s) de {safe_text(category)}</div>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            """
-            <style>
-            .cat-det-row {
-                display:grid; grid-template-columns: .8fr 1.6fr .8fr 1fr 1fr 1.3fr 2.2fr;
-                gap:10px; padding:8px 10px; border-bottom:1px solid #141414; align-items:center;
-            }
-            .cat-det-row.head {
-                color:var(--cat-color); font-size:9px; font-weight:800; letter-spacing:1px;
-                text-transform:uppercase; border-bottom:1px solid #1a1a1a;
-            }
-            .cat-det-row .cell { color:#dfeff8; font-size:12px; overflow:hidden; text-overflow:ellipsis; }
-            .cat-det-row .info { color:#8ca4ba; font-size:10.5px; white-space:normal; }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f"<div class='cat-det-row head' style='--cat-color:{color}'><div>ETA</div><div>NOMBRE</div>"
-            "<div>ROOM</div><div>CHECK-IN</div><div>CHECK-OUT</div><div>PHONE</div><div>INFORMATION</div></div>",
-            unsafe_allow_html=True,
-        )
-        with st.container(height=420):
-            for _, row in rows.iterrows():
-                st.markdown(
-                    "<div class='cat-det-row'>"
-                    f"<div class='cell'>{safe_text(row.get('eta', ''))}</div>"
-                    f"<div class='cell' style='color:{color};font-weight:700;'>{safe_text(row.get('name', ''))}</div>"
-                    f"<div class='cell'>{safe_text(row.get('room', ''))}</div>"
-                    f"<div class='cell'>{safe_text(row.get('check_in', ''))}</div>"
-                    f"<div class='cell'>{safe_text(row.get('check_out', ''))}</div>"
-                    f"<div class='cell'>{safe_text(row.get('phone', ''))}</div>"
-                    f"<div class='cell info'>{safe_text(row.get('info', ''))}</div>"
-                    "</div>",
-                    unsafe_allow_html=True,
-                )
-
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-    if st.button("Cerrar", use_container_width=True, key="close_category_detail_dialog"):
-        st.rerun()
-
-
 def render_dashboard(df: pd.DataFrame) -> None:
     # Borra automáticamente los reminders cuyo Due Date ya pasó (una vez por
     # día por sesión, para no golpear Supabase en cada rerun).
@@ -4337,39 +4191,8 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with right:
         render_category_chart(filtered)
-        relaxury = int(category_match_mask(filtered, "RELAXURY").sum())
-        with st.container(key="catbtn_RELAXURY_strip"):
-            st.markdown(
-                f'<div class="total-strip" style="border-color:#f472b6;padding-right:34px">'
-                f'RELAXURY <strong style="color:#f472b6">{relaxury}</strong></div>',
-                unsafe_allow_html=True,
-            )
-            if st.button("📊", key="do_open_cat_RELAXURY_strip"):
-                st.session_state["category_detail_name"] = "RELAXURY"
-                st.session_state["open_category_detail"] = True
-                st.query_params["skip_splash"] = "1"
-                st.rerun()
-        st.markdown(
-            """
-            <style>
-            .st-key-catbtn_RELAXURY_strip { position:relative !important; }
-            .st-key-do_open_cat_RELAXURY_strip {
-                position:absolute !important; top:6px !important; right:10px !important;
-                width:20px !important; height:20px !important; z-index:5 !important; margin:0 !important;
-            }
-            .st-key-do_open_cat_RELAXURY_strip button {
-                width:20px !important; height:20px !important; min-height:20px !important; padding:0 !important;
-                background:transparent !important; border:none !important; color:#f472b6 !important;
-                font-size:11px !important; line-height:1 !important; box-shadow:none !important;
-            }
-            .st-key-do_open_cat_RELAXURY_strip button:hover {
-                background:#f472b633 !important; border-radius:5px !important;
-            }
-            .st-key-do_open_cat_RELAXURY_strip [data-testid="stTooltipIcon"] { display:none !important; }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
+        relaxury = int(filtered.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
+        st.markdown(f'<div class="total-strip" style="border-color:#f472b6">RELAXURY <strong style="color:#f472b6">{relaxury}</strong></div>', unsafe_allow_html=True)
         render_app_links()
 
 
@@ -4700,11 +4523,6 @@ if st.session_state.pop("open_directorio_import", False):
 # Auto-abrir el popup de posibles VIP (analiza el filtro actual)
 if st.session_state.pop("open_vip_candidates", False):
     vip_candidates_dialog()
-
-# Auto-abrir el popup de detalle de categoría (click en VIP/BIRTHDAY/
-# HONEYMOON/BABYMOON/ANNIVERSARY/TEAM MEMBER/LEISURE/RELAXURY en el gráfico)
-if st.session_state.pop("open_category_detail", False):
-    category_detail_dialog()
 
 # Auto-abrir los popups de Huéspedes (lista + ficha de contacto extra).
 # Nunca deben abrirse los dos en el mismo ciclo (Streamlit no permite
