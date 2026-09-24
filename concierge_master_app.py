@@ -2097,13 +2097,82 @@ def _report_body(df: pd.DataFrame, context: str = "page") -> None:
     for column, (label, frame) in zip(metrics, report_data.items()):
         column.metric(label, len(frame))
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-    st.dataframe(
-        pd.DataFrame([
-            {"Categoría": label, "Reservas": len(frame), "Habitaciones": ", ".join(frame["room"].dropna().astype(str).tolist()) or "—"}
-            for label, frame in report_data.items()
-        ]),
-        use_container_width=True,
-        hide_index=True,
+    report_rows = []
+    for label, frame in report_data.items():
+        guest_chips = []
+        for _, guest in frame.iterrows():
+            room_value = guest.get("room", "")
+            name_value = guest.get("name", "")
+            room = "" if room_value is None or pd.isna(room_value) else str(room_value).strip()
+            name = "" if name_value is None or pd.isna(name_value) else str(name_value).strip()
+            room_label = safe_text(room or "SIN ROOM")
+            name_label = safe_text(name or "SIN NOMBRE")
+            guest_chips.append(
+                f"<div class='report-guest-chip'>"
+                f"<span class='report-room-label'>ROOM {room_label}</span>"
+                f"<span class='report-name-label'>{name_label}</span>"
+                f"</div>"
+            )
+        guests_html = "".join(guest_chips) or (
+            "<span class='report-empty'>No hay huéspedes en esta categoría</span>"
+        )
+        report_rows.append(
+            f"<div class='report-data-row'>"
+            f"<div class='report-category'>{safe_text(label)}</div>"
+            f"<div class='report-count'>{len(frame)}</div>"
+            f"<div class='report-guest-list'>{guests_html}</div>"
+            f"</div>"
+        )
+
+    st.markdown(
+        """
+        <style>
+        .occupancy-report-table {
+            border:1px solid #252a35; border-radius:9px; overflow:hidden;
+            background:#0b0d12; margin-bottom:10px;
+        }
+        .report-header-row, .report-data-row {
+            display:grid; grid-template-columns:1.05fr .55fr 3.25fr;
+            align-items:center; column-gap:12px;
+        }
+        .report-header-row {
+            padding:8px 11px; background:#171a22; color:#8ca4ba;
+            font-size:10px; font-weight:900; letter-spacing:.55px; text-transform:uppercase;
+        }
+        .report-data-row {
+            min-height:48px; padding:8px 11px; border-top:1px solid #1a1d25;
+        }
+        .report-category { color:#e6f7ff; font-size:12px; font-weight:800; }
+        .report-count { color:#00e5ff; font-size:14px; font-weight:900; text-align:center; }
+        .report-guest-list { display:flex; flex-wrap:wrap; gap:5px; min-width:0; }
+        .report-guest-chip {
+            display:inline-flex; align-items:center; gap:6px; max-width:100%;
+            padding:4px 8px; border:1px solid #263342; border-radius:6px;
+            background:#101722; color:#dfeff8; font-size:11px; line-height:1.2;
+        }
+        .report-room-label {
+            color:#00e5ff; font-size:9px; font-weight:900; letter-spacing:.35px;
+            white-space:nowrap;
+        }
+        .report-name-label {
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+        }
+        .report-empty { color:#657789; font-size:11px; font-style:italic; }
+        @media (max-width: 760px) {
+            .report-header-row, .report-data-row {
+                grid-template-columns:.95fr .45fr 2fr; column-gap:7px; padding-left:7px; padding-right:7px;
+            }
+            .report-guest-chip { display:flex; width:100%; }
+        }
+        </style>
+        <div class="occupancy-report-table">
+            <div class="report-header-row">
+                <div>Categoría</div><div>Reservas</div><div>Guests / Habitaciones</div>
+            </div>
+        """
+        + "".join(report_rows)
+        + "</div>",
+        unsafe_allow_html=True,
     )
     st.download_button(
         "DESCARGAR REPORTE EXCEL",
