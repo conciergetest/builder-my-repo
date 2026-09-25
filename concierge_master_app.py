@@ -231,6 +231,9 @@ st.markdown(
     .category-card-head { display:flex; justify-content:space-between; gap:5px; color:var(--category-color); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.4px; }
     .category-card-track { height:4px; margin-top:7px; border-radius:3px; background:rgba(0,0,0,.25); overflow:hidden; }
     .category-card-fill { height:100%; border-radius:3px; background:var(--category-color); }
+    .st-key-category_chart_panel { background:transparent !important; border:0 !important; padding:0 !important; }
+    .st-key-category_chart_panel [data-testid="stVerticalBlock"] { gap:.22rem !important; }
+    .category-chart-title { color:#00e5ff; font-size:10px; font-weight:900; letter-spacing:.7px; text-transform:uppercase; margin:0 0 5px 1px; }
     .category-row { display:flex; align-items:center; gap:8px; margin:6px 0; }
     .category-label { color:#b9cad8; font-size:10px; width:92px; text-align:right; white-space:nowrap; }
     .category-track { flex:1; height:13px; background:#111111; border-radius:5px; overflow:hidden; }
@@ -1057,11 +1060,10 @@ def exportar_excel_categorias_safe(df: pd.DataFrame) -> BytesIO:
     sheet = workbook.active
     sheet.title = "Arrivals"
 
-    fill_section = PatternFill("solid", fgColor="8EA9DB")
-    fill_header = PatternFill("solid", fgColor="F8CBAD")
+    fill_section = PatternFill("solid", fgColor="00B0F0")
+    fill_header = PatternFill("solid", fgColor="123047")
     fill_data = PatternFill("solid", fgColor="F4F7F9")
-    section_font = Font(name="Calibri", size=14, bold=True, color="000000")
-    header_font = Font(name="Calibri", size=11, bold=True, color="000000")
+    white_bold = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
     black_font = Font(name="Calibri", size=10, color="000000")
     center = Alignment(horizontal="center", vertical="center", wrap_text=True)
     left = Alignment(horizontal="left", vertical="center", wrap_text=True)
@@ -1094,12 +1096,12 @@ def exportar_excel_categorias_safe(df: pd.DataFrame) -> BytesIO:
 
         sheet.merge_cells(start_row=row_number, start_column=1, end_row=row_number, end_column=len(export_columns))
         cell = sheet.cell(row=row_number, column=1, value=title)
-        cell.fill, cell.font, cell.alignment = fill_section, section_font, center
+        cell.fill, cell.font, cell.alignment = fill_section, white_bold, center
         row_number += 1
 
         for column_index, (_, heading) in enumerate(export_columns, 1):
             cell = sheet.cell(row=row_number, column=column_index, value=heading)
-            cell.fill, cell.font, cell.alignment, cell.border = fill_header, header_font, center, border
+            cell.fill, cell.font, cell.alignment, cell.border = fill_header, white_bold, center, border
         row_number += 1
 
         for _, data in rows.iterrows():
@@ -1592,53 +1594,56 @@ def render_category_chart(df: pd.DataFrame) -> None:
     # tiene su propia barra debajo).
     chart_categories = {k: v for k, v in CATEGORY_CHART_COLORS.items() if k != "RELAXURY"}
 
-    st.markdown('<div class="panel"><div class="panel-title">Guest categories</div>', unsafe_allow_html=True)
+    with st.container(key="category_chart_panel"):
+        st.markdown('<div class="category-chart-title">Guest categories</div>', unsafe_allow_html=True)
 
-    counts: dict[str, int] = {}
-    for category in chart_categories:
-        counts[category] = int(category_match_mask(df, category).sum())
-    max_count = max(counts.values()) if counts and max(counts.values()) > 0 else 1
+        counts: dict[str, int] = {}
+        for category in chart_categories:
+            counts[category] = int(category_match_mask(df, category).sum())
+        max_count = max(counts.values()) if counts and max(counts.values()) > 0 else 1
 
-    items = list(chart_categories.items())
-    row1 = st.columns(4)
-    row2 = st.columns(3)
-    slots = list(row1) + list(row2)
+        items = list(chart_categories.items())
+        # La primera fila usa cuatro columnas iguales. En la segunda,
+        # LEISURE ocupa el ancho de dos columnas, como en el diseño aprobado.
+        row1 = st.columns(4, gap="small")
+        row2 = st.columns([1, 1, 2], gap="small")
+        slots = list(row1) + list(row2)
 
-    style_rules = []
-    for (category, color), col in zip(items, slots):
-        slug = re.sub(r"[^A-Z0-9]+", "_", category.upper())
-        count = counts[category]
-        pct = max(4, min(100, round(count / max_count * 100)))
-        with col:
-            with st.container(key=f"catcard_{slug}"):
-                st.markdown(
-                    f'<div class="category-card" style="--category-color:{color};background:{color}14;border:1px solid {color}40;margin-bottom:12px;">'
-                    f'<div class="category-card-head"><span>{category}</span><span style="padding-right:22px">{count}</span></div>'
-                    f'<div class="category-card-track"><div class="category-card-fill" style="width:{pct}%;"></div></div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-                clicked = st.button("📊", key=f"do_open_cat_{slug}")
-            if clicked:
-                st.session_state["category_detail_name"] = category
-                st.session_state["open_category_detail"] = True
-                st.query_params["skip_splash"] = "1"
-                st.rerun()
-        style_rules.append(
-            f'.st-key-catcard_{slug} {{ position:relative !important; }}'
-            f'.st-key-do_open_cat_{slug} {{'
-            f' position:absolute !important; top:6px !important; right:9px !important;'
-            f' width:20px !important; height:20px !important; z-index:5 !important; margin:0 !important;}}'
-            f'.st-key-do_open_cat_{slug} button {{'
-            f' width:20px !important; height:20px !important; min-height:20px !important; padding:0 !important;'
-            f' background:transparent !important; border:none !important; color:{color} !important;'
-            f' font-size:11px !important; line-height:1 !important; box-shadow:none !important;}}'
-            f'.st-key-do_open_cat_{slug} button:hover {{'
-            f' background:{color}33 !important; border-radius:5px !important;}}'
-            f'.st-key-do_open_cat_{slug} [data-testid="stTooltipIcon"] {{ display:none !important; }}'
-        )
-    st.markdown("<style>" + "".join(style_rules) + "</style>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+        style_rules = []
+        for (category, color), col in zip(items, slots):
+            slug = re.sub(r"[^A-Z0-9]+", "_", category.upper())
+            count = counts[category]
+            pct = max(4, min(100, round(count / max_count * 100)))
+            with col:
+                with st.container(key=f"catcard_{slug}"):
+                    st.markdown(
+                        f'<div class="category-card" style="--category-color:{color};background:{color}14;border:1px solid {color}40;">'
+                        f'<div class="category-card-head"><span>{category}</span><span style="padding-right:22px">{count}</span></div>'
+                        f'<div class="category-card-track"><div class="category-card-fill" style="width:{pct}%;"></div></div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    clicked = st.button("📊", key=f"do_open_cat_{slug}")
+                if clicked:
+                    st.session_state["category_detail_name"] = category
+                    st.session_state["open_category_detail"] = True
+                    st.query_params["skip_splash"] = "1"
+                    st.rerun()
+            style_rules.append(
+                f'.st-key-catcard_{slug} {{ position:relative !important; min-height:54px !important; }}'
+                f'.st-key-catcard_{slug} [data-testid="stVerticalBlock"] {{ gap:0 !important; }}'
+                f'.st-key-do_open_cat_{slug} {{'
+                f' position:absolute !important; top:6px !important; right:9px !important;'
+                f' width:20px !important; height:20px !important; z-index:5 !important; margin:0 !important;}}'
+                f'.st-key-do_open_cat_{slug} button {{'
+                f' width:20px !important; height:20px !important; min-height:20px !important; padding:0 !important;'
+                f' background:transparent !important; border:none !important; color:{color} !important;'
+                f' font-size:11px !important; line-height:1 !important; box-shadow:none !important;}}'
+                f'.st-key-do_open_cat_{slug} button:hover {{'
+                f' background:{color}33 !important; border-radius:5px !important;}}'
+                f'.st-key-do_open_cat_{slug} [data-testid="stTooltipIcon"] {{ display:none !important; }}'
+            )
+        st.markdown("<style>" + "".join(style_rules) + "</style>", unsafe_allow_html=True)
 
 
 # -----------------------------------------------------------------------------
@@ -1948,11 +1953,10 @@ def _export_body(df: pd.DataFrame, context: str = "page") -> None:
         sheet = workbook.active
         sheet.title = "Arrivals"
 
-        fill_section = PatternFill("solid", fgColor="8EA9DB")
-        fill_header = PatternFill("solid", fgColor="F8CBAD")
+        fill_section = PatternFill("solid", fgColor="00B0F0")
+        fill_header = PatternFill("solid", fgColor="123047")
         fill_data = PatternFill("solid", fgColor="F4F7F9")
-        section_font = Font(name="Calibri", size=14, bold=True, color="000000")
-        header_font = Font(name="Calibri", size=11, bold=True, color="000000")
+        white_bold = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
         black_font = Font(name="Calibri", size=10, color="000000")
         center = Alignment(horizontal="center", vertical="center", wrap_text=True)
         left = Alignment(horizontal="left", vertical="center", wrap_text=True)
@@ -1981,11 +1985,11 @@ def _export_body(df: pd.DataFrame, context: str = "page") -> None:
                 continue
             sheet.merge_cells(start_row=row_number, start_column=1, end_row=row_number, end_column=len(export_columns))
             cell = sheet.cell(row=row_number, column=1, value=title)
-            cell.fill, cell.font, cell.alignment = fill_section, section_font, center
+            cell.fill, cell.font, cell.alignment = fill_section, white_bold, center
             row_number += 1
             for column_index, (_, heading) in enumerate(export_columns, 1):
                 cell = sheet.cell(row=row_number, column=column_index, value=heading)
-                cell.fill, cell.font, cell.alignment, cell.border = fill_header, header_font, center, border
+                cell.fill, cell.font, cell.alignment, cell.border = fill_header, white_bold, center, border
             row_number += 1
             for row in selected:
                 for column_index, (key, _) in enumerate(export_columns, 1):
@@ -2093,13 +2097,82 @@ def _report_body(df: pd.DataFrame, context: str = "page") -> None:
     for column, (label, frame) in zip(metrics, report_data.items()):
         column.metric(label, len(frame))
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-    st.dataframe(
-        pd.DataFrame([
-            {"Categoría": label, "Reservas": len(frame), "Habitaciones": ", ".join(frame["room"].dropna().astype(str).tolist()) or "—"}
-            for label, frame in report_data.items()
-        ]),
-        use_container_width=True,
-        hide_index=True,
+    report_rows = []
+    for label, frame in report_data.items():
+        guest_chips = []
+        for _, guest in frame.iterrows():
+            room_value = guest.get("room", "")
+            name_value = guest.get("name", "")
+            room = "" if room_value is None or pd.isna(room_value) else str(room_value).strip()
+            name = "" if name_value is None or pd.isna(name_value) else str(name_value).strip()
+            room_label = safe_text(room or "SIN ROOM")
+            name_label = safe_text(name or "SIN NOMBRE")
+            guest_chips.append(
+                f"<div class='report-guest-chip'>"
+                f"<span class='report-room-label'>ROOM {room_label}</span>"
+                f"<span class='report-name-label'>{name_label}</span>"
+                f"</div>"
+            )
+        guests_html = "".join(guest_chips) or (
+            "<span class='report-empty'>No hay huéspedes en esta categoría</span>"
+        )
+        report_rows.append(
+            f"<div class='report-data-row'>"
+            f"<div class='report-category'>{safe_text(label)}</div>"
+            f"<div class='report-count'>{len(frame)}</div>"
+            f"<div class='report-guest-list'>{guests_html}</div>"
+            f"</div>"
+        )
+
+    st.markdown(
+        """
+        <style>
+        .occupancy-report-table {
+            border:1px solid #252a35; border-radius:9px; overflow:hidden;
+            background:#0b0d12; margin-bottom:10px;
+        }
+        .report-header-row, .report-data-row {
+            display:grid; grid-template-columns:1.05fr .55fr 3.25fr;
+            align-items:center; column-gap:12px;
+        }
+        .report-header-row {
+            padding:8px 11px; background:#171a22; color:#8ca4ba;
+            font-size:10px; font-weight:900; letter-spacing:.55px; text-transform:uppercase;
+        }
+        .report-data-row {
+            min-height:48px; padding:8px 11px; border-top:1px solid #1a1d25;
+        }
+        .report-category { color:#e6f7ff; font-size:12px; font-weight:800; }
+        .report-count { color:#00e5ff; font-size:14px; font-weight:900; text-align:center; }
+        .report-guest-list { display:flex; flex-wrap:wrap; gap:5px; min-width:0; }
+        .report-guest-chip {
+            display:inline-flex; align-items:center; gap:6px; max-width:100%;
+            padding:4px 8px; border:1px solid #263342; border-radius:6px;
+            background:#101722; color:#dfeff8; font-size:11px; line-height:1.2;
+        }
+        .report-room-label {
+            color:#00e5ff; font-size:9px; font-weight:900; letter-spacing:.35px;
+            white-space:nowrap;
+        }
+        .report-name-label {
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+        }
+        .report-empty { color:#657789; font-size:11px; font-style:italic; }
+        @media (max-width: 760px) {
+            .report-header-row, .report-data-row {
+                grid-template-columns:.95fr .45fr 2fr; column-gap:7px; padding-left:7px; padding-right:7px;
+            }
+            .report-guest-chip { display:flex; width:100%; }
+        }
+        </style>
+        <div class="occupancy-report-table">
+            <div class="report-header-row">
+                <div>Categoría</div><div>Reservas</div><div>Guests / Habitaciones</div>
+            </div>
+        """
+        + "".join(report_rows)
+        + "</div>",
+        unsafe_allow_html=True,
     )
     st.download_button(
         "DESCARGAR REPORTE EXCEL",
@@ -4354,7 +4427,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown(
             """
             <style>
-            .st-key-catbtn_RELAXURY_strip { position:relative !important; margin-top:6px !important; }
+            .st-key-catbtn_RELAXURY_strip { position:relative !important; }
             .st-key-do_open_cat_RELAXURY_strip {
                 position:absolute !important; top:6px !important; right:10px !important;
                 width:20px !important; height:20px !important; z-index:5 !important; margin:0 !important;
