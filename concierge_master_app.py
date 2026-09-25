@@ -1060,12 +1060,12 @@ def exportar_excel_categorias_safe(df: pd.DataFrame) -> BytesIO:
     sheet = workbook.active
     sheet.title = "Arrivals"
 
-    # Paleta clara inspirada en la plantilla Excel de referencia:
-    # bandas de categoría azul, encabezados beige y datos blancos con texto negro.
-    fill_section = PatternFill("solid", fgColor="8EAADB")
-    fill_header = PatternFill("solid", fgColor="F3D5AE")
-    fill_data = PatternFill("solid", fgColor="FFFFFF")
-    section_font = Font(name="Calibri", size=14, bold=True, color="000000")
+    # Paleta tomada de la plantilla Excel de referencia:
+    # categorías crema, encabezados turquesa y filas de datos gris muy claro.
+    fill_section = PatternFill("solid", fgColor="FCD5B4")
+    fill_header = PatternFill("solid", fgColor="4BACC6")
+    fill_data = PatternFill("solid", fgColor="F4F7F9")
+    section_font = Font(name="Calibri", size=10, bold=True, color="000000")
     header_font = Font(name="Calibri", size=10, bold=True, color="000000")
     black_font = Font(name="Calibri", size=10, color="000000")
     center = Alignment(horizontal="center", vertical="center", wrap_text=True)
@@ -1086,6 +1086,8 @@ def exportar_excel_categorias_safe(df: pd.DataFrame) -> BytesIO:
     row_number = 1
     for title, keywords in groups:
         if keywords:
+            if remaining.empty:
+                break
             mask = remaining["info"].fillna("").astype(str).str.upper().apply(
                 lambda value: any(keyword in value for keyword in keywords)
             )
