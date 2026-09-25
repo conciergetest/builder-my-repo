@@ -1612,7 +1612,7 @@ def render_category_chart(df: pd.DataFrame) -> None:
         with col:
             with st.container(key=f"catcard_{slug}"):
                 st.markdown(
-                    f'<div class="category-card" style="--category-color:{color};background:{color}14;border:1px solid {color}40;">'
+                    f'<div class="category-card" style="--category-color:{color};background:{color}14;border:1px solid {color}40;margin-bottom:12px;">'
                     f'<div class="category-card-head"><span>{category}</span><span style="padding-right:22px">{count}</span></div>'
                     f'<div class="category-card-track"><div class="category-card-fill" style="width:{pct}%;"></div></div>'
                     f'</div>',
@@ -4354,7 +4354,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown(
             """
             <style>
-            .st-key-catbtn_RELAXURY_strip { position:relative !important; }
+            .st-key-catbtn_RELAXURY_strip { position:relative !important; margin-top:6px !important; }
             .st-key-do_open_cat_RELAXURY_strip {
                 position:absolute !important; top:6px !important; right:10px !important;
                 width:20px !important; height:20px !important; z-index:5 !important; margin:0 !important;
