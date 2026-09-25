@@ -1960,10 +1960,11 @@ def _export_body(df: pd.DataFrame, context: str = "page") -> None:
         sheet = workbook.active
         sheet.title = "Arrivals"
 
-        fill_section = PatternFill("solid", fgColor="00B0F0")
-        fill_header = PatternFill("solid", fgColor="123047")
+        fill_section = PatternFill("solid", fgColor="FCD5B4")
+        fill_header = PatternFill("solid", fgColor="4BACC6")
         fill_data = PatternFill("solid", fgColor="F4F7F9")
-        white_bold = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+        section_font = Font(name="Calibri", size=10, bold=True, color="000000")
+        header_font = Font(name="Calibri", size=10, bold=True, color="000000")
         black_font = Font(name="Calibri", size=10, color="000000")
         center = Alignment(horizontal="center", vertical="center", wrap_text=True)
         left = Alignment(horizontal="left", vertical="center", wrap_text=True)
@@ -1992,11 +1993,11 @@ def _export_body(df: pd.DataFrame, context: str = "page") -> None:
                 continue
             sheet.merge_cells(start_row=row_number, start_column=1, end_row=row_number, end_column=len(export_columns))
             cell = sheet.cell(row=row_number, column=1, value=title)
-            cell.fill, cell.font, cell.alignment = fill_section, white_bold, center
+            cell.fill, cell.font, cell.alignment = fill_section, section_font, center
             row_number += 1
             for column_index, (_, heading) in enumerate(export_columns, 1):
                 cell = sheet.cell(row=row_number, column=column_index, value=heading)
-                cell.fill, cell.font, cell.alignment, cell.border = fill_header, white_bold, center, border
+                cell.fill, cell.font, cell.alignment, cell.border = fill_header, header_font, center, border
             row_number += 1
             for row in selected:
                 for column_index, (key, _) in enumerate(export_columns, 1):
