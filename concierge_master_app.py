@@ -4383,26 +4383,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
             pass
         st.session_state["reminders_cleanup_date"] = _hoy_iso
 
-    vip_count = int(df["info"].fillna("").astype(str).str.upper().str.contains("VIP", na=False).sum())
-    relaxury_count = int(df.astype(str).apply(lambda column: column.str.upper().str.contains("RELAXURY", na=False)).any(axis=1).sum())
-    nights_count = int(pd.to_numeric(df["nights"], errors="coerce").fillna(0).sum())
-
     # Calcular métricas filtradas para mostrar en el dashboard
     filtered_preview, active_filters = apply_filters(df)
     total_display = len(filtered_preview) if active_filters else len(df)
     total_label = "RESERVAS FILTRADAS" if active_filters else "TOTAL RESERVAS"
-
-    # NOTA: "TOTAL RESERVAS" / "RESERVAS FILTRADAS" ya no va en esta fila de
-    # arriba — a pedido del usuario se movió justo encima del buscador rápido
-    # (ver más abajo, cerca de `st.text_input("Búsqueda rápida", ...)`).
-    st.markdown(
-        f'<div class="summary-grid-3">'
-        f'<div class="summary-card gold"><div class="summary-label">VIP ARRIVALS <span></span></div><div class="summary-value">{vip_count}</div></div>'
-        f'<div class="summary-card pink"><div class="summary-label">RELAXURY <span></span></div><div class="summary-value">{relaxury_count}</div></div>'
-        f'<div class="summary-card purple"><div class="summary-label">NOCHES RESERVADAS <span></span></div><div class="summary-value">{nights_count}</div></div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
 
     left, right = st.columns([1.35, 5.65], gap="small")
     filtered, filters = apply_filters(df)
@@ -4872,3 +4856,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
