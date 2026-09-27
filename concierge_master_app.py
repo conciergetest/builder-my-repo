@@ -14,6 +14,7 @@ Secrets requeridos en .streamlit/secrets.toml:
 from __future__ import annotations
 
 import base64
+import math
 import re
 import html
 import os
@@ -3891,6 +3892,30 @@ def format_qty(value) -> str:
         return str(value)
 
 
+def format_integerish(value) -> str:
+    """Quita .0 de valores numéricos sin fallar con datos vacíos o inválidos."""
+    if value is None:
+        return ""
+    try:
+        if pd.isna(value):
+            return ""
+    except (TypeError, ValueError):
+        pass
+
+    text = str(value).strip()
+    if text.lower() in ("", "nan", "none", "null", "nat"):
+        return ""
+
+    try:
+        number = float(text)
+    except (ValueError, TypeError, OverflowError):
+        return text
+
+    if not math.isfinite(number):
+        return text
+    return str(int(number)) if number.is_integer() else text
+
+
 def render_reservations_grid(df: pd.DataFrame) -> None:
     visible = df[[column for column in DISPLAY_COLUMNS if column in df.columns]].copy()
 
@@ -3926,9 +3951,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
     # Quitar .0 en ROOM y NOCHES
     for col in ("room", "nights"):
         if col in visible.columns:
-            visible[col] = visible[col].apply(
-                lambda x: str(int(float(x))) if str(x).replace(".", "").replace("-", "").isdigit() else str(x)
-            )
+            visible[col] = visible[col].apply(format_integerish)
 
     builder = GridOptionsBuilder.from_dataframe(visible)
     # Solo CHECK IN tiene filtro; el resto no
