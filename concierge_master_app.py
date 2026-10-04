@@ -108,6 +108,7 @@ if not st.session_state.splash_shown and not has_action_params:
     st.rerun()
 
 TABLE_NAME = "huespedes"
+RECOGNITION_COLUMN = "recognition"
 DB_COLUMNS = [
     "id", "eta", "name", "qty", "room", "email", "check_in", "check_out",
     "res_number", "phone", "info", "ird", "hsk", "rate", "trans",
@@ -654,11 +655,13 @@ def cargar_reservaciones() -> pd.DataFrame:
     response = supabase.table(TABLE_NAME).select("*").execute()
     df = pd.DataFrame(response.data)
     if df.empty:
-        return pd.DataFrame(columns=DB_COLUMNS + ["nights"])
+        return pd.DataFrame(columns=DB_COLUMNS + ["nights", RECOGNITION_COLUMN])
 
     for column in DB_COLUMNS:
         if column not in df.columns:
             df[column] = "" if column != "qty" else 0
+    if RECOGNITION_COLUMN not in df.columns:
+        df[RECOGNITION_COLUMN] = False
 
     df["nights"] = df.apply(
         lambda row: calcular_noches(row.get("check_in"), row.get("check_out")), axis=1
@@ -667,6 +670,30 @@ def cargar_reservaciones() -> pd.DataFrame:
     return df.assign(_sort_date=sort_date).sort_values(
         by=["_sort_date", "name"], na_position="last"
     ).drop(columns="_sort_date")
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def recognition_column_available() -> bool:
+    """Detecta si Supabase ya tiene el campo persistente de Recognition."""
+    try:
+        supabase.table(TABLE_NAME).select(RECOGNITION_COLUMN).limit(1).execute()
+        return True
+    except Exception:
+        return False
+
+
+def is_recognition_marked(value: object) -> bool:
+    """Interpreta valores booleanos de Supabase y valores legados seguros."""
+    if value is None:
+        return False
+    try:
+        if pd.isna(value):
+            return False
+    except (TypeError, ValueError):
+        pass
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {"true", "1", "yes", "sí", "si", "on", "x"}
 
 
 def insertar_reserva(data: dict) -> None:
@@ -1493,8 +1520,11 @@ def render_menu() -> None:
         l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
         l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#c4b5fd;">OUTLOOK-RES</a>', unsafe_allow_html=True)
 
-        l10, _l11, _l12 = st.columns(3)
+        l10, l11, _l12 = st.columns(3)
         l10.markdown(f'<a href="{html.escape(QUICK_LINKS[9][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
+        if l11.button("Recognition", use_container_width=True, key="menu_open_recognition"):
+            st.query_params["skip_splash"] = "1"
+            _select_and_rerun(open_recognition=True)
 
         st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1a1a1a;text-align:center;color:#4a5a6a;font-size:10px;'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
 
@@ -1740,8 +1770,21 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
     # lo que se importa desde el Excel.
     eta_options = generate_eta_options()
     eta_index = parse_eta_index(str(reservation.get("eta", "")), eta_options)
+    recognition_available = recognition_column_available()
 
     with st.form(f"edit_reservation_{context}"):
+        recognition = st.checkbox(
+            "Recognition",
+            value=is_recognition_marked(reservation.get(RECOGNITION_COLUMN, False)),
+            key=f"recognition_{context}_{reservation.get('id', 'selected')}",
+            disabled=not recognition_available,
+        )
+        st.caption("Marca esta casilla para guardar al huésped en tu lista de Recognition.")
+        if not recognition_available:
+            st.caption(
+                "Para guardar esta marca, primero agrega la columna `recognition` "
+                "en Supabase usando `supabase/migrations/20261004_add_recognition_to_huespedes.sql`."
+            )
         first = st.columns(4)
         eta = first[0].selectbox("ETA", options=eta_options, index=eta_index)
         name = first[1].text_input("Nombre *", value=str(reservation.get("name", "")))
@@ -1769,13 +1812,16 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
         if check_out < check_in:
             st.error("La fecha de check-out no puede ser anterior al check-in.")
             return
-        actualizar_reserva(reservation["id"], {
+        update_data = {
             "eta": eta if eta != "-- Sin hora --" else "", "name": name.strip(), "qty": float(qty), "room": room.strip(),
             "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
             "check_out": check_out.strftime("%B %d, %Y"), "res_number": res_number.strip(),
             "phone": phone.strip(), "info": info.strip(), "ird": ird.strip(), "hsk": hsk.strip(),
             "rate": rate.strip(), "trans": trans.strip(),
-        })
+        }
+        if recognition_available:
+            update_data[RECOGNITION_COLUMN] = bool(recognition)
+        actualizar_reserva(reservation["id"], update_data)
         st.success("Reserva actualizada correctamente.")
         clear_page()
 
@@ -1811,6 +1857,72 @@ def render_edit_reservation() -> None:
     st.subheader(f"Editar reservación· {safe_text(reservation.get('name', ''))}")
     render_back_link()
     _edit_reservation_form(reservation, "page")
+
+
+@st.dialog("Recognition", width="large")
+def recognition_dialog() -> None:
+    """Muestra las reservas que están marcadas como huéspedes memorables."""
+    if not recognition_column_available():
+        st.warning(
+            "Recognition necesita una columna booleana en la tabla `huespedes` "
+            "para guardar las marcas de forma permanente."
+        )
+        st.code(
+            "ALTER TABLE public.huespedes "
+            "ADD COLUMN IF NOT EXISTS recognition boolean NOT NULL DEFAULT false;",
+            language="sql",
+        )
+        st.caption(
+            "Ejecuta esta instrucción una sola vez en el SQL Editor de Supabase. "
+            "Después de aplicarla, verifica el campo aquí."
+        )
+        if st.button(
+            "🔄 Verificar columna",
+            use_container_width=True,
+            key="retry_recognition_schema",
+        ):
+            recognition_column_available.clear()
+            cargar_reservaciones.clear()
+            st.rerun()
+    else:
+        reservations = cargar_reservaciones()
+        if reservations.empty:
+            st.info("Todavía no hay reservaciones registradas.")
+        else:
+            recognized = reservations[
+                reservations[RECOGNITION_COLUMN].map(is_recognition_marked)
+            ]
+            st.caption(f"{len(recognized)} huésped(es) marcado(s) como Recognition.")
+            if recognized.empty:
+                st.info(
+                    "Todavía no hay reservas marcadas. Abre una reserva, activa "
+                    "Recognition y guarda los cambios."
+                )
+            else:
+                visible_columns = [
+                    ("eta", "ETA"),
+                    ("name", "NOMBRE"),
+                    ("room", "HABITACIÓN"),
+                    ("check_in", "CHECK-IN"),
+                    ("check_out", "CHECK-OUT"),
+                    ("res_number", "RESERVA"),
+                    ("phone", "TELÉFONO"),
+                    ("email", "EMAIL"),
+                    ("info", "INFORMACIÓN"),
+                ]
+                view = recognized[
+                    [key for key, _ in visible_columns if key in recognized.columns]
+                ].rename(
+                    columns={
+                        key: label
+                        for key, label in visible_columns
+                        if key in recognized.columns
+                    }
+                )
+                st.dataframe(view, use_container_width=True, hide_index=True)
+
+    if st.button("Cerrar", use_container_width=True, key="close_recognition_dialog"):
+        st.rerun()
 
 
 def _import_body(context: str = "page") -> None:
@@ -4811,6 +4923,10 @@ elif _open_guests:
 if st.session_state.pop("open_pending", False):
     pending_dialog()
 
+# Auto-abrir el popup de reservas Recognition.
+if st.session_state.pop("open_recognition", False):
+    recognition_dialog()
+
 
 def _redirect_to_dialog(flag: str) -> None:
     """Quita `action` de la URL, conserva filtros y abre el popup en el dashboard."""
@@ -4856,4 +4972,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
