@@ -696,6 +696,14 @@ def is_recognition_marked(value: object) -> bool:
     return str(value).strip().lower() in {"true", "1", "yes", "sí", "si", "on", "x"}
 
 
+def recognition_percentage_label(recognized_count: int, total_count: int) -> str:
+    """Formatea la proporción a dos decimales, truncada para coincidir con el ejemplo del usuario."""
+    if total_count <= 0:
+        return "0.00%"
+    hundredths = (recognized_count * 10_000) // total_count
+    return f"{hundredths // 100}.{hundredths % 100:02d}%"
+
+
 def insertar_reserva(data: dict) -> None:
     supabase.table(TABLE_NAME).insert(data).execute()
     st.cache_data.clear()
@@ -1886,13 +1894,39 @@ def recognition_dialog() -> None:
             st.rerun()
     else:
         reservations = cargar_reservaciones()
+        total_count = len(reservations)
         if reservations.empty:
-            st.info("Todavía no hay reservaciones registradas.")
+            recognized = reservations
         else:
             recognized = reservations[
                 reservations[RECOGNITION_COLUMN].map(is_recognition_marked)
             ]
-            st.caption(f"{len(recognized)} huésped(es) marcado(s) como Recognition.")
+
+        recognized_count = len(recognized)
+        percentage_label = recognition_percentage_label(
+            recognized_count, total_count
+        )
+        count_column, percentage_column, _ = st.columns([1.2, 0.8, 1.2])
+        count_column.caption(
+            f"{recognized_count} de {total_count} reservaciones marcadas como Recognition."
+        )
+        percentage_column.markdown(
+            f"""
+            <div style="display:flex;justify-content:center;margin:0 auto 8px;">
+              <div style="box-sizing:border-box;min-width:154px;height:60px;padding:8px 16px;
+                          border:4px solid #08bff4;border-radius:12px;background:#10151c;
+                          color:#20c8ff;text-align:center;font:800 24px/1.3 'Segoe UI',sans-serif;
+                          box-shadow:0 0 14px rgba(0,191,255,.38);">
+                {percentage_label}
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if reservations.empty:
+            st.info("Todavía no hay reservaciones registradas.")
+        else:
             if recognized.empty:
                 st.info(
                     "Todavía no hay reservas marcadas. Abre una reserva, activa "
