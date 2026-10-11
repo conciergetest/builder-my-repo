@@ -1,3 +1,4 @@
+
 """Concierge Master — Streamlit + Supabase.
 
 Instalación:
@@ -1779,12 +1780,36 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
     eta_options = generate_eta_options()
     eta_index = parse_eta_index(str(reservation.get("eta", "")), eta_options)
     recognition_available = recognition_column_available()
+    reservation_id = reservation.get("id", "selected")
 
-    with st.form(f"edit_reservation_{context}"):
+    # Estilo del botón VIP Alert (rojo, para que no se confunda con Guardar).
+    st.markdown(
+        """
+        <style>
+        [class*="st-key-vip_alert_btn_"] button {
+            background:#7f1d1d !important; border:1px solid #f43f5e !important;
+            color:#ffffff !important; font-weight:800 !important;
+            min-height:44px !important; letter-spacing:0.6px !important;
+        }
+        [class*="st-key-vip_alert_btn_"] button:hover {
+            background:#f43f5e !important; color:#fff !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Recognition y VIP Alert van fuera del st.form y uno al lado del otro: un
+    # botón dentro de un form sólo puede ser un submit, así que el popup de
+    # VIP Alert no podría abrirse desde adentro. El valor del checkbox se
+    # sigue leyendo igual al guardar, vía session_state (misma key de antes).
+    recognition_key = f"recognition_{context}_{reservation_id}"
+    reconocimiento_col, vip_col = st.columns([3, 1])
+    with reconocimiento_col:
         recognition = st.checkbox(
             "Recognition",
             value=is_recognition_marked(reservation.get(RECOGNITION_COLUMN, False)),
-            key=f"recognition_{context}_{reservation.get('id', 'selected')}",
+            key=recognition_key,
             disabled=not recognition_available,
         )
         st.caption("Marca esta casilla para guardar al huésped en tu lista de Recognition.")
@@ -1793,6 +1818,19 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
                 "Para guardar esta marca, primero agrega la columna `recognition` "
                 "en Supabase usando `supabase/migrations/20261004_add_recognition_to_huespedes.sql`."
             )
+    with vip_col:
+        if st.button(
+            "🚨 VIP Alert",
+            use_container_width=True,
+            key=f"vip_alert_btn_{context}_{reservation_id}",
+            help="Llena los datos del VIP Alert y descarga el Word.",
+        ):
+            st.session_state["vip_alert_prefill"] = _vip_alert_prefill(reservation)
+            st.session_state.pop("vip_alert_doc", None)
+            st.session_state["open_vip_alert"] = True
+            _app_rerun()
+
+    with st.form(f"edit_reservation_{context}"):
         first = st.columns(4)
         eta = first[0].selectbox("ETA", options=eta_options, index=eta_index)
         name = first[1].text_input("Nombre *", value=str(reservation.get("name", "")))
@@ -1957,6 +1995,355 @@ def recognition_dialog() -> None:
 
     if st.button("Cerrar", use_container_width=True, key="close_recognition_dialog"):
         st.rerun()
+
+
+# -----------------------------------------------------------------------------
+# VIP ALERT — popup de captura (no guarda en base) + exportación a Word
+# -----------------------------------------------------------------------------
+
+VIP_ALERT_MONTHS = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+]
+
+# Cada sección del Word: (título de la banda gris, [(clave, etiqueta)]).
+VIP_ALERT_SECTIONS = [
+    (
+        "BASIC INFORMATION",
+        [
+            ("client_name", "CLIENT NAME"),
+            ("location", "LOCATION"),
+            ("arrival", "ARRIVAL"),
+            ("departure", "DEPARTURE"),
+            ("company", "COMPANY"),
+            ("media_agency", "MEDIA | AGENCY"),
+            ("concierge", "PERSONAL CONCIERGE IN CHARGE"),
+            ("transportation", "TRANSPORTATION"),
+            ("pax", "PAX. NUMBER"),
+            ("allergies", "ALLERGIES"),
+            ("special_requests", "SPECIAL REQUESTS"),
+            ("welcome_amenity", "WELCOME AMENITY"),
+        ],
+    ),
+    ("GUEST PREFERENCES", [("notes", "NOTES")]),
+    ("RELEVANT INFORMATION", [("perfil", "PERFIL")]),
+]
+
+
+def vip_alert_docx_available() -> bool:
+    """Verifica que `python-docx` esté instalado en el entorno de la app."""
+    try:
+        import docx  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
+def _vip_alert_date_label(value: object) -> str:
+    """Devuelve la fecha en el formato corto del formato oficial: `13 Oct`."""
+    parsed = value if isinstance(value, (date, datetime)) else parse_fecha(value)
+    if isinstance(parsed, datetime):
+        parsed = parsed.date()
+    if isinstance(parsed, date):
+        return f"{parsed.day} {VIP_ALERT_MONTHS[parsed.month - 1]}"
+    return str(value or "").strip()
+
+
+def _vip_alert_prefill(reservation: object) -> dict:
+    """Toma lo que ya sabemos de la reserva seleccionada como punto de partida."""
+    reservation = reservation if isinstance(reservation, dict) else {}
+    qty_raw = pd.to_numeric(reservation.get("qty", 0), errors="coerce")
+    qty_label = ""
+    if not pd.isna(qty_raw) and float(qty_raw) != 0:
+        qty_label = str(int(round(float(qty_raw))))
+    return {
+        "client_name": str(reservation.get("name", "") or ""),
+        "arrival": parse_fecha(reservation.get("check_in")) or datetime.now(),
+        "departure": parse_fecha(reservation.get("check_out")) or datetime.now() + timedelta(days=1),
+        "pax": qty_label,
+        "transportation": str(reservation.get("trans", "") or ""),
+        "room": str(reservation.get("room", "") or ""),
+        "reservation_id": reservation.get("id"),
+    }
+
+
+def build_vip_alert_docx(payload: dict) -> bytes:
+    """Arma el documento Word del VIP Alert con el mismo formato de plantilla.
+
+    Estructura: título `VIP ALERT <cliente>`, la línea de Details en negrita,
+    el rango de fechas centrado y una tabla de dos columnas con las bandas
+    grises de sección (BASIC INFORMATION / GUEST PREFERENCES / RELEVANT
+    INFORMATION), igual que el formato que ya usan.
+    """
+    from docx import Document
+    from docx.enum.table import WD_ALIGN_VERTICAL, WD_TABLE_ALIGNMENT
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+    from docx.shared import Inches, Pt
+
+    LABEL_WIDTH = Inches(2.0)
+    VALUE_WIDTH = Inches(4.8)
+    GRIS_BANDA = "D9D9D9"
+
+    def sombrear(celda, color: str) -> None:
+        tc_pr = celda._tc.get_or_add_tcPr()
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:val"), "clear")
+        shd.set(qn("w:color"), "auto")
+        shd.set(qn("w:fill"), color)
+        tc_pr.append(shd)
+
+    def escribir(celda, texto: object, bold: bool = False, centrado: bool = False) -> None:
+        celda.text = ""
+        parrafo = celda.paragraphs[0]
+        parrafo.alignment = WD_ALIGN_PARAGRAPH.CENTER if centrado else WD_ALIGN_PARAGRAPH.LEFT
+        parrafo.paragraph_format.space_after = Pt(2)
+        parrafo.paragraph_format.space_before = Pt(2)
+        run = parrafo.add_run("" if texto is None else str(texto))
+        run.bold = bold
+        run.font.name = "Calibri"
+        run.font.size = Pt(10.5)
+
+    def linea_centrada(texto: str, size: float, bold: bool, space_after: float) -> None:
+        parrafo = document.add_paragraph()
+        parrafo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        parrafo.paragraph_format.space_after = Pt(space_after)
+        parrafo.paragraph_format.space_before = Pt(0)
+        run = parrafo.add_run(texto)
+        run.bold = bold
+        run.font.name = "Calibri"
+        run.font.size = Pt(size)
+
+    document = Document()
+    seccion = document.sections[0]
+    seccion.top_margin = Inches(0.7)
+    seccion.bottom_margin = Inches(0.7)
+    seccion.left_margin = Inches(0.7)
+    seccion.right_margin = Inches(0.7)
+
+    normal = document.styles["Normal"]
+    normal.font.name = "Calibri"
+    normal.font.size = Pt(10.5)
+    normal.paragraph_format.space_after = Pt(0)
+
+    client_name = str(payload.get("client_name", "") or "").strip()
+    details = str(payload.get("details", "") or "").strip()
+    arrival_label = _vip_alert_date_label(payload.get("arrival"))
+    departure_label = _vip_alert_date_label(payload.get("departure"))
+
+    titulo = document.add_paragraph()
+    titulo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    titulo.paragraph_format.space_after = Pt(4)
+    run_titulo = titulo.add_run("VIP ALERT" + (f" {client_name}" if client_name else ""))
+    run_titulo.bold = True
+    run_titulo.font.name = "Calibri"
+    run_titulo.font.size = Pt(16)
+
+    if details:
+        linea_centrada(details, 11.5, True, 12)
+
+    rango = " – ".join(parte for parte in (arrival_label, departure_label) if parte)
+    if rango:
+        linea_centrada(rango, 11.5, False, 12)
+
+    # Las fechas se muestran en formato corto ("13 Oct") también dentro de la
+    # tabla, no como fecha ISO.
+    valores = dict(payload)
+    valores["arrival"] = arrival_label
+    valores["departure"] = departure_label
+
+    filas: list = []
+    for titulo_seccion, campos in VIP_ALERT_SECTIONS:
+        filas.append(("banda", titulo_seccion))
+        for clave, etiqueta in campos:
+            filas.append(("campo", etiqueta, valores.get(clave, "")))
+
+    tabla = document.add_table(rows=0, cols=2)
+    tabla.style = "Table Grid"
+    tabla.alignment = WD_TABLE_ALIGNMENT.CENTER
+    tabla.autofit = False
+
+    for fila_def in filas:
+        fila = tabla.add_row()
+        if fila_def[0] == "banda":
+            celda = fila.cells[0].merge(fila.cells[1])
+            sombrear(celda, GRIS_BANDA)
+            escribir(celda, fila_def[1], bold=True, centrado=True)
+        else:
+            escribir(fila.cells[0], fila_def[1], bold=True)
+            escribir(fila.cells[1], fila_def[2])
+        for indice, celda in enumerate(fila.cells):
+            celda.width = LABEL_WIDTH if indice == 0 else VALUE_WIDTH
+            celda.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+
+    buffer = BytesIO()
+    document.save(buffer)
+    return buffer.getvalue()
+
+
+def _app_rerun() -> None:
+    """Rerun completo de la app.
+
+    Necesario para cambiar de un popup a otro: un `st.rerun()` dentro de un
+    dialog solo re-ejecuta el fragmento y el popup nuevo nunca se abriría.
+    """
+    try:
+        st.rerun(scope="app")
+    except TypeError:
+        st.rerun()
+
+
+@st.dialog("🚨 VIP Alert", width="large")
+def vip_alert_dialog() -> None:
+    """Popup para llenar el VIP Alert y descargarlo en Word.
+
+    No guarda nada en Supabase: solo captura los datos y genera el .docx.
+    """
+    prefill = st.session_state.get("vip_alert_prefill") or {}
+    nonce = str(prefill.get("reservation_id", "new"))
+
+    st.markdown(
+        "<div style='color:#D4AF37;font:800 12px/1.2 Segoe UI,sans-serif;letter-spacing:1.4px;"
+        "text-transform:uppercase;margin-bottom:10px;'>"
+        f'VIP ALERT &nbsp;·&nbsp; {safe_text(prefill.get("client_name", "")) or "Nuevo"}'
+        f' &nbsp;·&nbsp; Room {safe_text(prefill.get("room", "")) or "—"}</div>',
+        unsafe_allow_html=True,
+    )
+
+    if not vip_alert_docx_available():
+        st.error(
+            "Falta la dependencia `python-docx` para generar el Word. "
+            "Ejecuta `pip install python-docx` y agrégalo a tu requirements."
+        )
+
+    with st.form("vip_alert_form"):
+        fila1 = st.columns([1.2, 1.8])
+        client_name = fila1[0].text_input(
+            "CLIENT NAME *",
+            value=str(prefill.get("client_name", "") or ""),
+            key=f"vip_client_{nonce}",
+        )
+        details = fila1[1].text_input(
+            "DETAILS (línea bajo el título)",
+            value="",
+            key=f"vip_details_{nonce}",
+            placeholder="Ej: Director of Sponsorship & Activation at Resorts World Las Vegas",
+        )
+
+        fila2 = st.columns(2)
+        arrival = fila2[0].date_input(
+            "ARRIVAL",
+            value=(prefill.get("arrival") or datetime.now()).date()
+            if isinstance(prefill.get("arrival"), datetime)
+            else (prefill.get("arrival") or date.today()),
+            key=f"vip_arrival_{nonce}",
+        )
+        departure = fila2[1].date_input(
+            "DEPARTURE",
+            value=(prefill.get("departure") or datetime.now() + timedelta(days=1)).date()
+            if isinstance(prefill.get("departure"), datetime)
+            else (prefill.get("departure") or date.today() + timedelta(days=1)),
+            key=f"vip_departure_{nonce}",
+        )
+
+        fila3 = st.columns(3)
+        location = fila3[0].text_input("LOCATION", value="", key=f"vip_location_{nonce}")
+        company = fila3[1].text_input("COMPANY", value="", key=f"vip_company_{nonce}")
+        media_agency = fila3[2].text_input("MEDIA | AGENCY", value="", key=f"vip_media_{nonce}")
+
+        fila4 = st.columns(3)
+        concierge = fila4[0].text_input(
+            "PERSONAL CONCIERGE IN CHARGE", value="", key=f"vip_concierge_{nonce}"
+        )
+        transportation = fila4[1].text_input(
+            "TRANSPORTATION",
+            value=str(prefill.get("transportation", "") or ""),
+            key=f"vip_transport_{nonce}",
+        )
+        pax = fila4[2].text_input(
+            "PAX. NUMBER",
+            value=str(prefill.get("pax", "") or ""),
+            key=f"vip_pax_{nonce}",
+        )
+
+        fila5 = st.columns(2)
+        allergies = fila5[0].text_input("ALLERGIES", value="", key=f"vip_allergies_{nonce}")
+        welcome_amenity = fila5[1].text_input(
+            "WELCOME AMENITY", value="", key=f"vip_amenity_{nonce}"
+        )
+
+        special_requests = st.text_area(
+            "SPECIAL REQUESTS", value="", height=70, key=f"vip_requests_{nonce}"
+        )
+        notes = st.text_area("NOTES", value="", height=70, key=f"vip_notes_{nonce}")
+        perfil = st.text_area("PERFIL", value="", height=100, key=f"vip_perfil_{nonce}")
+
+        generado = st.form_submit_button(
+            "📄 GENERAR DOCUMENTO WORD", type="primary", use_container_width=True
+        )
+
+    if generado:
+        if not str(client_name).strip():
+            st.error("El CLIENT NAME es obligatorio: es el nombre que va en el título.")
+        else:
+            payload = {
+                "client_name": str(client_name).strip(),
+                "details": details,
+                "arrival": arrival,
+                "departure": departure,
+                "location": location,
+                "company": company,
+                "media_agency": media_agency,
+                "concierge": concierge,
+                "transportation": transportation,
+                "pax": pax,
+                "allergies": allergies,
+                "special_requests": special_requests,
+                "welcome_amenity": welcome_amenity,
+                "notes": notes,
+                "perfil": perfil,
+            }
+            try:
+                st.session_state["vip_alert_doc"] = build_vip_alert_docx(payload)
+                st.session_state["vip_alert_doc_name"] = (
+                    f"VIP ALERT {payload['client_name']}.docx"
+                )
+            except ImportError:
+                st.session_state.pop("vip_alert_doc", None)
+                st.error(
+                    "No se pudo generar el Word: falta `python-docx`. "
+                    "Ejecuta `pip install python-docx` en el entorno de la app."
+                )
+            except Exception as exc:  # noqa: BLE001 - se muestra al usuario
+                st.session_state.pop("vip_alert_doc", None)
+                st.error(f"No se pudo generar el documento: {exc}")
+
+    if st.session_state.get("vip_alert_doc"):
+        st.success("Documento listo. Ábrelo o guárdalo con el botón de abajo.")
+        st.download_button(
+            "⬇️ DESCARGAR WORD",
+            data=st.session_state["vip_alert_doc"],
+            file_name=st.session_state.get("vip_alert_doc_name", "VIP ALERT.docx"),
+            mime=(
+                "application/vnd.openxmlformats-officedocument"
+                ".wordprocessingml.document"
+            ),
+            type="primary",
+            use_container_width=True,
+            key=f"vip_alert_download_{nonce}",
+        )
+
+    volver_col, cerrar_col = st.columns(2)
+    if volver_col.button(
+        "← Volver a Editar", use_container_width=True, key=f"vip_back_{nonce}"
+    ):
+        st.session_state.pop("vip_alert_doc", None)
+        st.session_state["open_editar"] = True
+        _app_rerun()
+    if cerrar_col.button("Cerrar", use_container_width=True, key=f"vip_close_{nonce}"):
+        st.session_state.pop("vip_alert_doc", None)
+        _app_rerun()
 
 
 def _import_body(context: str = "page") -> None:
@@ -4960,6 +5347,12 @@ if st.session_state.pop("open_pending", False):
 # Auto-abrir el popup de reservas Recognition.
 if st.session_state.pop("open_recognition", False):
     recognition_dialog()
+
+# Auto-abrir el popup de VIP Alert (captura + descarga en Word). Streamlit
+# sólo permite un popup a la vez: al abrirse se limpia la bandera de Editar.
+if st.session_state.pop("open_vip_alert", False):
+    st.session_state.pop("open_editar", None)
+    vip_alert_dialog()
 
 
 def _redirect_to_dialog(flag: str) -> None:
