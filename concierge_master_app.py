@@ -1,4 +1,3 @@
-
 """Concierge Master — Streamlit + Supabase.
 
 Instalación:
@@ -3142,6 +3141,192 @@ def _apply_arrival_date(day: datetime) -> None:
     st.rerun()
 
 
+ARRIVALS_VIEWS = ("lista", "almanaque")
+
+ARRIVALS_CALENDAR_CSS = """
+<style>
+/* Estilos de las celdas del almanaque de llegadas. Van de lo general a lo
+   específico: el último selector con la misma especificidad gana, así que la
+   regla base va primero y las variantes (con llegadas / sin llegadas / hoy /
+   seleccionado) después. */
+[class*="st-key-arrival_cal_"] button {
+    min-height:34px !important; padding:2px 0 !important;
+    font-size:11px !important; border-radius:8px !important;
+}
+/* Día CON llegadas: dorado, cursor de mano y hover marcado. */
+[class*="st-key-arrival_cal_hit_"] button {
+    background:#3a2c00 !important; border:1px solid #D4AF37 !important;
+    color:#FFD24A !important; font-weight:800 !important;
+}
+[class*="st-key-arrival_cal_hit_"] button:hover {
+    background:#D4AF37 !important; border-color:#FFE9A8 !important;
+    color:#1C1300 !important; transform:scale(1.06);
+}
+/* Día SIN llegadas: apagado. */
+[class*="st-key-arrival_cal_miss_"] button {
+    background:#0d0d0d !important; border:1px solid #1c1c1c !important;
+    color:#5f7286 !important; font-weight:600 !important;
+}
+[class*="st-key-arrival_cal_miss_"] button:hover {
+    border-color:#2c3a48 !important; color:#8ca4ba !important;
+}
+/* Hoy (sin llegadas): contorno cian. */
+[class*="st-key-arrival_cal_today_"] button {
+    background:#06171c !important; border:1px solid #00e5ff !important;
+    color:#00e5ff !important; font-weight:800 !important;
+}
+/* Día ya aplicado como filtro en la tabla. */
+[class*="st-key-arrival_cal_sel_"] button {
+    background:#00e5ff !important; border:1px solid #00e5ff !important;
+    color:#00151d !important; font-weight:900 !important;
+}
+/* Vista activa en el conmutador Lista / Almanaque: el boton lleva la clave
+   terminada en _sel, asi que se puede resaltar sin tocar el HTML de Streamlit. */
+[class*="st-key-arrivals_view_list_sel"] button,
+[class*="st-key-arrivals_view_cal_sel"] button {
+    background:#D4AF37 !important; border:1px solid #FFE9A8 !important;
+    color:#1C1300 !important; font-weight:900 !important;
+}
+.arrivals-cal-head {
+    text-align:center; color:#8ca4ba; font-size:10px; font-weight:800;
+    text-transform:uppercase; letter-spacing:0.6px; padding-bottom:2px;
+}
+.arrivals-cal-pad { height:34px; }
+</style>
+"""
+
+
+def _arrivals_default_month(dates: list, active: datetime | None) -> str:
+    """Mes que se muestra al abrir el almanaque (YYYY-MM).
+
+    Prioridad: el mes del filtro activo; el mes actual si tiene llegadas; el
+    mes de la próxima llegada; y si no hay ninguna por delante, el de la
+    última registrada. Así nunca se abre en un mes vacío sin motivo.
+    """
+    today = datetime.now()
+    if active:
+        return active.strftime("%Y-%m")
+    if any(day.strftime("%Y-%m") == today.strftime("%Y-%m") for day, _, _ in dates):
+        return today.strftime("%Y-%m")
+    hoy = datetime(today.year, today.month, today.day)
+    proximas = [day for day, _, _ in dates if day >= hoy]
+    if proximas:
+        return proximas[0].strftime("%Y-%m")
+    return dates[-1][0].strftime("%Y-%m")
+
+
+def _render_arrivals_calendar(dates: list, active: datetime | None) -> None:
+    """Almanaque mensual con las fechas de llegada resaltadas.
+
+    Un día con llegadas se pinta en dorado y al hacer clic filtra la tabla
+    principal (mismo `_apply_arrival_date` que usa la lista). Un día sin
+    llegadas muestra "Sin coincidencias" al pasar el mouse y, al hacer clic,
+    avisa que no hay reservas para esa fecha.
+    """
+    counts = {day.strftime("%Y-%m-%d"): count for day, _, count in dates}
+    active_key = datetime(active.year, active.month, active.day) if active else None
+    now = datetime.now()
+    today_key = datetime(now.year, now.month, now.day)
+
+    month_key = st.session_state.get("arrivals_cal_month") or _arrivals_default_month(dates, active)
+    try:
+        month_start = datetime.strptime(month_key, "%Y-%m")
+    except (TypeError, ValueError):
+        month_start = today_key
+    month_start = month_start.replace(day=1)
+    st.session_state["arrivals_cal_month"] = month_start.strftime("%Y-%m")
+
+    st.markdown(ARRIVALS_CALENDAR_CSS, unsafe_allow_html=True)
+
+    # ── Navegación de mes ──
+    nav_title, nav_prev, nav_today, nav_next = st.columns([3, 1, 1, 1])
+    nav_title.markdown(
+        "<div style='color:#D4AF37;font:800 15px/2.1 Segoe UI,sans-serif;"
+        "letter-spacing:1px;text-transform:uppercase;'>"
+        f"{month_start.strftime('%B %Y')}</div>",
+        unsafe_allow_html=True,
+    )
+    if nav_prev.button("◀", key="arrivals_cal_prev", use_container_width=True, help="Mes anterior"):
+        anterior = (month_start - timedelta(days=1)).replace(day=1)
+        st.session_state["arrivals_cal_month"] = anterior.strftime("%Y-%m")
+        st.session_state.pop("arrivals_cal_msg", None)
+        st.rerun()
+    if nav_today.button("●", key="arrivals_cal_go_today", use_container_width=True, help="Mes actual"):
+        st.session_state["arrivals_cal_month"] = today_key.strftime("%Y-%m")
+        st.session_state.pop("arrivals_cal_msg", None)
+        st.rerun()
+    if nav_next.button("▶", key="arrivals_cal_next", use_container_width=True, help="Mes siguiente"):
+        siguiente = (month_start + timedelta(days=32)).replace(day=1)
+        st.session_state["arrivals_cal_month"] = siguiente.strftime("%Y-%m")
+        st.session_state.pop("arrivals_cal_msg", None)
+        st.rerun()
+
+    # ── Cuadrícula ──
+    for columna, etiqueta in zip(
+        st.columns(7), ("Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb")
+    ):
+        columna.markdown(
+            f"<div class='arrivals-cal-head'>{etiqueta}</div>", unsafe_allow_html=True
+        )
+
+    dias_del_mes = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+    desplazamiento = (month_start.weekday() + 1) % 7  # domingo = columna 0
+    semanas = math.ceil((desplazamiento + dias_del_mes.day) / 7)
+
+    for semana in range(semanas):
+        columnas = st.columns(7)
+        for posicion, columna in enumerate(columnas):
+            numero = semana * 7 + posicion - desplazamiento + 1
+            with columna:
+                if numero < 1 or numero > dias_del_mes.day:
+                    st.markdown("<div class='arrivals-cal-pad'></div>", unsafe_allow_html=True)
+                    continue
+
+                dia = month_start.replace(day=numero)
+                fecha_iso = dia.strftime("%Y-%m-%d")
+                llegadas = counts.get(fecha_iso, 0)
+                es_hoy = dia == today_key
+                es_activo = active_key is not None and dia == active_key
+                etiqueta_dia = f"{numero}·{llegadas}" if llegadas else str(numero)
+
+                if es_activo:
+                    prefijo = "arrival_cal_sel_"
+                    ayuda = f"{llegadas} llegada(s) · este día ya está filtrado en la tabla"
+                elif llegadas:
+                    prefijo = "arrival_cal_hit_"
+                    ayuda = (
+                        f"{llegadas} llegada{'s' if llegadas != 1 else ''}"
+                        " · clic para ver la tabla"
+                    )
+                elif es_hoy:
+                    prefijo = "arrival_cal_today_"
+                    ayuda = "Hoy · sin coincidencias"
+                else:
+                    prefijo = "arrival_cal_miss_"
+                    ayuda = "Sin coincidencias"
+
+                if st.button(
+                    etiqueta_dia,
+                    key=f"{prefijo}{fecha_iso.replace('-', '')}",
+                    help=ayuda,
+                    use_container_width=True,
+                ):
+                    if llegadas:
+                        st.session_state.pop("arrivals_cal_msg", None)
+                        _apply_arrival_date(dia)
+                    else:
+                        st.session_state["arrivals_cal_msg"] = (
+                            f"No hay reservas para {dia.strftime('%B %d, %Y')}."
+                        )
+
+    if not any(clave.startswith(month_start.strftime("%Y-%m")) for clave in counts):
+        st.caption("Este mes no tiene llegadas registradas. Usa ◀ ▶ para moverte a otro mes.")
+
+    mensaje = st.session_state.pop("arrivals_cal_msg", "")
+    if mensaje:
+        st.warning(mensaje)
+
+
 @st.dialog("📅 Arrivals By Date", width="small")
 def arrivals_dates_dialog() -> None:
     """Popup con todas las fechas de check-in; al hacer clic filtra la tabla."""
@@ -3159,67 +3344,94 @@ def arrivals_dates_dialog() -> None:
     st.markdown(
         "<div style='color:#8ca4ba;font-size:11px;font-weight:700;letter-spacing:1px;"
         "text-transform:uppercase;text-align:center;margin-bottom:10px;'>"
-        f"{len(dates)} fechas · haz clic para ver las reservas de ese dia</div>",
+        f"{len(dates)} fechas de llegada · haz clic para ver las reservas de ese dia</div>",
         unsafe_allow_html=True,
     )
 
-    query = st.text_input(
-        "Buscar fecha",
-        key="arrivals_date_search",
-        placeholder="Ej: March, 2026, 21…",
-        label_visibility="collapsed",
-    ).strip().lower()
+    # ── Selector de vista: lista (como antes) o almanaque ──
+    vista = st.session_state.get("arrivals_view", "lista")
+    if vista not in ARRIVALS_VIEWS:
+        vista = "lista"
+    # La clave cambia con la vista activa para que el CSS pueda resaltarla.
+    vista_cols = st.columns(2)
+    if vista_cols[0].button(
+        "📋 Lista",
+        key="arrivals_view_list_sel" if vista == "lista" else "arrivals_view_list",
+        use_container_width=True,
+        help="Ver las fechas como lista",
+    ):
+        st.session_state["arrivals_view"] = "lista"
+        st.session_state.pop("arrivals_cal_msg", None)
+    if vista_cols[1].button(
+        "📅 Almanaque",
+        key="arrivals_view_cal_sel" if vista == "almanaque" else "arrivals_view_calendar",
+        use_container_width=True,
+        help="Ver las fechas en un calendario mensual",
+    ):
+        st.session_state["arrivals_view"] = "almanaque"
+        st.session_state.pop("arrivals_cal_msg", None)
+    vista = st.session_state.get("arrivals_view", "lista")
 
-    if query:
-        dates = [item for item in dates if query in item[1].lower()]
-        if not dates:
-            st.warning("Ninguna fecha coincide con la busqueda.")
+    if vista == "almanaque":
+        _render_arrivals_calendar(dates, active)
+    else:
+        query = st.text_input(
+            "Buscar fecha",
+            key="arrivals_date_search",
+            placeholder="Ej: March, 2026, 21…",
+            label_visibility="collapsed",
+        ).strip().lower()
 
-    st.markdown(
-        """
-        <style>
-        .st-key-arrivals_list button {
-            justify-content:flex-start !important;
-            text-align:left !important;
-            background:#0a0a0a !important;
-            border:1px solid #1e1e1e !important;
-            color:#eafaff !important;
-            font: 600 13px/1.2 'Segoe UI', sans-serif !important;
-            padding:7px 12px !important;
-            border-radius:8px !important;
-        }
-        .st-key-arrivals_list button:hover {
-            border-color:#00e5ff !important;
-            color:#00e5ff !important;
-            background:#06171c !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+        if query:
+            dates = [item for item in dates if query in item[1].lower()]
+            if not dates:
+                st.warning("Ninguna fecha coincide con la busqueda.")
 
-    with st.container(key="arrivals_list", height=380):
-        current_month = ""
-        for day, label, count in dates:
-            month_label = day.strftime("%B %Y").upper()
-            if month_label != current_month:
-                current_month = month_label
-                st.markdown(
-                    "<div style='color:#D4AF37;font-size:10px;font-weight:800;letter-spacing:1.4px;"
-                    "margin:10px 0 6px;border-left:3px solid #D4AF37;padding-left:8px;'>"
-                    f"{month_label}</div>",
-                    unsafe_allow_html=True,
-                )
+        st.markdown(
+            """
+            <style>
+            .st-key-arrivals_list button {
+                justify-content:flex-start !important;
+                text-align:left !important;
+                background:#0a0a0a !important;
+                border:1px solid #1e1e1e !important;
+                color:#eafaff !important;
+                font: 600 13px/1.2 'Segoe UI', sans-serif !important;
+                padding:7px 12px !important;
+                border-radius:8px !important;
+            }
+            .st-key-arrivals_list button:hover {
+                border-color:#00e5ff !important;
+                color:#00e5ff !important;
+                background:#06171c !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
 
-            is_active = active_key is not None and day == active_key
-            prefix = "▸ " if is_active else ""
-            if st.button(
-                f"{prefix}{label}   ·   {count} reserva{'s' if count != 1 else ''}",
-                key=f"arrival_date_{day.strftime('%Y%m%d')}",
-                use_container_width=True,
-                type="primary" if is_active else "secondary",
-            ):
-                _apply_arrival_date(day)
+        with st.container(key="arrivals_list", height=380):
+            current_month = ""
+            for day, label, count in dates:
+                month_label = day.strftime("%B %Y").upper()
+                if month_label != current_month:
+                    current_month = month_label
+                    st.markdown(
+                        "<div style='color:#D4AF37;font-size:10px;font-weight:800;letter-spacing:1.4px;"
+                        "margin:10px 0 6px;border-left:3px solid #D4AF37;padding-left:8px;'>"
+                        f"{month_label}</div>",
+                        unsafe_allow_html=True,
+                    )
+
+                is_active = active_key is not None and day == active_key
+                prefix = "▸ " if is_active else ""
+                if st.button(
+                    f"{prefix}{label}   ·   {count} reserva{'s' if count != 1 else ''}",
+                    key=f"arrival_date_{day.strftime('%Y%m%d')}",
+                    use_container_width=True,
+                    type="primary" if is_active else "secondary",
+                ):
+                    _apply_arrival_date(day)
 
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     left, right = st.columns(2)
@@ -3227,6 +3439,7 @@ def arrivals_dates_dialog() -> None:
         if "fecha_date" in st.query_params:
             del st.query_params["fecha_date"]
         st.query_params["skip_splash"] = "1"
+        st.session_state.pop("arrivals_cal_msg", None)
         st.rerun()
     if right.button("Cerrar", use_container_width=True, key="close_arrivals_dialog"):
         st.rerun()
