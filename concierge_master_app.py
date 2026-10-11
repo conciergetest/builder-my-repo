@@ -426,6 +426,48 @@ def normalizar_fecha(value: object) -> str:
     return "" if value is None or pd.isna(value) else str(value).strip()
 
 
+def normalizar_room(value: object) -> str:
+    """Limpia el valor de ROOM: quita el ".0" que Excel deja al importar.
+
+    IMPORTANTE: no convierte el valor a número, para no perder habitaciones
+    escritas con ceros a la izquierda ("0821") o con letras ("PH-2"). Solo
+    elimina el sufijo decimal cuando el valor es un entero tipo "811.0"
+    (que es como llega una celda numérica de Excel) -> "811".
+    """
+    if value is None or pd.isna(value):
+        return ""
+    text = str(value).strip()
+    if not text or text.lower() in ("nan", "none", "null"):
+        return ""
+    if re.fullmatch(r"[+-]?\d+\.0+", text):
+        return text.split(".")[0]
+    return text
+
+
+def normalizar_rate(value: object) -> str:
+    """Deja RATE siempre con el símbolo $ (y sin el ".0" que agrega Excel).
+
+    Se usa al importar, al guardar y al mostrar la tabla, así el valor queda
+    consistente venga con "$" o sin él: "250", "250.0" y "$250" terminan
+    todos como "$250". Si el texto no tiene números (por ejemplo "COMP") se
+    respeta tal cual. Los dígitos siguen intactos para `evaluar_vip`, que los
+    extrae del texto con `_extraer_numeros_rate`.
+    """
+    if value is None or pd.isna(value):
+        return ""
+    text = str(value).strip()
+    if not text or text.lower() in ("nan", "none", "null"):
+        return ""
+    match = re.search(r"\d[\d,]*(?:\.\d+)?", text)
+    if not match:
+        return text
+    numero = match.group(0)
+    if re.fullmatch(r"\d[\d,]*\.0+", numero):
+        numero = numero.split(".")[0]
+    reemplazo = numero if "$" in text else "$" + numero
+    return text[: match.start()] + reemplazo + text[match.end():]
+
+
 def formatear_fecha_corta(value: object) -> str:
     """Formatea una fecha para MOSTRARSE en la tabla como "Sep 14, 2026" en
     vez de "September 14, 2026".
@@ -1743,10 +1785,10 @@ def _new_reservation_form(context: str = "page") -> None:
         qty_val = float(qty)
         insertar_reserva({
             "eta": eta if eta != "-- Sin hora --" else "", "name": name.strip(), "qty": qty_val,
-            "room": room.strip(), "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
+            "room": normalizar_room(room), "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
             "check_out": check_out.strftime("%B %d, %Y"), "res_number": res_number.strip(),
             "phone": phone.strip(), "info": info.strip(), "ird": ird.strip(), "hsk": hsk.strip(),
-            "rate": rate.strip(), "trans": trans.strip(),
+            "rate": normalizar_rate(rate), "trans": trans.strip(),
         })
         st.success("Reservación guardada correctamente.")
         clear_page()
@@ -1859,11 +1901,11 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
             st.error("La fecha de check-out no puede ser anterior al check-in.")
             return
         update_data = {
-            "eta": eta if eta != "-- Sin hora --" else "", "name": name.strip(), "qty": float(qty), "room": room.strip(),
+            "eta": eta if eta != "-- Sin hora --" else "", "name": name.strip(), "qty": float(qty), "room": normalizar_room(room),
             "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
             "check_out": check_out.strftime("%B %d, %Y"), "res_number": res_number.strip(),
             "phone": phone.strip(), "info": info.strip(), "ird": ird.strip(), "hsk": hsk.strip(),
-            "rate": rate.strip(), "trans": trans.strip(),
+            "rate": normalizar_rate(rate), "trans": trans.strip(),
         }
         if recognition_available:
             update_data[RECOGNITION_COLUMN] = bool(recognition)
@@ -2372,6 +2414,10 @@ def _import_body(context: str = "page") -> None:
     # izquierda) tal cual vienen en Plantilla_Importar.xlsx, y las deja en
     # el mismo formato que usa el selector de horas del formulario.
     preview["eta"] = preview["eta"].map(normalizar_eta)
+    # ROOM: quitar el ".0" que Excel agrega a las celdas numéricas (811.0 -> 811).
+    preview["room"] = preview["room"].map(normalizar_room)
+    # RATE: dejar siempre el símbolo $, haya venido o no en el archivo.
+    preview["rate"] = preview["rate"].map(normalizar_rate)
     # Reemplazar NaN/None por cadena vacia (o 0 para qty) para visualizacion limpia
     for col in preview.columns:
         if col == "qty":
@@ -2402,6 +2448,14 @@ def _import_body(context: str = "page") -> None:
                     # Igual que en el preview: conservar el decimal (2.1),
                     # no truncar a entero.
                     value = round(float(pd.to_numeric(value, errors="coerce") or 0), 1)
+                elif column == "room":
+                    # Excel entrega la habitación como número (811.0): se
+                    # guarda limpia, sin el ".0".
+                    value = normalizar_room(value)
+                elif column == "rate":
+                    # Se guarda con el símbolo $ siempre, así la tabla lo
+                    # muestra sin importar cómo venga el archivo.
+                    value = normalizar_rate(value)
                 else:
                     value = str(value).strip()
                 record[column] = value
@@ -4481,10 +4535,18 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
     if "qty" in visible.columns:
         visible["qty"] = visible["qty"].apply(format_qty)
 
-    # Quitar .0 en ROOM y NOCHES
-    for col in ("room", "nights"):
-        if col in visible.columns:
-            visible[col] = visible[col].apply(format_integerish)
+    # Quitar .0 en ROOM y NOCHES. ROOM usa `normalizar_room` (en vez de
+    # `format_integerish`) para no perder habitaciones con cero a la
+    # izquierda: 0821 se mostraba como 821 al convertirlo a número.
+    if "nights" in visible.columns:
+        visible["nights"] = visible["nights"].apply(format_integerish)
+    if "room" in visible.columns:
+        visible["room"] = visible["room"].apply(normalizar_room)
+
+    # RATE: mostrar siempre el símbolo $ en la tabla principal, aunque el
+    # valor guardado no lo traiga (reservas viejas o cargadas a mano).
+    if "rate" in visible.columns:
+        visible["rate"] = visible["rate"].apply(normalizar_rate)
 
     builder = GridOptionsBuilder.from_dataframe(visible)
     # Solo CHECK IN tiene filtro; el resto no
