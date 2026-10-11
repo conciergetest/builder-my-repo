@@ -1,3 +1,4 @@
+
 """Concierge Master — Streamlit + Supabase.
 
 Instalación:
@@ -2235,6 +2236,22 @@ def _app_rerun() -> None:
         st.rerun()
 
 
+def _fragment_rerun() -> None:
+    """Rerun solo del popup actual, sin cerrarlo.
+
+    Un `st.rerun()` normal vuelve a ejecutar toda la app; como la bandera que
+    abre el popup ya se consumio, el popup se cerraria. Con scope="fragment"
+    se vuelve a dibujar unicamente el contenido del popup y este sigue abierto.
+
+    Si por alguna razon se llama fuera de un fragmento, Streamlit lanza una
+    excepcion; en ese caso se cae al rerun normal para no romper la pantalla.
+    """
+    try:
+        st.rerun(scope="fragment")
+    except (TypeError, st.errors.StreamlitAPIException):
+        st.rerun()
+
+
 @st.dialog("🚨 VIP Alert", width="large")
 def vip_alert_dialog() -> None:
     """Popup para llenar el VIP Alert y descargarlo en Word.
@@ -3250,16 +3267,16 @@ def _render_arrivals_calendar(dates: list, active: datetime | None) -> None:
         anterior = (month_start - timedelta(days=1)).replace(day=1)
         st.session_state["arrivals_cal_month"] = anterior.strftime("%Y-%m")
         st.session_state.pop("arrivals_cal_msg", None)
-        st.rerun()
+        _fragment_rerun()
     if nav_today.button("●", key="arrivals_cal_go_today", use_container_width=True, help="Mes actual"):
         st.session_state["arrivals_cal_month"] = today_key.strftime("%Y-%m")
         st.session_state.pop("arrivals_cal_msg", None)
-        st.rerun()
+        _fragment_rerun()
     if nav_next.button("▶", key="arrivals_cal_next", use_container_width=True, help="Mes siguiente"):
         siguiente = (month_start + timedelta(days=32)).replace(day=1)
         st.session_state["arrivals_cal_month"] = siguiente.strftime("%Y-%m")
         st.session_state.pop("arrivals_cal_msg", None)
-        st.rerun()
+        _fragment_rerun()
 
     # ── Cuadrícula ──
     for columna, etiqueta in zip(
