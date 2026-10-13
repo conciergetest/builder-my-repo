@@ -1,4 +1,3 @@
-
 """Concierge Master — Streamlit + Supabase.
 
 Instalación:
@@ -1548,6 +1547,9 @@ def render_menu() -> None:
         if h4.button("📇 DIRECTORIO", use_container_width=True):
             st.query_params["skip_splash"] = "1"
             _select_and_rerun(open_directorio=True)
+        if st.button("🍽️ P. DINNING", use_container_width=True, key="menu_open_pdinning"):
+            st.query_params["skip_splash"] = "1"
+            _select_and_rerun(open_pdinning=True)
 
         st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
@@ -2403,6 +2405,303 @@ def vip_alert_dialog() -> None:
         st.session_state.pop("vip_alert_doc", None)
         _app_rerun()
 
+
+# -----------------------------------------------------------------------------
+# P. DINNING  (formulario en Word · no guarda nada en Supabase)
+# -----------------------------------------------------------------------------
+
+# Logo Waldorf Astoria Costa Rica · Punta Cacique (blanco sobre azul marino).
+# Va embebido para que la app siga siendo un solo archivo .py.
+PDINNING_LOGO_B64 = (
+    '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'
+)
+
+# Estructura de la tabla del formulario. Cada fila es una lista de celdas
+# (cuantas columnas ocupa, texto, negrita). La plantilla tiene 10 columnas
+# iguales; los "span" reproducen las celdas combinadas de la imagen.
+PDINNING_COLUMNAS = 10
+
+
+def pdinning_row_specs(payload: dict) -> list:
+    """Devuelve las 10 filas del formulario con los datos ya colocados."""
+    fecha = payload.get("fecha")
+    if isinstance(fecha, datetime):
+        fecha = fecha.date()
+    fecha_label = fecha.strftime("%d/%m/%Y") if isinstance(fecha, date) else str(fecha or "")
+
+    return [
+        [
+            (1, "Familia:", True), (3, payload.get("familia", ""), False),
+            (1, "Room:", True), (2, payload.get("room", ""), False),
+            (1, "Fecha:", True), (2, fecha_label, False),
+        ],
+        [
+            (1, "No. Pax:", True), (2, payload.get("pax", ""), False),
+            (1, "Hora:", True), (2, payload.get("hora", ""), False),
+            (1, "Ubicación:", True), (3, payload.get("ubicacion", ""), False),
+        ],
+        [(2, "Tipo de menú:", True), (8, payload.get("tipo_menu", ""), False)],
+        [(3, "Alergias o restricciones:", True), (7, payload.get("alergias", ""), False)],
+        [(2, "Preferencias:", True), (8, payload.get("preferencias", ""), False)],
+        [
+            (2, "Set Up solicitado:", True), (6, payload.get("setup", ""), False),
+            (1, "N/A", False), (1, "", False),
+        ],
+        [
+            (2, "Tipo de flores:", True), (6, payload.get("flores", ""), False),
+            (1, "N/A", False), (1, "", False),
+        ],
+        [(2, "Ocasión especial:", True), (8, payload.get("ocasion", ""), False)],
+        [(2, "Bebidas solicitadas:", True), (8, payload.get("bebidas", ""), False)],
+        [(2, "Adicionales:", True), (8, payload.get("adicionales", ""), False)],
+    ]
+
+
+def build_pdinning_docx(payload: dict) -> bytes:
+    """Arma el formulario P. Dinning en Word con el formato de la plantilla.
+
+    Hoja horizontal, el logo arriba centrado y una tabla de 10 columnas con
+    las celdas combinadas igual que en la plantilla en papel.
+    """
+    from docx import Document
+    from docx.enum.section import WD_ORIENT
+    from docx.enum.table import (
+        WD_ALIGN_VERTICAL,
+        WD_ROW_HEIGHT_RULE,
+        WD_TABLE_ALIGNMENT,
+    )
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.shared import Inches, Pt
+
+    ALTO_FILA = Inches(0.43)
+    ALTO_ULTIMA = Inches(1.75)
+    ANCHO_TABLA = Inches(9.60)
+    # Division entera: Emu es un int, y una division normal devolveria
+    # un float que python-docx rechaza al asignar el ancho de la celda.
+    ANCHO_COLUMNA = ANCHO_TABLA // PDINNING_COLUMNAS
+    TAMANO_FUENTE = Pt(9)
+
+    document = Document()
+    seccion = document.sections[0]
+    ancho_pagina, alto_pagina = seccion.page_width, seccion.page_height
+    seccion.orientation = WD_ORIENT.LANDSCAPE
+    if ancho_pagina < alto_pagina:
+        seccion.page_width, seccion.page_height = alto_pagina, ancho_pagina
+    seccion.top_margin = Inches(0.45)
+    seccion.bottom_margin = Inches(0.45)
+    seccion.left_margin = Inches(0.70)
+    seccion.right_margin = Inches(0.70)
+
+    normal = document.styles["Normal"]
+    normal.font.name = "Calibri"
+    normal.font.size = TAMANO_FUENTE
+    normal.paragraph_format.space_after = Pt(0)
+    normal.paragraph_format.space_before = Pt(0)
+
+    # ── Logo centrado ──
+    logo = document.add_paragraph()
+    logo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    logo.paragraph_format.space_before = Pt(0)
+    logo.paragraph_format.space_after = Pt(8)
+    if PDINNING_LOGO_B64:
+        try:
+            logo.add_run().add_picture(
+                BytesIO(base64.b64decode(PDINNING_LOGO_B64)), width=Inches(3.60)
+            )
+        except Exception:  # noqa: BLE001 - si el logo falla, el formulario sigue
+            pass
+
+    def escribir(celda, texto: object, negrita: bool, centrado: bool = False) -> None:
+        celda.text = ""
+        parrafo = celda.paragraphs[0]
+        parrafo.alignment = WD_ALIGN_PARAGRAPH.CENTER if centrado else WD_ALIGN_PARAGRAPH.LEFT
+        parrafo.paragraph_format.space_before = Pt(0)
+        parrafo.paragraph_format.space_after = Pt(0)
+        run = parrafo.add_run("" if texto is None else str(texto))
+        run.bold = negrita
+        run.font.name = "Calibri"
+        run.font.size = TAMANO_FUENTE
+        celda.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+
+    filas = pdinning_row_specs(payload)
+    tabla = document.add_table(rows=len(filas), cols=PDINNING_COLUMNAS)
+    tabla.style = "Table Grid"
+    tabla.autofit = False
+    tabla.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+    for columna in tabla.columns:
+        columna.width = ANCHO_COLUMNA
+
+    for indice, fila in enumerate(filas):
+        es_ultima = indice == len(filas) - 1
+        fila_docx = tabla.rows[indice]
+        fila_docx.height = ALTO_ULTIMA if es_ultima else ALTO_FILA
+        fila_docx.height_rule = WD_ROW_HEIGHT_RULE.AT_LEAST
+
+        columna = 0
+        for span, texto, negrita in fila:
+            celda = tabla.cell(indice, columna)
+            if span > 1:
+                celda = celda.merge(tabla.cell(indice, columna + span - 1))
+            celda.width = ANCHO_COLUMNA * span
+            escribir(celda, texto, negrita)
+            columna += span
+
+    buffer = BytesIO()
+    document.save(buffer)
+    return buffer.getvalue()
+
+
+def _pdinning_file_name(payload: dict) -> str:
+    """Nombre del archivo: `P DINNING <familia> <dd-mm-yyyy>.docx`."""
+    partes = ["P DINNING"]
+    familia = str(payload.get("familia", "") or "").strip()
+    if familia:
+        partes.append(familia)
+    fecha = payload.get("fecha")
+    if isinstance(fecha, datetime):
+        fecha = fecha.date()
+    if isinstance(fecha, date):
+        partes.append(fecha.strftime("%d-%m-%Y"))
+    return " ".join(partes) + ".docx"
+
+
+@st.dialog("🍽️ P. Dinning", width="large")
+def pdinning_dialog() -> None:
+    """Popup para llenar el formulario P. Dinning y descargarlo en Word.
+
+    No guarda nada en Supabase: solo captura los datos y genera el .docx.
+    """
+    st.markdown(
+        "<div style='color:#D4AF37;font:800 12px/1.2 Segoe UI,sans-serif;letter-spacing:1.4px;"
+        "text-transform:uppercase;margin-bottom:4px;'>P. DINNING &nbsp;·&nbsp; "
+        "WALDORF ASTORIA COSTA RICA · PUNTA CACIQUE</div>"
+        "<div style='color:#8ca4ba;font-size:11px;margin-bottom:12px;'>"
+        "Llena el formulario y genera el Word. No se guarda nada en la base de datos.</div>",
+        unsafe_allow_html=True,
+    )
+
+    if not vip_alert_docx_available():
+        st.error(
+            "Falta la dependencia `python-docx` para generar el Word. "
+            "Ejecuta `pip install python-docx` y agrégalo a tu requirements."
+        )
+
+    with st.form("pdinning_form"):
+        fila1 = st.columns(3)
+        familia = fila1[0].text_input(
+            "FAMILIA", value="", key="pdin_familia", placeholder="Ej: Familia Schwartz"
+        )
+        room = fila1[1].text_input("ROOM", value="", key="pdin_room", placeholder="Ej: 811")
+        fecha = fila1[2].date_input("FECHA", value=date.today(), key="pdin_fecha")
+
+        fila2 = st.columns(3)
+        pax = fila2[0].text_input("NO. PAX", value="", key="pdin_pax", placeholder="Ej: 4")
+        hora = fila2[1].text_input("HORA", value="", key="pdin_hora", placeholder="Ej: 7:00 PM")
+        ubicacion = fila2[2].text_input(
+            "UBICACIÓN", value="", key="pdin_ubicacion", placeholder="Ej: Villa 3"
+        )
+
+        fila3 = st.columns(2)
+        tipo_menu = fila3[0].text_input(
+            "TIPO DE MENÚ", value="", key="pdin_tipo_menu", placeholder="Ej: Cena privada 4 tiempos"
+        )
+        alergias = fila3[1].text_input(
+            "ALERGIAS O RESTRICCIONES", value="", key="pdin_alergias", placeholder="Ej: Sin gluten"
+        )
+
+        preferencias = st.text_input(
+            "PREFERENCIAS", value="", key="pdin_preferencias", placeholder="Ej: Mesa en la terraza"
+        )
+
+        fila4 = st.columns(2)
+        setup = fila4[0].text_input(
+            "SET UP SOLICITADO", value="", key="pdin_setup", placeholder="Ej: Mesa redonda para 4"
+        )
+        flores = fila4[1].text_input(
+            "TIPO DE FLORES", value="", key="pdin_flores", placeholder="Ej: Orquídeas blancas"
+        )
+
+        fila5 = st.columns(2)
+        ocasion = fila5[0].text_input(
+            "OCASIÓN ESPECIAL", value="", key="pdin_ocasion", placeholder="Ej: Aniversario"
+        )
+        bebidas = fila5[1].text_input(
+            "BEBIDAS SOLICITADAS", value="", key="pdin_bebidas", placeholder="Ej: Vino blanco"
+        )
+
+        adicionales = st.text_area(
+            "ADICIONALES", value="", height=90, key="pdin_adicionales",
+            placeholder="Cualquier detalle extra que deba quedar por escrito.",
+        )
+
+        generado = st.form_submit_button(
+            "📄 GENERAR DOCUMENTO WORD", type="primary", use_container_width=True
+        )
+
+    if generado:
+        if not str(familia).strip():
+            st.error("El campo FAMILIA es obligatorio: es el nombre que va en el formulario.")
+        else:
+            payload = {
+                "familia": str(familia).strip(),
+                "room": room,
+                "fecha": fecha,
+                "pax": pax,
+                "hora": hora,
+                "ubicacion": ubicacion,
+                "tipo_menu": tipo_menu,
+                "alergias": alergias,
+                "preferencias": preferencias,
+                "setup": setup,
+                "flores": flores,
+                "ocasion": ocasion,
+                "bebidas": bebidas,
+                "adicionales": adicionales,
+            }
+            try:
+                st.session_state["pdinning_doc"] = build_pdinning_docx(payload)
+                st.session_state["pdinning_doc_name"] = _pdinning_file_name(payload)
+            except ImportError:
+                st.session_state.pop("pdinning_doc", None)
+                st.error(
+                    "No se pudo generar el Word: falta `python-docx`. "
+                    "Ejecuta `pip install python-docx` en el entorno de la app."
+                )
+            except Exception as exc:  # noqa: BLE001 - se muestra al usuario
+                st.session_state.pop("pdinning_doc", None)
+                st.error(f"No se pudo generar el documento: {exc}")
+
+    if st.session_state.get("pdinning_doc"):
+        st.success("Documento listo. Ábrelo o guárdalo con el botón de abajo.")
+        st.download_button(
+            "⬇️ DESCARGAR WORD",
+            data=st.session_state["pdinning_doc"],
+            file_name=st.session_state.get("pdinning_doc_name", "P DINNING.docx"),
+            mime=(
+                "application/vnd.openxmlformats-officedocument"
+                ".wordprocessingml.document"
+            ),
+            type="primary",
+            use_container_width=True,
+            key="pdinning_download",
+        )
+
+    cerrar_col, limpiar_col = st.columns(2)
+    if cerrar_col.button("Cerrar", use_container_width=True, key="pdinning_close"):
+        st.session_state.pop("pdinning_doc", None)
+        _app_rerun()
+    if limpiar_col.button(
+        "🧹 Limpiar formulario", use_container_width=True, key="pdinning_reset"
+    ):
+        st.session_state.pop("pdinning_doc", None)
+        for clave in (
+            "pdin_familia", "pdin_room", "pdin_pax", "pdin_hora", "pdin_ubicacion",
+            "pdin_tipo_menu", "pdin_alergias", "pdin_preferencias", "pdin_setup",
+            "pdin_flores", "pdin_ocasion", "pdin_bebidas", "pdin_adicionales",
+        ):
+            st.session_state.pop(clave, None)
+        _fragment_rerun()
 
 def _import_body(context: str = "page") -> None:
     """Importador de Excel, reutilizable en pagina o en popup."""
@@ -5561,6 +5860,10 @@ if st.session_state.pop("open_calendar", False):
 # Auto-abrir el logo Fred Wayne desde el menu de Herramientas
 if st.session_state.pop("open_logo", False):
     logo_dialog()
+
+# Auto-abrir el formulario P. Dinning desde el menu de Herramientas
+if st.session_state.pop("open_pdinning", False):
+    pdinning_dialog()
 
 # Auto-abrir los popups del header (arrivals / QR code)
 if st.session_state.pop("open_arrivals", False):
