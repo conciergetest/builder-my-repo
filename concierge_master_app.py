@@ -62,26 +62,80 @@ if st.query_params.get("skip_splash"):
 if not st.session_state.splash_shown and not has_action_params:
     splash_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "splashscreen.png")
 
-    # CSS para pantalla completa
+    # CSS de la pantalla de bienvenida: todo animado con CSS puro (sin JS ni imagenes externas)
     st.markdown(
         """
         <style>
-        header, [data-testid="stHeader"] { display: none !important; }
-        .stApp { background: #000 !important; }
+        header, [data-testid="stHeader"], #MainMenu, footer, [data-testid="stToolbar"],
+        [data-testid="stStatusWidget"] { display: none !important; }
+        .stApp, [data-testid="stAppViewContainer"] { background: #000 !important; }
         .main .block-container { padding: 0 !important; max-width: 100% !important; }
-        .splash-img-container { width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: 9999; }
-        .splash-img-container img { width: 100%; height: 100%; object-fit: cover; }
-        .splash-bar {
-            position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
-            width: 380px; height: 4px; background: #1a1a1a; border-radius: 2px;
-            overflow: hidden; border: 1px solid #333; z-index: 10000;
+
+        .splash-root {
+            position: fixed; inset: 0; width: 100vw; height: 100vh;
+            z-index: 9999; overflow: hidden; background: #000;
         }
-        .splash-bar-fill {
-            height: 100%; background: #D4AF37; width: 0%;
-            animation: splashFill 5s linear forwards;
-            box-shadow: 0 0 12px #D4AF37, 0 0 24px rgba(212,175,55,0.5);
+        .splash-root img.splash-photo {
+            display: block; width: 100%; height: 100%; object-fit: cover;
+            transform-origin: 50% 44%;
+            animation: splashKen 5.4s ease-out both, splashIn 1.2s ease-out both;
         }
-        @keyframes splashFill { to { width: 100%; } }
+        .splash-veil {
+            position: absolute; inset: 0; pointer-events: none;
+            background:
+                radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 36%, rgba(0,0,0,0.58) 100%),
+                linear-gradient(to bottom, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0) 24%,
+                                rgba(0,0,0,0) 62%, rgba(0,0,0,0.78) 100%);
+            animation: splashIn 1.6s ease-out both;
+        }
+        .splash-sheen {
+            position: absolute; top: -30%; left: -45%; width: 40%; height: 160%;
+            background: linear-gradient(90deg, rgba(212,175,55,0) 0%, rgba(255,240,190,0.10) 42%,
+                        rgba(255,248,214,0.26) 50%, rgba(255,240,190,0.10) 58%, rgba(212,175,55,0) 100%);
+            pointer-events: none; filter: blur(0.5px);
+            animation: splashSheen 2.4s ease-in-out 0.9s 1 both;
+        }
+        .splash-loader {
+            position: absolute; left: 0; right: 0; bottom: 0; height: 4px;
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 0 18px rgba(0,0,0,0.9);
+            animation: splashIn 1.2s ease-out 0.5s both;
+        }
+        .splash-loader-fill {
+            position: relative; height: 100%; width: 0%;
+            background: linear-gradient(90deg, #8a6f22 0%, #D4AF37 48%, #F7E9AE 78%, #D4AF37 100%);
+            box-shadow: 0 0 10px rgba(212,175,55,0.85), 0 0 26px rgba(212,175,55,0.45);
+            animation: splashFill 2.6s cubic-bezier(0.22, 0.61, 0.36, 1.0) forwards;
+        }
+        .splash-loader-fill::after {
+            content: ""; position: absolute; right: 0; top: 50%;
+            width: 8px; height: 8px; border-radius: 50%;
+            transform: translate(50%, -50%);
+            background: #FFF8DC;
+            box-shadow: 0 0 10px 3px rgba(255,248,220,0.90), 0 0 24px 8px rgba(212,175,55,0.55);
+        }
+        .splash-loader-glowwrap { position: absolute; inset: 0; overflow: hidden; }
+        .splash-loader-glow {
+            position: absolute; top: 0; bottom: 0; left: 0; width: 30%;
+            background: linear-gradient(90deg, rgba(255,248,214,0) 0%, rgba(255,248,214,0.55) 50%,
+                        rgba(255,248,214,0) 100%);
+            animation: splashGlow 1.6s ease-in-out 2.0s infinite;
+        }
+        .splash-out {
+            position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none;
+            animation: splashOut 3.4s ease-in forwards;
+        }
+
+        @keyframes splashIn     { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes splashKen    { from { transform: scale(1.005); } to { transform: scale(1.075); } }
+        @keyframes splashSheen  { 0%   { transform: translateX(0) skewX(-16deg); opacity: 0; }
+                                  10%  { opacity: 0.9; }
+                                  100% { transform: translateX(420%) skewX(-16deg); opacity: 0; } }
+        @keyframes splashFill   { from { width: 0%; } to { width: 100%; } }
+        @keyframes splashGlow   { 0%   { transform: translateX(-120%); opacity: 0; }
+                                  30%  { opacity: 1; }
+                                  100% { transform: translateX(430%); opacity: 0; } }
+        @keyframes splashOut    { 0%, 76% { opacity: 0; } 100% { opacity: 1; } }
         </style>
         """,
         unsafe_allow_html=True,
@@ -89,23 +143,45 @@ if not st.session_state.splash_shown and not has_action_params:
 
     if os.path.exists(splash_path):
         st.markdown(
-            f'<div class="splash-img-container"><img src="data:image/png;base64,'
+            '<div class="splash-root">'
+            '<img class="splash-photo" src="data:image/png;base64,'
             + base64.b64encode(open(splash_path, "rb").read()).decode("utf-8")
-            + '" alt="Splash"></div>',
+            + '" alt="Concierge Master">'
+            '<div class="splash-veil"></div>'
+            '<div class="splash-sheen"></div>'
+            '<div class="splash-loader">'
+            '<div class="splash-loader-fill">'
+            '<div class="splash-loader-glowwrap"><div class="splash-loader-glow"></div></div>'
+            '</div>'
+            '</div>'
+            '<div class="splash-out"></div>'
+            '</div>',
             unsafe_allow_html=True,
         )
     else:
         st.warning("No se encontro `splashscreen.png`. Subelo a tu repositorio junto a este archivo.")
 
+    import time
+    time.sleep(4)
+    st.session_state.splash_shown = True
+    st.session_state.splash_fade_in = True
+    st.rerun()
+
+# Transicion suave: el tablero entra desde negro (solo en la primera carga)
+if st.session_state.pop("splash_fade_in", False):
     st.markdown(
-        '<div class="splash-bar"><div class="splash-bar-fill"></div></div>',
+        """
+        <style>
+        @keyframes appFadeIn { from { opacity: 1; } to { opacity: 0; } }
+        .app-fade {
+            position: fixed; inset: 0; background: #000; z-index: 9998;
+            pointer-events: none; animation: appFadeIn 0.9s ease-out forwards;
+        }
+        </style>
+        <div class="app-fade"></div>
+        """,
         unsafe_allow_html=True,
     )
-
-    import time
-    time.sleep(5)
-    st.session_state.splash_shown = True
-    st.rerun()
 
 TABLE_NAME = "huespedes"
 RECOGNITION_COLUMN = "recognition"
