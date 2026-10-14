@@ -3722,6 +3722,51 @@ def _render_arrivals_calendar(dates: list, active: datetime | None) -> None:
 @st.dialog("📅 Arrivals By Date", width="small")
 def arrivals_dates_dialog() -> None:
     """Popup con todas las fechas de check-in; al hacer clic filtra la tabla."""
+    # ── Total de reservas en la esquina superior derecha del popup ──
+    # Es el mismo dato que el badge "TOTAL RESERVAS" del tablero: si hay un
+    # filtro activo (check-out, fecha de llegada o busqueda) pasa a
+    # "RESERVAS FILTRADAS" con la cantidad que quedo visible.
+    _df_total = cargar_reservaciones()
+    _prev_total, _filtros_total = apply_filters(_df_total)
+    total_display = len(_prev_total) if _filtros_total else len(_df_total)
+    total_label = "RESERVAS FILTRADAS" if _filtros_total else "TOTAL RESERVAS"
+
+    st.markdown(
+        """
+        <style>
+        /* El popup ya es position:relative, asi que el badge se ancla a su
+           esquina superior derecha, a la izquierda de la X de cerrar. */
+        .st-key-arrivals_total_badge {
+            position: absolute !important;
+            top: 25px;
+            right: 52px;
+            width: auto !important;
+            max-width: 60% !important;
+            z-index: 5;
+        }
+        .arrivals-total-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #080808; border: 1px solid #1e1e1e; border-radius: 999px;
+            padding: 4px 11px; white-space: nowrap;
+        }
+        .arrivals-total-pill .atp-label {
+            color: #71879a; font-size: 9px; font-weight: 800;
+            letter-spacing: .7px; text-transform: uppercase;
+        }
+        .arrivals-total-pill .atp-value {
+            color: #00e5ff; font-size: 14px; font-weight: 900; line-height: 1;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    with st.container(key="arrivals_total_badge"):
+        st.markdown(
+            f'<div class="arrivals-total-pill"><span class="atp-label">{total_label}</span>'
+            f'<span class="atp-value">{total_display}</span></div>',
+            unsafe_allow_html=True,
+        )
+
     dates = _arrival_dates_summary()
 
     if not dates:
