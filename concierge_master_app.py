@@ -936,6 +936,11 @@ def limpiar_reminders_vencidos() -> None:
 # -----------------------------------------------------------------------------
 
 DIRECTORIO_TABLE = "directorio_personal"
+# Proporciones de las columnas de la tabla del Directorio (colaborador,
+# departamento, puesto, correo, extension, telefono). PUESTO y CORREO llevan
+# mas ancho porque son los que se cortaban con el popup estrecho.
+DIRECTORIO_ROW_RATIOS = [1.5, 1.3, 2.0, 2.1, 0.9, 1.1]
+DIRECTORIO_HEADERS = ["COLABORADOR", "DEPARTAMENTO", "PUESTO", "CORREO", "EXT.", "TELÉFONO"]
 DIRECTORIO_COLUMNS = [
     "colaborador", "departamento", "nombre_puesto",
     "correo_electronico", "extension", "telefono_contacto",
@@ -4160,15 +4165,17 @@ def directorio_dialog() -> None:
     df = cargar_directorio()
     editing_id = st.session_state.get("directorio_inline_edit_id")
 
-    # Ensanchar SOLO este popup (Streamlit tope en width="large" ~800px).
-    # Como los dialogs son exclusivos (solo uno montado a la vez), este CSS
-    # aplica únicamente mientras el Directorio está abierto.
+    # Ensanchar SOLO este popup. Streamlit monta el dialogo como
+    # div[data-testid="stDialog"] (capa a pantalla completa) y la caja real es
+    # su primer hijo: ahi va el ancho. Como los dialogs son exclusivos (solo
+    # uno montado a la vez), este CSS aplica únicamente con el Directorio
+    # abierto.
     st.markdown(
         """
         <style>
-        div[role="dialog"] {
+        div[data-testid="stDialog"] > div {
             width: 96vw !important;
-            max-width: 1400px !important;
+            max-width: 1500px !important;
         }
         </style>
         """,
@@ -4227,20 +4234,19 @@ def directorio_dialog() -> None:
         st.markdown(
             """
             <style>
-            .directorio-row {
-                display:grid;
-                grid-template-columns: 1.6fr 1.4fr 1.8fr 1.8fr .7fr 1.1fr;
-                gap:8px;
-                padding:7px 10px;
-                border-bottom:1px solid #141414;
-                align-items:center;
-            }
-            .directorio-row.head {
+            /* El encabezado usa las mismas columnas que las filas (antes era
+               un grid aparte y los titulos no quedaban sobre su columna). */
+            .dir-head {
                 color:#00e5ff; font-size:9px; font-weight:800; letter-spacing:1px;
-                text-transform:uppercase; border-bottom:1px solid #1a1a1a;
+                text-transform:uppercase; padding:4px 0 6px;
             }
-            .directorio-row .cell { color:#dfeff8; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-            .directorio-row .dept { color:#8ca4ba; font-size:11px; }
+            /* Celdas: el texto largo (puesto, correo, extension) se ve completo.
+               Si no cabe, baja de linea; ya no se recorta con puntos suspensivos. */
+            .dir-cell {
+                color:#dfeff8; font-size:12px; line-height:1.35;
+                overflow-wrap:anywhere; padding:2px 0;
+            }
+            .dir-cell.dept { color:#8ca4ba; font-size:11px; }
             [class*="st-key-dir_name_btn_"] button {
                 background:transparent !important; border:none !important; color:#00e5ff !important;
                 font-weight:700 !important; font-size:12px !important; text-align:left !important;
@@ -4251,9 +4257,11 @@ def directorio_dialog() -> None:
             """,
             unsafe_allow_html=True,
         )
+        head_cols = st.columns(DIRECTORIO_ROW_RATIOS)
+        for head_col, titulo in zip(head_cols, DIRECTORIO_HEADERS):
+            head_col.markdown(f"<div class='dir-head'>{titulo}</div>", unsafe_allow_html=True)
         st.markdown(
-            "<div class='directorio-row head'><div>COLABORADOR</div><div>DEPARTAMENTO</div>"
-            "<div>PUESTO</div><div>CORREO</div><div>EXT.</div><div>TELÉFONO</div></div>",
+            "<div style='height:1px;background:#1a1a1a;margin:0 0 4px;'></div>",
             unsafe_allow_html=True,
         )
         with st.container(height=430, key="directorio_list"):
@@ -4262,7 +4270,7 @@ def directorio_dialog() -> None:
                 if editing_id is not None and row_id == editing_id:
                     _directorio_inline_edit_row(row)
                     continue
-                c1, c2, c3, c4, c5, c6 = st.columns([1.6, 1.4, 1.8, 1.8, .7, 1.1])
+                c1, c2, c3, c4, c5, c6 = st.columns(DIRECTORIO_ROW_RATIOS)
                 with c1:
                     if st.button(
                         str(row.get("colaborador", "") or "—"),
@@ -4271,11 +4279,11 @@ def directorio_dialog() -> None:
                         st.session_state["directorio_inline_edit_id"] = row_id
                         st.session_state["open_directorio"] = True
                         st.rerun()
-                c2.markdown(f"<div class='cell dept'>{safe_text(row.get('departamento', ''))}</div>", unsafe_allow_html=True)
-                c3.markdown(f"<div class='cell'>{safe_text(row.get('nombre_puesto', ''))}</div>", unsafe_allow_html=True)
-                c4.markdown(f"<div class='cell'>{safe_text(row.get('correo_electronico', ''))}</div>", unsafe_allow_html=True)
-                c5.markdown(f"<div class='cell'>{safe_text(row.get('extension', ''))}</div>", unsafe_allow_html=True)
-                c6.markdown(f"<div class='cell'>{safe_text(row.get('telefono_contacto', ''))}</div>", unsafe_allow_html=True)
+                c2.markdown(f"<div class='dir-cell dept'>{safe_text(row.get('departamento', ''))}</div>", unsafe_allow_html=True)
+                c3.markdown(f"<div class='dir-cell'>{safe_text(row.get('nombre_puesto', ''))}</div>", unsafe_allow_html=True)
+                c4.markdown(f"<div class='dir-cell'>{safe_text(row.get('correo_electronico', ''))}</div>", unsafe_allow_html=True)
+                c5.markdown(f"<div class='dir-cell'>{safe_text(row.get('extension', ''))}</div>", unsafe_allow_html=True)
+                c6.markdown(f"<div class='dir-cell'>{safe_text(row.get('telefono_contacto', ''))}</div>", unsafe_allow_html=True)
 
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     if st.button("Cerrar", use_container_width=True, key="close_directorio_dialog"):
