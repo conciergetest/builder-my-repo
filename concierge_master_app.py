@@ -205,6 +205,7 @@ CATEGORY_COLORS = {
     "TEAM MEMBER": "#FACC15",
     "LEISURE": "#22D3EE",
 }
+BOX_FOLDER_URL = "https://app.box.com/folder/416990015860"
 
 # Enlaces operativos proporcionados por el usuario; navegan en la pestaña actual.
 QUICK_LINKS = [
@@ -1654,11 +1655,12 @@ def render_menu() -> None:
         l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
         l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#c4b5fd;">OUTLOOK-RES</a>', unsafe_allow_html=True)
 
-        l10, l11, _l12 = st.columns(3)
+        l10, l11, l12 = st.columns(3)
         l10.markdown(f'<a href="{html.escape(QUICK_LINKS[9][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
         if l11.button("Recognition", use_container_width=True, key="menu_open_recognition"):
             st.query_params["skip_splash"] = "1"
             _select_and_rerun(open_recognition=True)
+        l12.link_button("📁 BOX FILES", BOX_FOLDER_URL, use_container_width=True)
 
         st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1a1a1a;text-align:center;color:#4a5a6a;font-size:10px;'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
 
