@@ -4426,25 +4426,51 @@ def guests_dialog() -> None:
     # AL MENOS una ya hizo checkout, se marca con el mismo icono 🏃 que usa
     # la tabla principal.
     status_by_name: dict[str, bool] = {}
+    reservation_count_by_name: dict[str, int] = {}
     for _, row in filtered.iterrows():
-        nombre = str(row.get("name", "")).strip()
-        if not nombre:
+        raw_name = row.get("name", "")
+        if raw_name is None or pd.isna(raw_name):
+            continue
+        nombre = str(raw_name).strip()
+        if not nombre or nombre.lower() in {"nan", "none", "null"}:
             continue
         checked_out = es_checkout_pasado(row.get("check_out"))
         status_by_name[nombre] = status_by_name.get(nombre, False) or checked_out
+        reservation_count_by_name[nombre] = reservation_count_by_name.get(nombre, 0) + 1
 
     names = sorted(status_by_name.keys())
+    total_reservations = len(filtered)
+    unique_named_reservations = sum(reservation_count_by_name.values())
+    repeated_name_reservations = max(unique_named_reservations - len(status_by_name), 0)
+    unnamed_reservations = max(total_reservations - unique_named_reservations, 0)
 
     search = st.text_input(
         "Buscar", key="guests_list_search", label_visibility="collapsed",
         placeholder="🔍 Buscar por nombre...",
     )
-    if search and search.strip():
+    has_name_search = bool(search and search.strip())
+    if has_name_search:
         text = search.strip().lower()
         names = [n for n in names if text in n.lower()]
 
+    if has_name_search:
+        reservations_for_names = sum(reservation_count_by_name.get(name, 0) for name in names)
+        count_label = (
+            f"Búsqueda: {reservations_for_names} reservaciones · "
+            f"{len(names)} huésped(es) único(s)"
+        )
+    else:
+        count_label = (
+            f"{total_reservations} reservaciones · "
+            f"{len(status_by_name)} huésped(es) con nombre único"
+        )
+        if repeated_name_reservations:
+            count_label += f" · {repeated_name_reservations} reservaciones adicionales de nombres repetidos"
+        if unnamed_reservations:
+            count_label += f" · {unnamed_reservations} sin nombre"
+        count_label += " · Cada huésped aparece una sola vez en la lista."
     st.markdown(
-        f"<div style='color:#00e5ff;font-size:12px;font-weight:800;margin:6px 0 10px;'>{len(names)} huésped(es)</div>",
+        f"<div style='color:#00e5ff;font-size:12px;font-weight:800;margin:6px 0 10px;'>{safe_text(count_label)}</div>",
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -4499,7 +4525,11 @@ def guests_dialog() -> None:
     else:
         with st.container(height=430, key="guests_list_container"):
             for idx, name in enumerate(names):
-                label = f"{name}  🏃" if status_by_name.get(name) else name
+                label = name
+                if reservation_count_by_name.get(name, 0) > 1:
+                    label += f"  ({reservation_count_by_name[name]} reservas)"
+                if status_by_name.get(name):
+                    label += "  🏃"
                 col_name, col_info = st.columns([8, 1])
                 with col_name:
                     if st.button(label, key=f"guest_name_btn_{idx}", use_container_width=True):
@@ -4508,20 +4538,29 @@ def guests_dialog() -> None:
                         st.session_state["open_guests_detail"] = True
                         st.rerun()
                 with col_info:
-                    if info_by_name.get(name) and st.button("ℹ️", key=f"guest_info_btn_{idx}", use_container_width=True):
+                    if st.button(
+                        "ℹ️",
+                        key=f"guest_info_btn_{idx}",
+                        use_container_width=True,
+                        help="Ver información de las reservas de este huésped",
+                    ):
                         if name in info_abiertos:
                             info_abiertos.discard(name)
                         else:
                             info_abiertos.add(name)
                         st.session_state["guests_info_open"] = info_abiertos
 
-                if name in info_abiertos and info_by_name.get(name):
-                    st.markdown(
-                        f"<div style='background:#0a0a0a;border:1px solid #00e5ff55;border-radius:6px;"
-                        f"padding:10px 12px;margin:2px 0 8px;color:#dfeff8;font-size:12.5px;font-weight:700;"
-                        f"white-space:pre-wrap;'>{safe_text(info_by_name[name])}</div>",
-                        unsafe_allow_html=True,
-                    )
+                if name in info_abiertos:
+                    info_text = info_by_name.get(name)
+                    if info_text:
+                        st.markdown(
+                            f"<div style='background:#0a0a0a;border:1px solid #00e5ff55;border-radius:6px;"
+                            f"padding:10px 12px;margin:2px 0 8px;color:#dfeff8;font-size:12.5px;font-weight:700;"
+                            f"white-space:pre-wrap;'>{safe_text(info_text)}</div>",
+                            unsafe_allow_html=True,
+                        )
+                    else:
+                        st.caption("Este huésped no tiene información adicional en las reservas.")
 
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     if st.button("Cerrar", use_container_width=True, key="close_guests_dialog"):
