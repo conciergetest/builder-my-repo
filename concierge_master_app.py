@@ -14,6 +14,7 @@ Secrets requeridos en .streamlit/secrets.toml:
 from __future__ import annotations
 
 import base64
+import json
 import math
 import re
 import html
@@ -233,6 +234,10 @@ DISPLAY_COLUMNS = [
 IMPORT_COLUMNS = [column for column in DB_COLUMNS if column != "id"]
 
 CATEGORY_COLORS = {
+    "BLUE": "#4D8DFF",
+    "GOLD": "#D4AF37",
+    "SILVER": "#B9C3CD",
+    "DIAMOND": "#A6E7FF",
     "VIP": "#00E5FF",
     "BIRTHDAY": "#FF5252",
     "HONEYMOON": "#FF9800",
@@ -241,6 +246,7 @@ CATEGORY_COLORS = {
     "RELAXURY": "#F472B6",
     "TEAM MEMBER": "#FACC15",
     "LEISURE": "#22D3EE",
+    "EXPEDIA": "#D946EF",
 }
 BOX_FOLDER_URL = "https://app.box.com/folder/416990015860"
 
@@ -1762,14 +1768,11 @@ def apply_filters(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
 # Categorías del panel "Guest categories" (incluye RELAXURY, que tiene su
 # propia barra debajo del grid pero comparte la misma lógica de click).
 CATEGORY_CHART_COLORS: dict[str, str] = {
-    "VIP": "#00E5FF",
-    "BIRTHDAY": "#FF5252",
-    "HONEYMOON": "#FF9800",
-    "BABYMOON": "#A78BFA",
-    "ANNIVERSARY": "#4ADE80",
-    "TEAM MEMBER": "#FACC15",
-    "LEISURE": "#22D3EE",
-    "RELAXURY": "#F472B6",
+    category: CATEGORY_COLORS[category]
+    for category in (
+        "VIP", "BIRTHDAY", "HONEYMOON", "BABYMOON", "ANNIVERSARY",
+        "TEAM MEMBER", "LEISURE", "RELAXURY",
+    )
 }
 
 # Categorías especiales que "consumen" una reserva (todas menos LEISURE, que
@@ -5061,33 +5064,68 @@ def render_delete() -> None:
 # Tabla AG Grid
 # -----------------------------------------------------------------------------
 
+CATEGORY_CELL_MATCHERS = [
+    ("BLUE", "BLUE"),
+    ("GOLD", "GOLD"),
+    ("SILVER", "SILVER"),
+    ("DIAMOND", "DIAMOND"),
+    ("VIP", "VIP"),
+    ("BIRTHDAY", "BIRTHDAY"),
+    ("CUMPLEANOS", "BIRTHDAY"),
+    ("CUMPLE", "BIRTHDAY"),
+    ("HONEYMOON", "HONEYMOON"),
+    ("LUNA DE MIEL", "HONEYMOON"),
+    ("BABYMOON", "BABYMOON"),
+    ("ANNIVERSARY", "ANNIVERSARY"),
+    ("ANIVERSARIO", "ANNIVERSARY"),
+    ("TEAM MEMBER", "TEAM MEMBER"),
+    ("STAFF", "TEAM MEMBER"),
+    ("EMPLOYEE", "TEAM MEMBER"),
+    ("EXPEDIA", "EXPEDIA"),
+    ("RELAXURY", "RELAXURY"),
+    ("LEISURE", "LEISURE"),
+]
+CATEGORY_CELL_MATCHES = [
+    (keyword, CATEGORY_COLORS[category])
+    for keyword, category in CATEGORY_CELL_MATCHERS
+]
+
 CATEGORY_CELL_STYLE = JsCode(
     """
 function(params) {
-  const val = String(params.value || '');
-  if (!val || val === 'nan' || val === 'None' || val === 'null') return null;
-  const info = String((params.data && params.data.info) || '').toUpperCase();
-  const ird = String((params.data && params.data.ird) || '').toUpperCase();
-  const trans = String((params.data && params.data.trans) || '').toUpperCase();
-  const combined = info + " " + ird + " " + trans;
-  const cats = [
-    ['VIP', '#00E5FF'],
-    ['BIRTHDAY', '#FF5252'],
-    ['HONEYMOON', '#FF9800'],
-    ['BABYMOON', '#A78BFA'],
-    ['ANNIVERSARY', '#4ADE80'],
-    ['RELAXURY', '#F472B6'],
-    ['TEAM MEMBER', '#FACC15'],
-    ['LEISURE', '#22D3EE']
-  ];
-  for (const [keyword, color] of cats) {
-    if (combined.includes(keyword)) {
-      return { color: color, fontWeight: '800' };
+  const rawValue = params && params.value != null ? String(params.value).trim() : '';
+  if (!rawValue || /^(nan|none|null|undefined)$/i.test(rawValue)) return null;
+
+  // Clasifica solamente el contenido de esta celda: INFORMATION e IRD
+  // pueden contener categorías distintas para una misma reservación.
+  const normalized = rawValue.toUpperCase()
+    .normalize('NFD')
+    .replace(/[\\u0300-\\u036f]/g, '')
+    .replace(/[^A-Z0-9]+/g, ' ')
+    .trim();
+  const padded = ' ' + normalized + ' ';
+  const categories = __CATEGORY_CELL_MATCHES__;
+  let bestMatch = null;
+
+  for (const [keyword, color] of categories) {
+    const position = padded.indexOf(' ' + keyword + ' ');
+    if (position >= 0 && (
+      bestMatch === null ||
+      position < bestMatch.position ||
+      (position === bestMatch.position && keyword.length > bestMatch.keyword.length)
+    )) {
+      bestMatch = { keyword, color, position };
     }
   }
-  return null;
+
+  if (bestMatch === null) return null;
+  return {
+    color: bestMatch.color,
+    fontWeight: '800',
+    boxShadow: 'inset 3px 0 0 ' + bestMatch.color
+  };
 }
-"""
+""".replace("__CATEGORY_CELL_MATCHES__", json.dumps(CATEGORY_CELL_MATCHES))
 )
 
 TRANS_CELL_STYLE = JsCode(
