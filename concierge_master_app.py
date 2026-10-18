@@ -61,6 +61,8 @@ if st.query_params.get("skip_splash"):
 
 if not st.session_state.splash_shown and not has_action_params:
     splash_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "splash.png")
+    import time
+    st.session_state.setdefault("splash_started_at", time.monotonic())
 
     # CSS de la pantalla de bienvenida: todo animado con CSS puro (sin JS ni imagenes externas)
     st.markdown(
@@ -115,15 +117,16 @@ if not st.session_state.splash_shown and not has_action_params:
             animation: splashFrameIn 1s ease-out .45s both;
         }
         .splash-loader {
-            position: absolute; left: 0; right: 0; bottom: 0; height: 4px; z-index: 5;
-            background: rgba(255,255,255,0.08);
-            box-shadow: 0 0 18px rgba(0,0,0,0.9);
+            position: absolute; left: 0; right: 0; bottom: 0; height: 7px; z-index: 7;
+            background: rgba(255,255,255,.2);
+            box-shadow: 0 0 18px rgba(0,0,0,.9), 0 0 12px rgba(212,175,55,.32);
             animation: splashIn 1.2s ease-out 0.5s both;
         }
         .splash-loader-fill {
             position: relative; height: 100%; width: 0%;
             background: linear-gradient(90deg, #8a6f22 0%, #D4AF37 48%, #F7E9AE 78%, #D4AF37 100%);
             box-shadow: 0 0 10px rgba(212,175,55,0.85), 0 0 26px rgba(212,175,55,0.45);
+            will-change: width;
             animation: splashFill 2.6s cubic-bezier(0.22, 0.61, 0.36, 1.0) forwards;
         }
         .splash-loader-fill::after {
@@ -163,7 +166,7 @@ if not st.session_state.splash_shown and not has_action_params:
         @keyframes splashOut    { 0%, 76% { opacity: 0; } 100% { opacity: 1; } }
         @media (max-width: 600px) {
             .splash-frame { inset: 9px; border-radius: 7px; }
-            .splash-loader { height: 3px; }
+            .splash-loader { height: 5px; }
         }
         @media (prefers-reduced-motion: reduce) {
             .splash-root::before, .splash-photo, .splash-veil, .splash-sheen,
@@ -203,11 +206,15 @@ if not st.session_state.splash_shown and not has_action_params:
     else:
         st.warning("No se encontro `splash.png`. Subelo a tu repositorio junto a este archivo.")
 
-    import time
-    time.sleep(4)
-    st.session_state.splash_shown = True
-    st.session_state.splash_fade_in = True
-    st.rerun()
+    @st.fragment(run_every=0.1)
+    def _finish_splash_after_animation() -> None:
+        if time.monotonic() - st.session_state["splash_started_at"] >= 4:
+            st.session_state.splash_shown = True
+            st.session_state.splash_fade_in = True
+            st.rerun(scope="app")
+
+    _finish_splash_after_animation()
+    st.stop()
 
 # Transicion suave: el tablero entra desde negro (solo en la primera carga)
 if st.session_state.pop("splash_fade_in", False):
