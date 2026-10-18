@@ -3587,8 +3587,11 @@ ARRIVALS_CALENDAR_CSS = """
     color:#1C1300 !important; font-weight:900 !important;
 }
 .arrivals-cal-head {
-    text-align:center; color:#8ca4ba; font-size:10px; font-weight:800;
-    text-transform:uppercase; letter-spacing:0.6px; padding-bottom:2px;
+    box-sizing:border-box; min-height:30px; display:flex;
+    align-items:center; justify-content:center;
+    text-align:center; color:#c9e4ef; font-size:11px; font-weight:900;
+    text-transform:uppercase; letter-spacing:0.9px; line-height:1.2;
+    padding:4px 0 10px; margin-bottom:4px;
 }
 .arrivals-cal-pad { height:34px; }
 </style>
