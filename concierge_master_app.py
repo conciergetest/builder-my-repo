@@ -5121,8 +5121,7 @@ function(params) {
   if (bestMatch === null) return null;
   return {
     color: bestMatch.color,
-    fontWeight: '800',
-    boxShadow: 'inset 3px 0 0 ' + bestMatch.color
+    fontWeight: '800'
   };
 }
 """.replace("__CATEGORY_CELL_MATCHES__", json.dumps(CATEGORY_CELL_MATCHES))
