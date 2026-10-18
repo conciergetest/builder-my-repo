@@ -168,18 +168,6 @@ if not st.session_state.splash_shown and not has_action_params:
             .splash-frame { inset: 9px; border-radius: 7px; }
             .splash-loader { height: 5px; }
         }
-        @media (prefers-reduced-motion: reduce) {
-            .splash-root::before, .splash-photo, .splash-veil, .splash-sheen,
-            .splash-frame, .splash-loader, .splash-loader-fill,
-            .splash-loader-fill::after, .splash-loader-glow, .splash-out {
-                animation: none !important;
-            }
-            .splash-photo { transform: none !important; opacity: 1 !important; }
-            .splash-frame { opacity: 1; }
-            .splash-loader-fill { width: 100%; }
-            .splash-loader-glow { display: none; }
-            .splash-out { opacity: 0; }
-        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -225,9 +213,6 @@ if st.session_state.pop("splash_fade_in", False):
         .app-fade {
             position: fixed; inset: 0; background: #000; z-index: 9998;
             pointer-events: none; animation: appFadeIn 0.9s ease-out forwards;
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .app-fade { animation: none; opacity: 0; }
         }
         </style>
         <div class="app-fade"></div>
