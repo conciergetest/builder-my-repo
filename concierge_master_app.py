@@ -60,7 +60,7 @@ if st.query_params.get("skip_splash"):
     st.session_state.splash_shown = True
 
 if not st.session_state.splash_shown and not has_action_params:
-    splash_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "splashscreen.png")
+    splash_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "splash.png")
 
     # CSS de la pantalla de bienvenida: todo animado con CSS puro (sin JS ni imagenes externas)
     st.markdown(
@@ -73,30 +73,49 @@ if not st.session_state.splash_shown and not has_action_params:
 
         .splash-root {
             position: fixed; inset: 0; width: 100vw; height: 100vh;
-            z-index: 9999; overflow: hidden; background: #000;
+            z-index: 9999; overflow: hidden; isolation: isolate;
+            background: radial-gradient(ellipse at 50% 48%, #0d292b 0%, #061216 52%, #020407 100%);
+        }
+        .splash-root::before {
+            content: ""; position: absolute; inset: -12%; z-index: 0; pointer-events: none;
+            background:
+                radial-gradient(ellipse at 50% 44%, rgba(212,175,55,.19) 0%, rgba(212,175,55,0) 38%),
+                radial-gradient(ellipse at 18% 72%, rgba(0,229,255,.13) 0%, rgba(0,229,255,0) 43%),
+                radial-gradient(ellipse at 84% 28%, rgba(20,149,145,.19) 0%, rgba(20,149,145,0) 44%);
+            filter: blur(28px);
+            animation: splashAtmosphere 7s ease-in-out infinite alternate;
         }
         .splash-root img.splash-photo {
-            display: block; width: 100%; height: 100%; object-fit: cover;
-            transform-origin: 50% 44%;
-            animation: splashKen 5.4s ease-out both, splashIn 1.2s ease-out both;
+            position: absolute; inset: 0; z-index: 1;
+            display: block; width: 100%; height: 100%; object-fit: contain; object-position: center;
+            transform-origin: 50% 50%;
+            filter: drop-shadow(0 12px 34px rgba(0,0,0,.42));
+            animation: splashKen 4s cubic-bezier(.2,.68,.28,1) both, splashIn .9s ease-out both;
         }
         .splash-veil {
-            position: absolute; inset: 0; pointer-events: none;
+            position: absolute; inset: 0; z-index: 2; pointer-events: none;
             background:
-                radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 36%, rgba(0,0,0,0.58) 100%),
-                linear-gradient(to bottom, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0) 24%,
-                                rgba(0,0,0,0) 62%, rgba(0,0,0,0.78) 100%);
-            animation: splashIn 1.6s ease-out both;
+                radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 43%, rgba(0,0,0,.43) 100%),
+                linear-gradient(180deg, rgba(0,0,0,.28) 0%, rgba(0,0,0,0) 25%,
+                                rgba(0,0,0,0) 70%, rgba(0,0,0,.42) 100%);
+            animation: splashIn 1.3s ease-out both;
         }
         .splash-sheen {
-            position: absolute; top: -30%; left: -45%; width: 40%; height: 160%;
-            background: linear-gradient(90deg, rgba(212,175,55,0) 0%, rgba(255,240,190,0.10) 42%,
-                        rgba(255,248,214,0.26) 50%, rgba(255,240,190,0.10) 58%, rgba(212,175,55,0) 100%);
-            pointer-events: none; filter: blur(0.5px);
-            animation: splashSheen 2.4s ease-in-out 0.9s 1 both;
+            position: absolute; top: -30%; left: -45%; width: 40%; height: 160%; z-index: 3;
+            background: linear-gradient(90deg, rgba(212,175,55,0) 0%, rgba(255,240,190,.08) 38%,
+                        rgba(255,248,214,.31) 50%, rgba(255,240,190,.08) 62%, rgba(212,175,55,0) 100%);
+            pointer-events: none; filter: blur(2px); mix-blend-mode: screen;
+            animation: splashSheen 2.7s cubic-bezier(.2,.7,.3,1) .55s 1 both;
+        }
+        .splash-frame {
+            position: absolute; inset: clamp(13px, 2.2vw, 30px); z-index: 4;
+            border: 1px solid rgba(247,233,174,.28); border-radius: 10px;
+            box-shadow: inset 0 0 36px rgba(247,233,174,.045), 0 0 24px rgba(0,0,0,.24);
+            pointer-events: none; opacity: 0;
+            animation: splashFrameIn 1s ease-out .45s both;
         }
         .splash-loader {
-            position: absolute; left: 0; right: 0; bottom: 0; height: 4px;
+            position: absolute; left: 0; right: 0; bottom: 0; height: 4px; z-index: 5;
             background: rgba(255,255,255,0.08);
             box-shadow: 0 0 18px rgba(0,0,0,0.9);
             animation: splashIn 1.2s ease-out 0.5s both;
@@ -119,23 +138,45 @@ if not st.session_state.splash_shown and not has_action_params:
             position: absolute; top: 0; bottom: 0; left: 0; width: 30%;
             background: linear-gradient(90deg, rgba(255,248,214,0) 0%, rgba(255,248,214,0.55) 50%,
                         rgba(255,248,214,0) 100%);
-            animation: splashGlow 1.6s ease-in-out 2.0s infinite;
+            animation: splashGlow 1.2s ease-in-out 2.7s 1 both;
         }
         .splash-out {
-            position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none;
-            animation: splashOut 3.4s ease-in forwards;
+            position: absolute; inset: 0; z-index: 6; background: #000;
+            opacity: 0; pointer-events: none; animation: splashOut 4s ease-in forwards;
         }
 
         @keyframes splashIn     { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes splashKen    { from { transform: scale(1.005); } to { transform: scale(1.075); } }
+        @keyframes splashAtmosphere {
+            from { transform: translate3d(-1%, .7%, 0) scale(.98); opacity: .76; }
+            to   { transform: translate3d(1%, -.7%, 0) scale(1.05); opacity: 1; }
+        }
+        @keyframes splashKen    { from { transform: scale(1); } to { transform: scale(1.035); } }
         @keyframes splashSheen  { 0%   { transform: translateX(0) skewX(-16deg); opacity: 0; }
                                   10%  { opacity: 0.9; }
                                   100% { transform: translateX(420%) skewX(-16deg); opacity: 0; } }
+        @keyframes splashFrameIn { from { opacity: 0; transform: scale(.992); }
+                                   to   { opacity: 1; transform: scale(1); } }
         @keyframes splashFill   { from { width: 0%; } to { width: 100%; } }
         @keyframes splashGlow   { 0%   { transform: translateX(-120%); opacity: 0; }
                                   30%  { opacity: 1; }
                                   100% { transform: translateX(430%); opacity: 0; } }
         @keyframes splashOut    { 0%, 76% { opacity: 0; } 100% { opacity: 1; } }
+        @media (max-width: 600px) {
+            .splash-frame { inset: 9px; border-radius: 7px; }
+            .splash-loader { height: 3px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .splash-root::before, .splash-photo, .splash-veil, .splash-sheen,
+            .splash-frame, .splash-loader, .splash-loader-fill,
+            .splash-loader-fill::after, .splash-loader-glow, .splash-out {
+                animation: none !important;
+            }
+            .splash-photo { transform: none !important; opacity: 1 !important; }
+            .splash-frame { opacity: 1; }
+            .splash-loader-fill { width: 100%; }
+            .splash-loader-glow { display: none; }
+            .splash-out { opacity: 0; }
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -149,6 +190,7 @@ if not st.session_state.splash_shown and not has_action_params:
             + '" alt="Concierge Master">'
             '<div class="splash-veil"></div>'
             '<div class="splash-sheen"></div>'
+            '<div class="splash-frame"></div>'
             '<div class="splash-loader">'
             '<div class="splash-loader-fill">'
             '<div class="splash-loader-glowwrap"><div class="splash-loader-glow"></div></div>'
@@ -159,7 +201,7 @@ if not st.session_state.splash_shown and not has_action_params:
             unsafe_allow_html=True,
         )
     else:
-        st.warning("No se encontro `splashscreen.png`. Subelo a tu repositorio junto a este archivo.")
+        st.warning("No se encontro `splash.png`. Subelo a tu repositorio junto a este archivo.")
 
     import time
     time.sleep(4)
@@ -176,6 +218,9 @@ if st.session_state.pop("splash_fade_in", False):
         .app-fade {
             position: fixed; inset: 0; background: #000; z-index: 9998;
             pointer-events: none; animation: appFadeIn 0.9s ease-out forwards;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .app-fade { animation: none; opacity: 0; }
         }
         </style>
         <div class="app-fade"></div>
