@@ -1876,73 +1876,6 @@ def render_back_link() -> None:
     )
 
 
-INFORMATION_CATEGORY_NONE = "— Sin categoría —"
-INFORMATION_CATEGORY_OPTIONS = [
-    INFORMATION_CATEGORY_NONE,
-    "BLUE",
-    "GOLD",
-    "SILVER",
-    "DIAMOND",
-    "VIP",
-    "VIP 1",
-    "VIP 2",
-    "VIP 3",
-    "VIP 4",
-    "VIP 5",
-    "BIRTHDAY",
-    "HONEYMOON",
-    "BABYMOON",
-    "ANNIVERSARY",
-    "TEAM MEMBER",
-    "EXPEDIA",
-    "RELAXURY",
-    "LEISURE",
-]
-
-
-def split_information_category(value: object) -> tuple[str, str]:
-    """Separa una categoría inicial de las notas guardadas en INFORMATION."""
-    raw = "" if value is None else str(value).strip()
-    if not raw:
-        return INFORMATION_CATEGORY_NONE, ""
-
-    prefixes = [(category, category) for category in INFORMATION_CATEGORY_OPTIONS[1:]]
-    prefixes.extend([
-        ("CUMPLEAÑOS", "BIRTHDAY"),
-        ("CUMPLEANOS", "BIRTHDAY"),
-        ("CUMPLE", "BIRTHDAY"),
-        ("LUNA DE MIEL", "HONEYMOON"),
-        ("ANIVERSARIO", "ANNIVERSARY"),
-        ("STAFF", "TEAM MEMBER"),
-        ("EMPLOYEE", "TEAM MEMBER"),
-    ])
-
-    for prefix, category in sorted(prefixes, key=lambda item: len(item[0]), reverse=True):
-        if prefix.startswith("VIP ") and prefix[-1:].isdigit():
-            prefix_pattern = r"VIP[\s-]*" + prefix[-1]
-        else:
-            prefix_pattern = r"[\s-]+".join(re.escape(part) for part in prefix.split())
-        match = re.match(
-            rf"^\s*{prefix_pattern}(?:\s*(?:\||:|–|—|-)\s*|\s+|$)",
-            raw,
-            flags=re.IGNORECASE,
-        )
-        if match:
-            return category, raw[match.end():].strip()
-
-    return INFORMATION_CATEGORY_NONE, raw
-
-
-def compose_information(category: str, notes: str) -> str:
-    """Guarda la categoría al inicio y conserva el texto de información."""
-    clean_notes = str(notes or "").strip()
-    if category == INFORMATION_CATEGORY_NONE:
-        return clean_notes
-    if clean_notes:
-        return f"{category} | {clean_notes}"
-    return category
-
-
 def _new_reservation_form(context: str = "page") -> None:
     """Formulario de nueva reserva, reutilizable en pagina o en popup."""
     eta_options = generate_eta_options()
@@ -1963,17 +1896,7 @@ def _new_reservation_form(context: str = "page") -> None:
         rate = r4[0].text_input("Rate", placeholder="$250")
         ird = r4[1].text_input("IRD")
         hsk = r4[2].text_input("HSK")
-        info_row = st.columns([3, 1.5])
-        info_notes = info_row[0].text_input(
-            "Information",
-            placeholder="Amenidades, preferencias u otros detalles",
-            key=f"new_information_notes_{context}",
-        )
-        info_category = info_row[1].selectbox(
-            "Categoría",
-            options=INFORMATION_CATEGORY_OPTIONS,
-            key=f"new_information_category_{context}",
-        )
+        info = st.text_input("Information", placeholder="VIP, Birthday, Honeymoon, Relaxury...")
         trans = st.text_input("Transportation")
         submitted = st.form_submit_button("Guardar Cambios", type="primary", use_container_width=True)
 
@@ -1989,8 +1912,7 @@ def _new_reservation_form(context: str = "page") -> None:
             "eta": eta if eta != "-- Sin hora --" else "", "name": name.strip(), "qty": qty_val,
             "room": normalizar_room(room), "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
             "check_out": check_out.strftime("%B %d, %Y"), "res_number": res_number.strip(),
-            "phone": phone.strip(), "info": compose_information(info_category, info_notes),
-            "ird": ird.strip(), "hsk": hsk.strip(),
+            "phone": phone.strip(), "info": info.strip(), "ird": ird.strip(), "hsk": hsk.strip(),
             "rate": normalizar_rate(rate), "trans": trans.strip(),
         })
         st.success("Reservación guardada correctamente.")
@@ -2018,8 +1940,6 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
     check_out_default = parse_fecha(reservation.get("check_out")) or datetime.now() + timedelta(days=1)
     qty_default = pd.to_numeric(reservation.get("qty", 0), errors="coerce")
     qty_default = 0.0 if pd.isna(qty_default) else float(qty_default)
-    info_category_default, info_notes_default = split_information_category(reservation.get("info", ""))
-    info_category_index = INFORMATION_CATEGORY_OPTIONS.index(info_category_default)
     # ETA ahora se edita con el mismo selector de horas (cada 30 min,
     # formato 12h AM/PM) que ya usaba "Nueva Reservación", en vez de un
     # cuadro de texto libre — evita horas mal escritas y hace que calce con
@@ -2088,21 +2008,11 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
         check_in = second[1].date_input("Check-in", value=check_in_default.date())
         check_out = second[2].date_input("Check-out", value=check_out_default.date())
         res_number = second[3].text_input("Reservation #", value=str(reservation.get("res_number", "")))
-        third = st.columns([1.15, 2.1, 1.3, 1.15, 1.15])
+        third = st.columns(4)
         phone = third[0].text_input("Teléfono", value=str(reservation.get("phone", "")))
-        info_notes = third[1].text_input(
-            "Information",
-            value=info_notes_default,
-            key=f"edit_information_notes_{context}_{reservation_id}",
-        )
-        info_category = third[2].selectbox(
-            "Categoría",
-            options=INFORMATION_CATEGORY_OPTIONS,
-            index=info_category_index,
-            key=f"edit_information_category_{context}_{reservation_id}",
-        )
-        ird = third[3].text_input("IRD", value=str(reservation.get("ird", "")))
-        hsk = third[4].text_input("HSK", value=str(reservation.get("hsk", "")))
+        info = third[1].text_input("Information", value=str(reservation.get("info", "")))
+        ird = third[2].text_input("IRD", value=str(reservation.get("ird", "")))
+        hsk = third[3].text_input("HSK", value=str(reservation.get("hsk", "")))
         fourth = st.columns(2)
         rate = fourth[0].text_input("Rate", value=str(reservation.get("rate", "")))
         trans = fourth[1].text_input("Transportation", value=str(reservation.get("trans", "")))
@@ -2119,8 +2029,7 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
             "eta": eta if eta != "-- Sin hora --" else "", "name": name.strip(), "qty": float(qty), "room": normalizar_room(room),
             "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
             "check_out": check_out.strftime("%B %d, %Y"), "res_number": res_number.strip(),
-            "phone": phone.strip(), "info": compose_information(info_category, info_notes),
-            "ird": ird.strip(), "hsk": hsk.strip(),
+            "phone": phone.strip(), "info": info.strip(), "ird": ird.strip(), "hsk": hsk.strip(),
             "rate": normalizar_rate(rate), "trans": trans.strip(),
         }
         if recognition_available:
