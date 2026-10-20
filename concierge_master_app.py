@@ -1876,29 +1876,135 @@ def render_back_link() -> None:
     )
 
 
+INFORMATION_CATEGORY_NONE = "— Sin categoría —"
+INFORMATION_CATEGORY_OPTIONS = [
+    INFORMATION_CATEGORY_NONE,
+    "BLUE",
+    "GOLD",
+    "SILVER",
+    "DIAMOND",
+    "VIP",
+    "VIP 1",
+    "VIP 2",
+    "VIP 3",
+    "VIP 4",
+    "VIP 5",
+    "BIRTHDAY",
+    "HONEYMOON",
+    "BABYMOON",
+    "ANNIVERSARY",
+    "TEAM MEMBER",
+    "EXPEDIA",
+    "RELAXURY",
+    "LEISURE",
+]
+
+
+def split_information_category(value: object) -> tuple[str, str]:
+    """Separa una categoría inicial de las notas guardadas en INFORMATION."""
+    raw = "" if value is None else str(value).strip()
+    if not raw:
+        return INFORMATION_CATEGORY_NONE, ""
+
+    prefixes = [(category, category) for category in INFORMATION_CATEGORY_OPTIONS[1:]]
+    prefixes.extend([
+        ("CUMPLEAÑOS", "BIRTHDAY"),
+        ("CUMPLEANOS", "BIRTHDAY"),
+        ("CUMPLE", "BIRTHDAY"),
+        ("LUNA DE MIEL", "HONEYMOON"),
+        ("ANIVERSARIO", "ANNIVERSARY"),
+        ("STAFF", "TEAM MEMBER"),
+        ("EMPLOYEE", "TEAM MEMBER"),
+    ])
+
+    for prefix, category in sorted(prefixes, key=lambda item: len(item[0]), reverse=True):
+        if prefix.startswith("VIP ") and prefix[-1:].isdigit():
+            prefix_pattern = r"VIP[\s-]*" + prefix[-1]
+        else:
+            prefix_pattern = r"[\s-]+".join(re.escape(part) for part in prefix.split())
+        match = re.match(
+            rf"^\s*{prefix_pattern}(?:\s*(?:\||:|–|—|-)\s*|\s+|$)",
+            raw,
+            flags=re.IGNORECASE,
+        )
+        if match:
+            return category, raw[match.end():].strip()
+
+    return INFORMATION_CATEGORY_NONE, raw
+
+
+def compose_information(category: str, notes: str) -> str:
+    """Guarda la categoría al inicio y conserva el texto de información."""
+    clean_notes = str(notes or "").strip()
+    if category == INFORMATION_CATEGORY_NONE:
+        return clean_notes
+    if clean_notes:
+        return f"{category} | {clean_notes}"
+    return category
+
+
+def _apply_information_category(text_key: str, category_key: str) -> None:
+    """Inserta o cambia la categoría seleccionada directamente en INFORMATION."""
+    current_text = str(st.session_state.get(text_key, "") or "").strip()
+    category = st.session_state.get(category_key, INFORMATION_CATEGORY_NONE)
+    existing_category, notes = split_information_category(current_text)
+
+    if category == INFORMATION_CATEGORY_NONE:
+        updated_text = notes if existing_category != INFORMATION_CATEGORY_NONE else current_text
+    else:
+        preserved_text = notes if existing_category != INFORMATION_CATEGORY_NONE else current_text
+        updated_text = compose_information(category, preserved_text)
+
+    st.session_state[text_key] = updated_text
+
+
 def _new_reservation_form(context: str = "page") -> None:
     """Formulario de nueva reserva, reutilizable en pagina o en popup."""
     eta_options = generate_eta_options()
-    with st.form(f"new_reservation_{context}", clear_on_submit=True):
-        r1 = st.columns(3)
-        eta = r1[0].selectbox("ETA", options=eta_options, index=0)
-        name = r1[1].text_input("Name *", placeholder="Guest name")
-        qty = r1[2].number_input("QTY (adultos,niños)", min_value=0.0, step=0.1, format="%.1f", value=0.0)
-        r2 = st.columns(3)
-        room = r2[0].text_input("Room", placeholder="101")
-        email = r2[1].text_input("Email", placeholder="guest@email.com")
-        res_number = r2[2].text_input("Reservation #", placeholder="RES-001")
-        r3 = st.columns(3)
-        check_in = r3[0].date_input("Check In")
-        check_out = r3[1].date_input("Check Out", value=datetime.now().date() + timedelta(days=1))
-        phone = r3[2].text_input("Phone", placeholder="+1 555 0000")
-        r4 = st.columns(3)
-        rate = r4[0].text_input("Rate", placeholder="$250")
-        ird = r4[1].text_input("IRD")
-        hsk = r4[2].text_input("HSK")
-        info = st.text_input("Information", placeholder="VIP, Birthday, Honeymoon, Relaxury...")
-        trans = st.text_input("Transportation")
-        submitted = st.form_submit_button("Guardar Cambios", type="primary", use_container_width=True)
+    version_key = f"new_reservation_form_version_{context}"
+    version = st.session_state.get(version_key, 0)
+    field_key = lambda field: f"new_reservation_{context}_{version}_{field}"
+
+    r1 = st.columns(3)
+    eta = r1[0].selectbox("ETA", options=eta_options, index=0, key=field_key("eta"))
+    name = r1[1].text_input("Name *", placeholder="Guest name", key=field_key("name"))
+    qty = r1[2].number_input(
+        "QTY (adultos,niños)", min_value=0.0, step=0.1, format="%.1f",
+        value=0.0, key=field_key("qty"),
+    )
+    r2 = st.columns(3)
+    room = r2[0].text_input("Room", placeholder="101", key=field_key("room"))
+    email = r2[1].text_input("Email", placeholder="guest@email.com", key=field_key("email"))
+    res_number = r2[2].text_input("Reservation #", placeholder="RES-001", key=field_key("res_number"))
+    r3 = st.columns(3)
+    check_in = r3[0].date_input("Check In", key=field_key("check_in"))
+    check_out = r3[1].date_input(
+        "Check Out", value=datetime.now().date() + timedelta(days=1), key=field_key("check_out")
+    )
+    phone = r3[2].text_input("Phone", placeholder="+1 555 0000", key=field_key("phone"))
+    r4 = st.columns(3)
+    rate = r4[0].text_input("Rate", placeholder="$250", key=field_key("rate"))
+    ird = r4[1].text_input("IRD", key=field_key("ird"))
+    hsk = r4[2].text_input("HSK", key=field_key("hsk"))
+    info_row = st.columns([3, 1.5])
+    info_text_key = field_key("information")
+    info_category_key = field_key("information_category")
+    info_category = info_row[1].selectbox(
+        "Categoría",
+        options=INFORMATION_CATEGORY_OPTIONS,
+        key=info_category_key,
+        on_change=_apply_information_category,
+        args=(info_text_key, info_category_key),
+    )
+    info_text = info_row[0].text_input(
+        "Information",
+        placeholder="Amenidades, preferencias u otros detalles",
+        key=info_text_key,
+    )
+    trans = st.text_input("Transportation", key=field_key("trans"))
+    submitted = st.button(
+        "Guardar Cambios", type="primary", use_container_width=True, key=field_key("save")
+    )
 
     if submitted:
         if not name.strip():
@@ -1912,10 +2018,12 @@ def _new_reservation_form(context: str = "page") -> None:
             "eta": eta if eta != "-- Sin hora --" else "", "name": name.strip(), "qty": qty_val,
             "room": normalizar_room(room), "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
             "check_out": check_out.strftime("%B %d, %Y"), "res_number": res_number.strip(),
-            "phone": phone.strip(), "info": info.strip(), "ird": ird.strip(), "hsk": hsk.strip(),
+            "phone": phone.strip(), "info": info_text.strip(),
+            "ird": ird.strip(), "hsk": hsk.strip(),
             "rate": normalizar_rate(rate), "trans": trans.strip(),
         })
         st.success("Reservación guardada correctamente.")
+        st.session_state[version_key] = version + 1
         clear_page()
 
 
@@ -1924,6 +2032,8 @@ def new_reservation_dialog() -> None:
     """Popup flotante para crear una reserva sin salir del dashboard."""
     _new_reservation_form("dialog")
     if st.button("Cerrar", use_container_width=True, key="close_new_dialog"):
+        version_key = "new_reservation_form_version_dialog"
+        st.session_state[version_key] = st.session_state.get(version_key, 0) + 1
         st.rerun()
 
 
@@ -1940,6 +2050,8 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
     check_out_default = parse_fecha(reservation.get("check_out")) or datetime.now() + timedelta(days=1)
     qty_default = pd.to_numeric(reservation.get("qty", 0), errors="coerce")
     qty_default = 0.0 if pd.isna(qty_default) else float(qty_default)
+    info_category_default, info_notes_default = split_information_category(reservation.get("info", ""))
+    info_category_index = INFORMATION_CATEGORY_OPTIONS.index(info_category_default)
     # ETA ahora se edita con el mismo selector de horas (cada 30 min,
     # formato 12h AM/PM) que ya usaba "Nueva Reservación", en vez de un
     # cuadro de texto libre — evita horas mal escritas y hace que calce con
@@ -1948,6 +2060,9 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
     eta_index = parse_eta_index(str(reservation.get("eta", "")), eta_options)
     recognition_available = recognition_column_available()
     reservation_id = reservation.get("id", "selected")
+    version_key = f"edit_reservation_form_version_{context}_{reservation_id}"
+    version = st.session_state.get(version_key, 0)
+    field_key = lambda field: f"edit_reservation_{context}_{reservation_id}_{version}_{field}"
 
     # Estilo del botón VIP Alert (rojo, para que no se confunda con Guardar).
     st.markdown(
@@ -1997,26 +2112,60 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
             st.session_state["open_vip_alert"] = True
             _app_rerun()
 
-    with st.form(f"edit_reservation_{context}"):
-        first = st.columns(4)
-        eta = first[0].selectbox("ETA", options=eta_options, index=eta_index)
-        name = first[1].text_input("Nombre *", value=str(reservation.get("name", "")))
-        qty = first[2].number_input("Huéspedes", min_value=0.0, step=0.1, format="%.1f", value=float(qty_default))
-        room = first[3].text_input("Habitación", value=str(reservation.get("room", "")))
-        second = st.columns(4)
-        email = second[0].text_input("Email", value=str(reservation.get("email", "")))
-        check_in = second[1].date_input("Check-in", value=check_in_default.date())
-        check_out = second[2].date_input("Check-out", value=check_out_default.date())
-        res_number = second[3].text_input("Reservation #", value=str(reservation.get("res_number", "")))
-        third = st.columns(4)
-        phone = third[0].text_input("Teléfono", value=str(reservation.get("phone", "")))
-        info = third[1].text_input("Information", value=str(reservation.get("info", "")))
-        ird = third[2].text_input("IRD", value=str(reservation.get("ird", "")))
-        hsk = third[3].text_input("HSK", value=str(reservation.get("hsk", "")))
-        fourth = st.columns(2)
-        rate = fourth[0].text_input("Rate", value=str(reservation.get("rate", "")))
-        trans = fourth[1].text_input("Transportation", value=str(reservation.get("trans", "")))
-        submitted = st.form_submit_button("GUARDAR CAMBIOS", use_container_width=True)
+    first = st.columns(4)
+    eta = first[0].selectbox("ETA", options=eta_options, index=eta_index, key=field_key("eta"))
+    name = first[1].text_input("Nombre *", value=str(reservation.get("name", "")), key=field_key("name"))
+    qty = first[2].number_input(
+        "Huéspedes", min_value=0.0, step=0.1, format="%.1f",
+        value=float(qty_default), key=field_key("qty"),
+    )
+    room = first[3].text_input(
+        "Habitación", value=str(reservation.get("room", "")), key=field_key("room")
+    )
+    second = st.columns(4)
+    email = second[0].text_input("Email", value=str(reservation.get("email", "")), key=field_key("email"))
+    check_in = second[1].date_input(
+        "Check-in", value=check_in_default.date(), key=field_key("check_in")
+    )
+    check_out = second[2].date_input(
+        "Check-out", value=check_out_default.date(), key=field_key("check_out")
+    )
+    res_number = second[3].text_input(
+        "Reservation #", value=str(reservation.get("res_number", "")), key=field_key("res_number")
+    )
+    third = st.columns([1.15, 2.1, 1.3, 1.15, 1.15])
+    phone = third[0].text_input(
+        "Teléfono", value=str(reservation.get("phone", "")), key=field_key("phone")
+    )
+    info_text_key = field_key("information")
+    info_category_key = field_key("information_category")
+    info_text = third[1].text_input(
+        "Information",
+        value=str(reservation.get("info", "") or ""),
+        key=info_text_key,
+    )
+    info_category = third[2].selectbox(
+        "Categoría",
+        options=INFORMATION_CATEGORY_OPTIONS,
+        index=info_category_index,
+        key=info_category_key,
+        on_change=_apply_information_category,
+        args=(info_text_key, info_category_key),
+    )
+    ird = third[3].text_input(
+        "IRD", value=str(reservation.get("ird", "")), key=field_key("ird")
+    )
+    hsk = third[4].text_input(
+        "HSK", value=str(reservation.get("hsk", "")), key=field_key("hsk")
+    )
+    fourth = st.columns(2)
+    rate = fourth[0].text_input("Rate", value=str(reservation.get("rate", "")), key=field_key("rate"))
+    trans = fourth[1].text_input(
+        "Transportation", value=str(reservation.get("trans", "")), key=field_key("trans")
+    )
+    submitted = st.button(
+        "GUARDAR CAMBIOS", use_container_width=True, key=field_key("save")
+    )
 
     if submitted:
         if not name.strip():
@@ -2029,13 +2178,15 @@ def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
             "eta": eta if eta != "-- Sin hora --" else "", "name": name.strip(), "qty": float(qty), "room": normalizar_room(room),
             "email": email.strip(), "check_in": check_in.strftime("%B %d, %Y"),
             "check_out": check_out.strftime("%B %d, %Y"), "res_number": res_number.strip(),
-            "phone": phone.strip(), "info": info.strip(), "ird": ird.strip(), "hsk": hsk.strip(),
+            "phone": phone.strip(), "info": info_text.strip(),
+            "ird": ird.strip(), "hsk": hsk.strip(),
             "rate": normalizar_rate(rate), "trans": trans.strip(),
         }
         if recognition_available:
             update_data[RECOGNITION_COLUMN] = bool(recognition)
         actualizar_reserva(reservation["id"], update_data)
         st.success("Reserva actualizada correctamente.")
+        st.session_state[version_key] = version + 1
         clear_page()
 
 
