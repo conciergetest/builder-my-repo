@@ -1923,7 +1923,7 @@ def split_information_category(value: object) -> tuple[str, str]:
         else:
             prefix_pattern = r"[\s-]+".join(re.escape(part) for part in prefix.split())
         match = re.match(
-            rf"^\s*{prefix_pattern}(?:\s*(?:\||:|–|—|-)\s*|\s+|$)",
+            rf"^\s*\|?\s*{prefix_pattern}(?:\s*(?:\||:|–|—|-)\s*|\s+|$)",
             raw,
             flags=re.IGNORECASE,
         )
@@ -1934,13 +1934,13 @@ def split_information_category(value: object) -> tuple[str, str]:
 
 
 def compose_information(category: str, notes: str) -> str:
-    """Guarda la categoría al inicio y conserva el texto de información."""
+    """Guarda la categoría con una barra inicial y conserva el texto de información."""
     clean_notes = str(notes or "").strip()
     if category == INFORMATION_CATEGORY_NONE:
         return clean_notes
     if clean_notes:
-        return f"{category} | {clean_notes}"
-    return category
+        return f"|{category} | {clean_notes}"
+    return f"|{category}"
 
 
 def _apply_information_category(text_key: str, category_key: str) -> None:
