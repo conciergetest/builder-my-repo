@@ -223,6 +223,8 @@ if st.session_state.pop("splash_fade_in", False):
 
 TABLE_NAME = "huespedes"
 RECOGNITION_COLUMN = "recognition"
+COUNTER_TABLE = "concierge_counter"
+COUNTER_ROW_ID = "shared"
 DB_COLUMNS = [
     "id", "eta", "name", "qty", "room", "email", "check_in", "check_out",
     "res_number", "phone", "info", "ird", "hsk", "rate", "trans",
@@ -864,6 +866,45 @@ def recognition_percentage_label(recognized_count: int, total_count: int) -> str
         return "0.00%"
     hundredths = (recognized_count * 10_000) // total_count
     return f"{hundredths // 100}.{hundredths % 100:02d}%"
+
+
+def load_shared_counter() -> int:
+    """Lee el único valor numérico del contador compartido en Supabase."""
+    response = (
+        supabase.table(COUNTER_TABLE)
+        .select("value")
+        .eq("id", COUNTER_ROW_ID)
+        .limit(1)
+        .execute()
+    )
+    rows = response.data or []
+    if not rows:
+        raise RuntimeError("No existe la fila inicial del contador compartido.")
+
+    value = int(rows[0]["value"])
+    if not 0 <= value <= 100:
+        raise ValueError("El contador guardado está fuera del rango permitido.")
+    return value
+
+
+def adjust_shared_counter(delta: int) -> None:
+    """Suma o resta uno de forma atómica; Supabase limita el valor a 0–100."""
+    if isinstance(delta, bool) or delta not in (-1, 1):
+        raise ValueError("El contador solo puede cambiar de uno en uno.")
+    supabase.rpc("adjust_concierge_counter", {"p_delta": delta}).execute()
+
+
+def _shared_counter_step(delta: int) -> None:
+    """Callback de las flechas; conserva el error para mostrarlo en el popup."""
+    try:
+        adjust_shared_counter(delta)
+    except Exception:
+        st.session_state["shared_counter_error"] = (
+            "No se pudo actualizar el contador. Verifica que la migración de "
+            "Supabase esté aplicada y que la conexión funcione."
+        )
+    else:
+        st.session_state.pop("shared_counter_error", None)
 
 
 def insertar_reserva(data: dict) -> None:
@@ -1675,6 +1716,9 @@ def render_menu() -> None:
         if st.button("🍽️ P. DINNING", use_container_width=True, key="menu_open_pdinning"):
             st.query_params["skip_splash"] = "1"
             _select_and_rerun(open_pdinning=True)
+        if st.button("🔢 CONTADOR", use_container_width=True, key="menu_open_shared_counter"):
+            st.query_params["skip_splash"] = "1"
+            _select_and_rerun(open_shared_counter=True)
 
         st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
@@ -2221,6 +2265,45 @@ def render_edit_reservation() -> None:
     st.subheader(f"Editar reservación· {safe_text(reservation.get('name', ''))}")
     render_back_link()
     _edit_reservation_form(reservation, "page")
+
+
+@st.dialog("🔢 Contador", width="small")
+def shared_counter_dialog() -> None:
+    """Contador global con un único valor entero persistido en Supabase."""
+    st.caption("Un número compartido por el equipo · mínimo 0 · máximo 100")
+    try:
+        value = load_shared_counter()
+    except Exception:
+        st.error("No se pudo cargar el contador compartido.")
+        st.caption(
+            "Aplica esta migración en el SQL Editor de Supabase y vuelve a intentarlo:"
+        )
+        st.code("supabase/migrations/20261020_add_shared_counter.sql")
+        st.button("🔄 REINTENTAR", use_container_width=True, key="retry_shared_counter")
+        return
+
+    error_message = st.session_state.get("shared_counter_error")
+    if error_message:
+        st.warning(error_message)
+
+    st.metric("Contador", value)
+    down_col, up_col = st.columns(2)
+    down_col.button(
+        "⬇️ Bajar",
+        use_container_width=True,
+        disabled=value <= 0,
+        on_click=_shared_counter_step,
+        args=(-1,),
+        key="shared_counter_down",
+    )
+    up_col.button(
+        "⬆️ Subir",
+        use_container_width=True,
+        disabled=value >= 100,
+        on_click=_shared_counter_step,
+        args=(1,),
+        key="shared_counter_up",
+    )
 
 
 @st.dialog("Recognition", width="large")
@@ -6340,6 +6423,10 @@ if st.session_state.pop("open_pending", False):
 # Auto-abrir el popup de reservas Recognition.
 if st.session_state.pop("open_recognition", False):
     recognition_dialog()
+
+# Auto-abrir el contador compartido.
+if st.session_state.pop("open_shared_counter", False):
+    shared_counter_dialog()
 
 # Auto-abrir el popup de VIP Alert (captura + descarga en Word). Streamlit
 # sólo permite un popup a la vez: al abrirse se limpia la bandera de Editar.
