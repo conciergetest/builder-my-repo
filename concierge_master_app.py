@@ -2303,8 +2303,9 @@ def shared_counter_dialog() -> None:
     st.markdown(
         "<div style='text-align:center;font-size:0.85rem;opacity:0.75;"
         "letter-spacing:0.08em;margin-top:4px'>CONTADOR</div>"
-        f"<div style='text-align:center;font-size:3.6rem;font-weight:700;"
-        f"line-height:1.1;margin:2px 0 10px'>{value}</div>",
+        f"<div style='text-align:center;font-size:3.6rem;font-weight:800;"
+        f"line-height:1.1;margin:2px 0 10px;color:#00E5FF;"
+        f"text-shadow:0 0 14px rgba(0,229,255,.6)'>{value}</div>",
         unsafe_allow_html=True,
     )
     down_col, up_col = st.columns(2)
