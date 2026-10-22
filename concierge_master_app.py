@@ -894,6 +894,20 @@ def adjust_shared_counter(delta: int) -> None:
     supabase.rpc("adjust_concierge_counter", {"p_delta": delta}).execute()
 
 
+def _shared_counter_reset() -> None:
+    """Pone el contador compartido en 0 bajando de uno en uno (el RPC solo acepta ±1)."""
+    try:
+        valor_actual = load_shared_counter()
+        for _ in range(valor_actual):
+            adjust_shared_counter(-1)
+    except Exception:
+        st.session_state["shared_counter_error"] = (
+            "No se pudo reiniciar el contador. Verifica la conexión con Supabase."
+        )
+    else:
+        st.session_state.pop("shared_counter_error", None)
+
+
 def _shared_counter_step(delta: int) -> None:
     """Callback de las flechas; conserva el error para mostrarlo en el popup."""
     try:
@@ -2286,7 +2300,13 @@ def shared_counter_dialog() -> None:
     if error_message:
         st.warning(error_message)
 
-    st.metric("Contador", value)
+    st.markdown(
+        "<div style='text-align:center;font-size:0.85rem;opacity:0.75;"
+        "letter-spacing:0.08em;margin-top:4px'>CONTADOR</div>"
+        f"<div style='text-align:center;font-size:3.6rem;font-weight:700;"
+        f"line-height:1.1;margin:2px 0 10px'>{value}</div>",
+        unsafe_allow_html=True,
+    )
     down_col, up_col = st.columns(2)
     down_col.button(
         "⬇️ Bajar",
@@ -2303,6 +2323,15 @@ def shared_counter_dialog() -> None:
         on_click=_shared_counter_step,
         args=(1,),
         key="shared_counter_up",
+    )
+    _, reset_col, _ = st.columns([1, 1, 1])
+    reset_col.button(
+        "🔄",
+        help="Poner en 0 (para todo el equipo)",
+        use_container_width=True,
+        disabled=value <= 0,
+        on_click=_shared_counter_reset,
+        key="shared_counter_reset",
     )
 
 
