@@ -1733,6 +1733,9 @@ def render_menu() -> None:
         if st.button("🔢 CONTADOR", use_container_width=True, key="menu_open_shared_counter"):
             st.query_params["skip_splash"] = "1"
             _select_and_rerun(open_shared_counter=True)
+        if st.button("✅ CHECK-IN DEL DÍA", use_container_width=True, key="menu_open_checkin_dia"):
+            st.query_params["skip_splash"] = "1"
+            _select_and_rerun(open_checkin_dia=True)
 
         st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
@@ -2334,6 +2337,127 @@ def shared_counter_dialog() -> None:
         on_click=_shared_counter_reset,
         key="shared_counter_reset",
     )
+
+
+CHECKIN_COLUMN = "checked_in"
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def checkin_column_available() -> bool:
+    """Detecta si Supabase ya tiene la columna `checked_in` en `huespedes`."""
+    try:
+        supabase.table(TABLE_NAME).select(CHECKIN_COLUMN).limit(1).execute()
+        return True
+    except Exception:
+        return False
+
+
+def actualizar_checkin(reservation_id: object, marked: bool) -> None:
+    supabase.table(TABLE_NAME).update({CHECKIN_COLUMN: bool(marked)}).eq("id", reservation_id).execute()
+    st.cache_data.clear()
+
+
+def _toggle_checkin(reservation_id: object) -> None:
+    """Callback del checkbox: guarda en Supabase el nuevo estado de la reserva."""
+    marked = bool(st.session_state.get(f"checkin_chk_{reservation_id}", False))
+    try:
+        actualizar_checkin(reservation_id, marked)
+    except Exception:
+        st.session_state["checkin_dia_error"] = "No se pudo guardar el check-in. Intenta de nuevo."
+    else:
+        st.session_state.pop("checkin_dia_error", None)
+
+
+def _solo_fecha(value: object) -> date | None:
+    parsed = parse_fecha(value)
+    if parsed is None:
+        return None
+    return parsed.date() if isinstance(parsed, datetime) else parsed
+
+
+@st.dialog("✅ Check-in del día", width="large")
+def checkin_dia_dialog() -> None:
+    """Marca los check-ins de las reservas que llegan en la fecha elegida."""
+    if not checkin_column_available():
+        st.warning(
+            "Check-in del día necesita una columna booleana en la tabla `huespedes` "
+            "para guardar las marcas de forma permanente."
+        )
+        st.code(
+            "ALTER TABLE public.huespedes "
+            "ADD COLUMN IF NOT EXISTS checked_in boolean NOT NULL DEFAULT false;",
+            language="sql",
+        )
+        return
+
+    hoy = datetime.today().date()
+    fecha = st.date_input("Fecha de llegada", value=hoy, key="checkin_dia_fecha", format="YYYY/MM/DD")
+    if not isinstance(fecha, date):
+        fecha = hoy
+
+    df = cargar_reservaciones()
+    if df.empty or "check_in" not in df.columns:
+        rows = df.iloc[0:0]
+    else:
+        rows = df[df["check_in"].map(_solo_fecha) == fecha]
+    if CHECKIN_COLUMN not in rows.columns:
+        rows = rows.assign(**{CHECKIN_COLUMN: False})
+
+    if rows.empty:
+        etiqueta = "Today" if fecha == hoy else fecha.strftime("%d %b %Y")
+        st.info(f"No Check-ins for {etiqueta}")
+        return
+
+    error_message = st.session_state.get("checkin_dia_error")
+    if error_message:
+        st.warning(error_message)
+
+    total = len(rows)
+    llegados = int(rows[CHECKIN_COLUMN].map(is_recognition_marked).sum())
+    pendientes = total - llegados
+    pct_llegados = llegados * 100 / total
+    pct_pendientes = pendientes * 100 / total
+
+    st.markdown(
+        "<div style='display:flex;gap:10px;margin-bottom:12px'>"
+        "<div style='flex:1;text-align:center;border:1px solid #1e1e1e;border-radius:8px;padding:8px'>"
+        "<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:.7px'>RESERVAS</div>"
+        f"<div style='color:#dffcff;font-size:22px;font-weight:900'>{total}</div></div>"
+        "<div style='flex:1;text-align:center;border:1px solid #00e5ff;border-radius:8px;padding:8px'>"
+        "<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:.7px'>CON CHECK-IN</div>"
+        f"<div style='color:#00e5ff;font-size:22px;font-weight:900'>{pct_llegados:.1f}% ({llegados})</div></div>"
+        "<div style='flex:1;text-align:center;border:1px solid #f472b6;border-radius:8px;padding:8px'>"
+        "<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:.7px'>PENDIENTES</div>"
+        f"<div style='color:#f472b6;font-size:22px;font-weight:900'>{pct_pendientes:.1f}% ({pendientes})</div></div>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+    ratios = [0.6, 2.4, 1.0, 0.7, 1.0, 1.4]
+    encabezados = ["✔", "NAME", "ROOM", "QTY", "ETA", "RES #"]
+    for col, texto in zip(st.columns(ratios), encabezados):
+        col.markdown(
+            f"<div style='color:#71879a;font-size:10px;font-weight:800;letter-spacing:.7px'>{texto}</div>",
+            unsafe_allow_html=True,
+        )
+
+    for _, row in rows.iterrows():
+        rid = row["id"]
+        key = f"checkin_chk_{rid}"
+        st.session_state[key] = is_recognition_marked(row.get(CHECKIN_COLUMN, False))
+        cols = st.columns(ratios)
+        cols[0].checkbox(
+            "Check-in",
+            key=key,
+            on_change=_toggle_checkin,
+            args=(rid,),
+            label_visibility="collapsed",
+        )
+        cols[1].markdown(safe_text(row.get("name", "")))
+        cols[2].markdown(safe_text(row.get("room", "")))
+        cols[3].markdown(safe_text(row.get("qty", "")))
+        cols[4].markdown(safe_text(row.get("eta", "")))
+        cols[5].markdown(safe_text(row.get("res_number", "")))
 
 
 @st.dialog("Recognition", width="large")
@@ -6457,6 +6581,10 @@ if st.session_state.pop("open_recognition", False):
 # Auto-abrir el contador compartido.
 if st.session_state.pop("open_shared_counter", False):
     shared_counter_dialog()
+
+# Auto-abrir el popup de check-in del día.
+if st.session_state.pop("open_checkin_dia", False):
+    checkin_dia_dialog()
 
 # Auto-abrir el popup de VIP Alert (captura + descarga en Word). Streamlit
 # sólo permite un popup a la vez: al abrirse se limpia la bandera de Editar.
