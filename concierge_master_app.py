@@ -2375,6 +2375,26 @@ def _solo_fecha(value: object) -> date | None:
     return parsed.date() if isinstance(parsed, datetime) else parsed
 
 
+def limpiar_checkins_pasados() -> None:
+    """Desmarca el check-in de las reservas cuya fecha de llegada ya pasó.
+
+    Las marcas solo duran el día de la llegada: al abrir el popup en otro día,
+    las reservas de días anteriores vuelven a quedar sin marcar en Supabase.
+    """
+    hoy = datetime.today().date()
+    df = cargar_reservaciones()
+    if df.empty or "check_in" not in df.columns or CHECKIN_COLUMN not in df.columns:
+        return
+    marcadas = df[df[CHECKIN_COLUMN].map(is_recognition_marked)]
+    ids = [
+        rid for rid, check_in in zip(marcadas["id"], marcadas["check_in"])
+        if (fecha := _solo_fecha(check_in)) is not None and fecha < hoy
+    ]
+    if ids:
+        supabase.table(TABLE_NAME).update({CHECKIN_COLUMN: False}).in_("id", ids).execute()
+        st.cache_data.clear()
+
+
 @st.dialog("✅ Check-in del día", width="large")
 def checkin_dia_dialog() -> None:
     """Marca los check-ins de las reservas que llegan en la fecha elegida."""
@@ -2391,6 +2411,10 @@ def checkin_dia_dialog() -> None:
         return
 
     hoy = datetime.today().date()
+    try:
+        limpiar_checkins_pasados()
+    except Exception:
+        st.warning("No se pudieron limpiar los check-ins de días anteriores.")
     fecha = st.date_input("Fecha de llegada", value=hoy, key="checkin_dia_fecha", format="YYYY/MM/DD")
     if not isinstance(fecha, date):
         fecha = hoy
