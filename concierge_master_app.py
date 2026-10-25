@@ -1628,6 +1628,7 @@ def _menu_go(**flags) -> None:
 @st.dialog("☰ MENÚ", width="medium")
 def menu_dialog() -> None:
     """Menú principal centrado en la app."""
+    st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
     st.markdown("<div style='color:#d4af37;font-size:14px;font-weight:800;letter-spacing:1.5px;text-align:center;margin-bottom:14px;'>CONCIERGE MASTER</div>", unsafe_allow_html=True)
 
     # ── Operaciones ──
@@ -1733,14 +1734,14 @@ def render_menu() -> None:
             border-color: #00e5ff !important;
             box-shadow: 0 0 16px rgba(0,229,255,.25) !important;
         }
-        div[data-testid="stDialog"] > div {
+        div[data-testid="stDialog"]:has(.main-menu-marker) > div {
             background: #050505 !important;
             border: 1px solid #1a1a1a !important;
             border-radius: 14px !important;
             padding: 18px !important;
             box-shadow: 0 24px 60px rgba(0,0,0,.7) !important;
         }
-        div[data-testid="stDialog"] button {
+        div[data-testid="stDialog"]:has(.main-menu-marker) button {
             background: #0a0a0a !important;
             border: 1px solid #1a1a1a !important;
             color: #eafaff !important;
@@ -1749,7 +1750,7 @@ def render_menu() -> None:
             font-size: 11px !important;
             transition: all .12s ease !important;
         }
-        div[data-testid="stDialog"] button:hover {
+        div[data-testid="stDialog"]:has(.main-menu-marker) button:hover {
             filter: brightness(1.15) !important;
             transform: translateY(-1px) !important;
         }
