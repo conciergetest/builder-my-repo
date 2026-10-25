@@ -1617,33 +1617,108 @@ def show_header() -> None:
         )
 
 
+def _menu_go(**flags) -> None:
+    """Guarda la acción elegida en el menú y hace un rerun completo de la app."""
+    st.session_state["main_menu_nonce"] = st.session_state.get("main_menu_nonce", 0) + 1
+    for key, value in flags.items():
+        st.session_state[key] = value
+    _app_rerun()
+
+
+@st.dialog("☰ MENÚ", width="medium")
+def menu_dialog() -> None:
+    """Menú principal centrado en la app."""
+    st.markdown("<div style='color:#d4af37;font-size:14px;font-weight:800;letter-spacing:1.5px;text-align:center;margin-bottom:14px;'>CONCIERGE MASTER</div>", unsafe_allow_html=True)
+
+    # ── Operaciones ──
+    st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #00e5ff;padding-left:8px;'>Operaciones</div>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    if c1.button("➕ NUEVA", use_container_width=True):
+        # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
+        st.query_params["skip_splash"] = "1"
+        _menu_go(open_nueva=True)
+    if c2.button("⬆ IMPORTAR", use_container_width=True):
+        st.query_params["skip_splash"] = "1"
+        _menu_go(open_importar=True)
+    if c3.button("⬇ EXPORTAR", use_container_width=True):
+        st.query_params["skip_splash"] = "1"
+        _menu_go(open_exportar=True)
+    c4, c5, c6 = st.columns(3)
+    if c4.button("📊 REPORTE", use_container_width=True):
+        st.query_params["skip_splash"] = "1"
+        _menu_go(open_reporte=True)
+    if c5.button("📅 AGENDA", use_container_width=True):
+        st.query_params["skip_splash"] = "1"
+        _menu_go(open_agenda=True)
+    if c6.button("💰 BONUS", use_container_width=True):
+        st.query_params["action"] = "bonus"
+        _menu_go()
+
+    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+
+    # ── Herramientas ──
+    st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #a78bfa;padding-left:8px;'>Herramientas</div>", unsafe_allow_html=True)
+    h1, h2, h3, h4 = st.columns(4)
+    if h1.button("🧮 CALCULADORA", use_container_width=True):
+        st.query_params["action"] = "calculadora"
+        _menu_go()
+    if h2.button("📆 ALMANAQUE", use_container_width=True):
+        st.query_params["action"] = "almanaque"
+        _menu_go()
+    if h3.button("🏷️ FRED WAYNE", use_container_width=True):
+        _menu_go(open_logo=True)
+    if h4.button("📇 DIRECTORIO", use_container_width=True):
+        st.query_params["skip_splash"] = "1"
+        _menu_go(open_directorio=True)
+    if st.button("🍽️ P. DINNING", use_container_width=True, key="menu_open_pdinning"):
+        st.query_params["skip_splash"] = "1"
+        _menu_go(open_pdinning=True)
+    if st.button("🔢 CONTADOR", use_container_width=True, key="menu_open_shared_counter"):
+        st.query_params["skip_splash"] = "1"
+        _menu_go(open_shared_counter=True)
+    if st.button("✅ CHECK-IN DEL DÍA", use_container_width=True, key="menu_open_checkin_dia"):
+        st.query_params["skip_splash"] = "1"
+        _menu_go(open_checkin_dia=True)
+
+    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+
+    # ── Enlaces Rápidos ──
+    st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #4ade80;padding-left:8px;'>Enlaces Rápidos</div>", unsafe_allow_html=True)
+
+    link_style = 'display:block;text-align:center;padding:8px 4px;border-radius:8px;border:1px solid #1a1a1a;background:#0a0a0a;color:#eafaff;text-decoration:none;font-size:11px;font-weight:700;transition:all .12s;'
+
+    l1, l2, l3 = st.columns(3)
+    l1.markdown(f'<a href="{html.escape(QUICK_LINKS[0][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fbbf24;">ACT. CALEND</a>', unsafe_allow_html=True)
+    l2.markdown(f'<a href="{html.escape(QUICK_LINKS[1][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#a5b4fc;">ALICE</a>', unsafe_allow_html=True)
+    l3.markdown(f'<a href="{html.escape(QUICK_LINKS[2][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">ARRIVALS</a>', unsafe_allow_html=True)
+
+    l4, l5, l6 = st.columns(3)
+    l4.markdown(f'<a href="{html.escape(QUICK_LINKS[3][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#34d399;">LA CERNIA</a>', unsafe_allow_html=True)
+    l5.markdown(f'<a href="{html.escape(QUICK_LINKS[4][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fb923c;">NO LIMIT</a>', unsafe_allow_html=True)
+    l6.markdown(f'<a href="{html.escape(QUICK_LINKS[5][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f87171;">OPEN TABLE</a>', unsafe_allow_html=True)
+
+    l7, l8, l9 = st.columns(3)
+    l7.markdown(f'<a href="{html.escape(QUICK_LINKS[6][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#60a5fa;">OUTLOOK-FW</a>', unsafe_allow_html=True)
+    l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
+    l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#c4b5fd;">OUTLOOK-RES</a>', unsafe_allow_html=True)
+
+    l10, l11, l12 = st.columns(3)
+    l10.markdown(f'<a href="{html.escape(QUICK_LINKS[9][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
+    if l11.button("Recognition", use_container_width=True, key="menu_open_recognition"):
+        st.query_params["skip_splash"] = "1"
+        _menu_go(open_recognition=True)
+    l12.link_button("📁 BOX FILES", BOX_FOLDER_URL, use_container_width=True)
+
+    st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1a1a1a;text-align:center;color:#4a5a6a;font-size:10px;'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
+
+
 def render_menu() -> None:
-    """Muestra un botón de menú nativo de Streamlit que despliega todas las acciones y enlaces."""
-
-    def _url(action: str) -> str:
-        current = {k: v for k, v in st.query_params.items()}
-        current["action"] = action
-        return "?" + urlencode(current)
-
-    # El popover de Streamlit guarda su estado "abierto/cerrado" ligado a su
-    # key/label. Si un botón DE ADENTRO del popover dispara un st.rerun()
-    # para abrir otro popup (Directorio, Nueva, etc.), el popover se queda
-    # marcado como abierto en el siguiente render y ambos quedan visibles a
-    # la vez (lo que causaba la confusión). Truco: cambiarle la key al
-    # popover cada vez que se elige una opción del menú, para que en el
-    # próximo render sea un widget "nuevo" y arranque cerrado.
+    """Botón ☰ MENÚ: al presionarlo abre el menú centrado en la pantalla."""
     menu_nonce = st.session_state.get("main_menu_nonce", 0)
-
-    def _select_and_rerun(**flags) -> None:
-        st.session_state["main_menu_nonce"] = menu_nonce + 1
-        for key, value in flags.items():
-            st.session_state[key] = value
-        st.rerun()
-
     st.markdown(
         """
         <style>
-        div[data-testid="stPopover"] > button {
+        div[class*="st-key-main_menu_btn"] button {
             background: linear-gradient(135deg, #0a0a0a 0%, #0d0d0d 100%) !important;
             border: 1px solid #1a1a1a !important;
             color: #00e5ff !important;
@@ -1654,19 +1729,18 @@ def render_menu() -> None:
             border-radius: 10px !important;
             box-shadow: 0 4px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06) !important;
         }
-        div[data-testid="stPopover"] > button:hover {
+        div[class*="st-key-main_menu_btn"] button:hover {
             border-color: #00e5ff !important;
             box-shadow: 0 0 16px rgba(0,229,255,.25) !important;
         }
-        div[data-testid="stPopoverBody"] {
+        div[data-testid="stDialog"] > div {
             background: #050505 !important;
             border: 1px solid #1a1a1a !important;
             border-radius: 14px !important;
             padding: 18px !important;
             box-shadow: 0 24px 60px rgba(0,0,0,.7) !important;
-            min-width: 420px !important;
         }
-        div[data-testid="stPopoverBody"] button {
+        div[data-testid="stDialog"] button {
             background: #0a0a0a !important;
             border: 1px solid #1a1a1a !important;
             color: #eafaff !important;
@@ -1675,7 +1749,7 @@ def render_menu() -> None:
             font-size: 11px !important;
             transition: all .12s ease !important;
         }
-        div[data-testid="stPopoverBody"] button:hover {
+        div[data-testid="stDialog"] button:hover {
             filter: brightness(1.15) !important;
             transform: translateY(-1px) !important;
         }
@@ -1684,89 +1758,8 @@ def render_menu() -> None:
         unsafe_allow_html=True,
     )
 
-    with st.popover("☰ MENÚ", use_container_width=True, key=f"main_menu_popover_{menu_nonce}"):
-        st.markdown("<div style='color:#d4af37;font-size:14px;font-weight:800;letter-spacing:1.5px;text-align:center;margin-bottom:14px;'>CONCIERGE MASTER</div>", unsafe_allow_html=True)
-
-        # ── Operaciones ──
-        st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #00e5ff;padding-left:8px;'>Operaciones</div>", unsafe_allow_html=True)
-        c1, c2, c3 = st.columns(3)
-        if c1.button("➕ NUEVA", use_container_width=True):
-            # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
-            st.query_params["skip_splash"] = "1"
-            _select_and_rerun(open_nueva=True)
-        if c2.button("⬆ IMPORTAR", use_container_width=True):
-            st.query_params["skip_splash"] = "1"
-            _select_and_rerun(open_importar=True)
-        if c3.button("⬇ EXPORTAR", use_container_width=True):
-            st.query_params["skip_splash"] = "1"
-            _select_and_rerun(open_exportar=True)
-        c4, c5, c6 = st.columns(3)
-        if c4.button("📊 REPORTE", use_container_width=True):
-            st.query_params["skip_splash"] = "1"
-            _select_and_rerun(open_reporte=True)
-        if c5.button("📅 AGENDA", use_container_width=True):
-            st.query_params["skip_splash"] = "1"
-            _select_and_rerun(open_agenda=True)
-        if c6.button("💰 BONUS", use_container_width=True):
-            st.query_params["action"] = "bonus"
-            _select_and_rerun()
-
-        st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-
-        # ── Herramientas ──
-        st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #a78bfa;padding-left:8px;'>Herramientas</div>", unsafe_allow_html=True)
-        h1, h2, h3, h4 = st.columns(4)
-        if h1.button("🧮 CALCULADORA", use_container_width=True):
-            st.query_params["action"] = "calculadora"
-            _select_and_rerun()
-        if h2.button("📆 ALMANAQUE", use_container_width=True):
-            st.query_params["action"] = "almanaque"
-            _select_and_rerun()
-        if h3.button("🏷️ FRED WAYNE", use_container_width=True):
-            _select_and_rerun(open_logo=True)
-        if h4.button("📇 DIRECTORIO", use_container_width=True):
-            st.query_params["skip_splash"] = "1"
-            _select_and_rerun(open_directorio=True)
-        if st.button("🍽️ P. DINNING", use_container_width=True, key="menu_open_pdinning"):
-            st.query_params["skip_splash"] = "1"
-            _select_and_rerun(open_pdinning=True)
-        if st.button("🔢 CONTADOR", use_container_width=True, key="menu_open_shared_counter"):
-            st.query_params["skip_splash"] = "1"
-            _select_and_rerun(open_shared_counter=True)
-        if st.button("✅ CHECK-IN DEL DÍA", use_container_width=True, key="menu_open_checkin_dia"):
-            st.query_params["skip_splash"] = "1"
-            _select_and_rerun(open_checkin_dia=True)
-
-        st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-
-        # ── Enlaces Rápidos ──
-        st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #4ade80;padding-left:8px;'>Enlaces Rápidos</div>", unsafe_allow_html=True)
-
-        link_style = 'display:block;text-align:center;padding:8px 4px;border-radius:8px;border:1px solid #1a1a1a;background:#0a0a0a;color:#eafaff;text-decoration:none;font-size:11px;font-weight:700;transition:all .12s;'
-
-        l1, l2, l3 = st.columns(3)
-        l1.markdown(f'<a href="{html.escape(QUICK_LINKS[0][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fbbf24;">ACT. CALEND</a>', unsafe_allow_html=True)
-        l2.markdown(f'<a href="{html.escape(QUICK_LINKS[1][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#a5b4fc;">ALICE</a>', unsafe_allow_html=True)
-        l3.markdown(f'<a href="{html.escape(QUICK_LINKS[2][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">ARRIVALS</a>', unsafe_allow_html=True)
-
-        l4, l5, l6 = st.columns(3)
-        l4.markdown(f'<a href="{html.escape(QUICK_LINKS[3][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#34d399;">LA CERNIA</a>', unsafe_allow_html=True)
-        l5.markdown(f'<a href="{html.escape(QUICK_LINKS[4][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fb923c;">NO LIMIT</a>', unsafe_allow_html=True)
-        l6.markdown(f'<a href="{html.escape(QUICK_LINKS[5][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f87171;">OPEN TABLE</a>', unsafe_allow_html=True)
-
-        l7, l8, l9 = st.columns(3)
-        l7.markdown(f'<a href="{html.escape(QUICK_LINKS[6][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#60a5fa;">OUTLOOK-FW</a>', unsafe_allow_html=True)
-        l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
-        l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#c4b5fd;">OUTLOOK-RES</a>', unsafe_allow_html=True)
-
-        l10, l11, l12 = st.columns(3)
-        l10.markdown(f'<a href="{html.escape(QUICK_LINKS[9][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
-        if l11.button("Recognition", use_container_width=True, key="menu_open_recognition"):
-            st.query_params["skip_splash"] = "1"
-            _select_and_rerun(open_recognition=True)
-        l12.link_button("📁 BOX FILES", BOX_FOLDER_URL, use_container_width=True)
-
-        st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1a1a1a;text-align:center;color:#4a5a6a;font-size:10px;'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
+    if st.button("☰ MENÚ", use_container_width=True, key=f"main_menu_btn_{menu_nonce}"):
+        menu_dialog()
 
 
 def render_app_links() -> None:
