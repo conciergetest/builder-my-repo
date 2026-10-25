@@ -1719,7 +1719,12 @@ def render_menu() -> None:
     st.markdown(
         """
         <style>
+        div[class*="st-key-main_menu_btn"] {
+            margin-top: 21px !important;
+        }
         div[class*="st-key-main_menu_btn"] button {
+            height: 38px !important;
+            min-height: 38px !important;
             background: linear-gradient(135deg, #0a0a0a 0%, #0d0d0d 100%) !important;
             border: 1px solid #1a1a1a !important;
             color: #00e5ff !important;
