@@ -2525,10 +2525,14 @@ def checkin_dia_dialog() -> None:
         return
 
     hoy = datetime.today().date()
-    try:
-        limpiar_checkins_pasados()
-    except Exception:
-        st.warning("No se pudieron limpiar los check-ins de días anteriores.")
+    # Solo una vez por día y sesión: si se corriera en cada rerun, desmarcaría
+    # de inmediato lo que el usuario marca en fechas pasadas.
+    if st.session_state.get("checkin_limpieza_dia") != hoy.isoformat():
+        try:
+            limpiar_checkins_pasados()
+        except Exception:
+            st.warning("No se pudieron limpiar los check-ins de días anteriores.")
+        st.session_state["checkin_limpieza_dia"] = hoy.isoformat()
     df = cargar_reservaciones()
     counts: dict = {}
     if not df.empty and "check_in" in df.columns:
