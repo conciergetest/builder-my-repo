@@ -1741,10 +1741,10 @@ def render_menu() -> None:
         }
         div[data-testid="stDialog"]:has(.main-menu-marker) > div {
             background: #050505 !important;
-            border: 1px solid #1a1a1a !important;
+            border: 2px solid #00e5ff !important;
             border-radius: 14px !important;
+            box-shadow: 0 0 18px rgba(0,229,255,.65), 0 0 40px rgba(0,229,255,.25) !important;
             padding: 18px !important;
-            box-shadow: 0 24px 60px rgba(0,0,0,.7) !important;
         }
         div[data-testid="stDialog"]:has(.main-menu-marker) button {
             background: #0a0a0a !important;
