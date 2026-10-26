@@ -2394,6 +2394,121 @@ def limpiar_checkins_pasados() -> None:
         st.cache_data.clear()
 
 
+CHECKIN_CAL_CSS = """
+<style>
+[class*="st-key-checkin_cal_"] button {
+    min-height:34px !important; padding:2px 0 !important;
+    font-size:11px !important; border-radius:8px !important;
+}
+[class*="st-key-checkin_cal_hit_"] button {
+    background:#3a2c00 !important; border:1px solid #D4AF37 !important;
+    color:#FFD24A !important; font-weight:800 !important;
+}
+[class*="st-key-checkin_cal_hit_"] button:hover {
+    background:#D4AF37 !important; border-color:#FFE9A8 !important;
+    color:#1C1300 !important; transform:scale(1.06);
+}
+[class*="st-key-checkin_cal_miss_"] button {
+    background:#0d0d0d !important; border:1px solid #1c1c1c !important;
+    color:#5f7286 !important; font-weight:600 !important;
+}
+[class*="st-key-checkin_cal_miss_"] button:hover {
+    border-color:#2c3a48 !important; color:#8ca4ba !important;
+}
+[class*="st-key-checkin_cal_today_"] button {
+    background:#06171c !important; border:1px solid #00e5ff !important;
+    color:#00e5ff !important; font-weight:800 !important;
+}
+[class*="st-key-checkin_cal_sel_"] button {
+    background:#00e5ff !important; border:1px solid #00e5ff !important;
+    color:#00151d !important; font-weight:900 !important;
+}
+.checkin-cal-head {
+    display:flex; align-items:center; justify-content:center; min-height:30px;
+    color:#c9e4ef; font-size:11px; font-weight:900; text-transform:uppercase;
+    letter-spacing:0.9px; padding:4px 0 10px; margin-bottom:4px;
+}
+.checkin-cal-pad { height:34px; }
+</style>
+"""
+
+
+def _checkin_set_day(dia: date) -> None:
+    """Al hacer clic en un día del almanaque de check-in, lo deja seleccionado."""
+    st.session_state["checkin_dia_fecha"] = dia
+
+
+def _checkin_shift_month(meses: int) -> None:
+    base = st.session_state.get("checkin_cal_mes") or date.today().replace(day=1)
+    total = base.year * 12 + (base.month - 1) + meses
+    st.session_state["checkin_cal_mes"] = date(total // 12, total % 12 + 1, 1)
+
+
+def _checkin_go_current_month() -> None:
+    st.session_state["checkin_cal_mes"] = date.today().replace(day=1)
+
+
+def _render_checkin_calendar(counts: dict, seleccionada: date, hoy: date) -> None:
+    """Almanaque mensual: los días con check-ins van en dorado con su cantidad.
+    Al hacer clic en un día se muestran las reservas de ese día."""
+    st.markdown(CHECKIN_CAL_CSS, unsafe_allow_html=True)
+
+    mes = st.session_state.get("checkin_cal_mes") or seleccionada.replace(day=1)
+    mes = mes.replace(day=1)
+    st.session_state["checkin_cal_mes"] = mes
+
+    t, p, h, n = st.columns([3, 1, 1, 1])
+    t.markdown(
+        "<div style='color:#D4AF37;font:800 15px/2.1 Segoe UI,sans-serif;"
+        "letter-spacing:1px;text-transform:uppercase;'>"
+        f"{mes.strftime('%B %Y')}</div>",
+        unsafe_allow_html=True,
+    )
+    p.button("◀", key="checkin_cal_prev", use_container_width=True, help="Mes anterior",
+             on_click=_checkin_shift_month, args=(-1,))
+    h.button("●", key="checkin_cal_go_today", use_container_width=True, help="Mes actual",
+             on_click=_checkin_go_current_month)
+    n.button("▶", key="checkin_cal_next", use_container_width=True, help="Mes siguiente",
+             on_click=_checkin_shift_month, args=(1,))
+
+    for columna, etiqueta in zip(st.columns(7), ("Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb")):
+        columna.markdown(f"<div class='checkin-cal-head'>{etiqueta}</div>", unsafe_allow_html=True)
+
+    dias_del_mes = (mes + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+    desplazamiento = (mes.weekday() + 1) % 7
+    semanas = math.ceil((desplazamiento + dias_del_mes.day) / 7)
+
+    for semana in range(semanas):
+        for posicion, columna in enumerate(st.columns(7)):
+            numero = semana * 7 + posicion - desplazamiento + 1
+            with columna:
+                if numero < 1 or numero > dias_del_mes.day:
+                    st.markdown("<div class='checkin-cal-pad'></div>", unsafe_allow_html=True)
+                    continue
+                dia = mes.replace(day=numero)
+                llegadas = counts.get(dia, 0)
+                if dia == seleccionada:
+                    prefijo = "checkin_cal_sel_"
+                    ayuda = f"{llegadas} check-in(s) · día seleccionado"
+                elif llegadas:
+                    prefijo = "checkin_cal_hit_"
+                    ayuda = f"{llegadas} reserva{'s' if llegadas != 1 else ''} · clic para ver"
+                elif dia == hoy:
+                    prefijo = "checkin_cal_today_"
+                    ayuda = "Hoy · sin reservas"
+                else:
+                    prefijo = "checkin_cal_miss_"
+                    ayuda = "Sin reservas"
+                st.button(
+                    f"{numero}·{llegadas}" if llegadas else str(numero),
+                    key=f"{prefijo}{dia:%Y%m%d}",
+                    help=ayuda,
+                    use_container_width=True,
+                    on_click=_checkin_set_day,
+                    args=(dia,),
+                )
+
+
 @st.dialog("✅ Check-in del día", width="large")
 def checkin_dia_dialog() -> None:
     """Marca los check-ins de las reservas que llegan en la fecha elegida."""
@@ -2414,11 +2529,28 @@ def checkin_dia_dialog() -> None:
         limpiar_checkins_pasados()
     except Exception:
         st.warning("No se pudieron limpiar los check-ins de días anteriores.")
-    fecha = st.date_input("Fecha de llegada", value=hoy, key="checkin_dia_fecha", format="YYYY/MM/DD")
+    df = cargar_reservaciones()
+    counts: dict = {}
+    if not df.empty and "check_in" in df.columns:
+        for valor in df["check_in"].tolist():
+            dia_res = _solo_fecha(valor)
+            if dia_res:
+                counts[dia_res] = counts.get(dia_res, 0) + 1
+
+    fecha = st.session_state.get("checkin_dia_fecha")
     if not isinstance(fecha, date):
         fecha = hoy
+    st.session_state["checkin_dia_fecha"] = fecha
 
-    df = cargar_reservaciones()
+    st.markdown(
+        "<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;"
+        "text-align:center;margin-bottom:8px;'>FECHAS CON CHECK-IN · HAZ CLIC EN UN DÍA "
+        "PARA VER SUS RESERVAS</div>",
+        unsafe_allow_html=True,
+    )
+    _render_checkin_calendar(counts, fecha, hoy)
+    st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+
     if df.empty or "check_in" not in df.columns:
         rows = df.iloc[0:0]
     else:
