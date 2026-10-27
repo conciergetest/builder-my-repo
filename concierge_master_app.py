@@ -1703,6 +1703,9 @@ def menu_dialog() -> None:
     if st.button("✅ CHECK-IN DEL DÍA", use_container_width=True, key="menu_open_checkin_dia"):
         st.query_params["skip_splash"] = "1"
         _menu_go(open_checkin_dia=True)
+    if st.button("📝 NOTAS", use_container_width=True, key="menu_open_notas"):
+        st.query_params["skip_splash"] = "1"
+        _menu_go(open_notas=True)
 
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
@@ -4774,6 +4777,321 @@ def _directorio_inline_edit_row(row: dict) -> None:
     st.markdown("<hr style='border-color:#1a1a1a;margin:8px 0;'>", unsafe_allow_html=True)
 
 
+# -----------------------------------------------------------------------------
+# Notas (bloc de notas con links, guardado en Supabase)
+# -----------------------------------------------------------------------------
+NOTAS_TABLE = "notas"
+NOTAS_COLORES = {
+    "Cian": "#00e5ff",
+    "Dorado": "#d4af37",
+    "Verde": "#4ade80",
+    "Rojo": "#f87171",
+    "Morado": "#a78bfa",
+    "Naranja": "#fb923c",
+    "Rosa": "#f472b6",
+    "Azul": "#60a5fa",
+}
+NOTAS_SQL = """create table if not exists public.notas (
+  id bigint generated always as identity primary key,
+  titulo text not null default '',
+  texto text not null default '',
+  categoria text not null default '',
+  color text not null default '#00e5ff',
+  links jsonb not null default '[]'::jsonb,
+  fijada boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);"""
+
+NOTAS_CSS = """
+<style>
+.nota-card { background:#07141a; border:1px solid #14303a; border-radius:12px; padding:14px 14px 12px 14px; margin-bottom:6px; min-height:150px; }
+.nota-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+.nota-title { color:#eafaff; font-weight:800; font-size:15px; line-height:1.25; word-break:break-word; }
+.nota-cat { font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; border:1px solid; border-radius:999px; padding:2px 8px; white-space:nowrap; }
+.nota-text { color:#b8c7d4; font-size:12.5px; margin-top:8px; line-height:1.5; word-break:break-word; }
+.nota-links { margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; }
+.nota-links a { font-size:11px; font-weight:700; color:#38bdf8 !important; text-decoration:none !important; border:1px solid #1e3a4a; background:#06121a; padding:4px 9px; border-radius:7px; }
+.nota-links a:hover { border-color:#00e5ff; }
+.nota-date { color:#4a5a6a; font-size:10px; margin-top:10px; }
+.nota-pin { color:#fbbf24; font-size:12px; font-weight:800; letter-spacing:.8px; }
+</style>
+"""
+
+
+def _nota_url(raw: str) -> str:
+    raw = (raw or "").strip()
+    if not raw:
+        return ""
+    if not re.match(r"^https?://", raw, re.IGNORECASE):
+        raw = "https://" + raw
+    return raw
+
+
+def _nota_host(url: str) -> str:
+    return url.split("//", 1)[-1].split("/")[0]
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def cargar_notas() -> list[dict]:
+    response = (
+        supabase.table(NOTAS_TABLE)
+        .select("*")
+        .order("fijada", desc=True)
+        .order("updated_at", desc=True)
+        .execute()
+    )
+    return response.data or []
+
+
+def guardar_nota(data: dict, nota_id: object | None = None) -> None:
+    payload = {**data, "updated_at": datetime.now().astimezone().isoformat()}
+    if nota_id is None:
+        supabase.table(NOTAS_TABLE).insert(payload).execute()
+    else:
+        supabase.table(NOTAS_TABLE).update(payload).eq("id", nota_id).execute()
+    st.cache_data.clear()
+
+
+def eliminar_nota(nota_id: object) -> None:
+    supabase.table(NOTAS_TABLE).delete().eq("id", nota_id).execute()
+    st.cache_data.clear()
+
+
+def _nota_card_html(nota: dict) -> str:
+    color = nota.get("color") or "#00e5ff"
+    categoria = (nota.get("categoria") or "").strip()
+    texto = html.escape(nota.get("texto") or "").replace("\n", "<br>")
+    titulo = html.escape(nota.get("titulo") or "(sin título)")
+    pin = '<span class="nota-pin">📌 FIJADA</span>' if nota.get("fijada") else ""
+    cat = ""
+    if categoria:
+        cat = (
+            f'<span class="nota-cat" style="color:{color};border-color:{color};">'
+            f"{html.escape(categoria)}</span>"
+        )
+    links_html = ""
+    for lk in nota.get("links") or []:
+        url = _nota_url(lk.get("url", ""))
+        if not url:
+            continue
+        nombre = (lk.get("nombre") or "").strip() or _nota_host(url)
+        links_html += (
+            f'<a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">'
+            f"🔗 {html.escape(nombre)}</a>"
+        )
+    fecha = ""
+    try:
+        dt = datetime.fromisoformat(str(nota.get("created_at", "")).replace("Z", "+00:00"))
+        fecha = f"Creada {dt.strftime('%d/%m/%Y')}"
+    except ValueError:
+        pass
+    return (
+        f'<div class="nota-card" style="border-top:3px solid {color};">'
+        f'<div class="nota-head"><div class="nota-title">{titulo}</div>{cat}</div>'
+        + (f'<div class="nota-text">{texto}</div>' if texto else "")
+        + (f'<div class="nota-links">{links_html}</div>' if links_html else "")
+        + pin
+        + (f'<div class="nota-date">{fecha}</div>' if fecha else "")
+        + "</div>"
+    )
+
+
+def _notas_editor() -> None:
+    """Formulario para crear o editar una nota (dentro del mismo popup)."""
+    nota = st.session_state.get("notas_editando")
+    n = st.session_state.get("notas_nonce", 0)
+    es_edicion = nota is not None
+
+    if st.button("← Volver a las notas", key=f"nota_volver_{n}"):
+        st.session_state["notas_modo"] = None
+        st.rerun(scope="fragment")
+
+    st.markdown(
+        "<div style='color:#d4af37;font-size:13px;font-weight:800;letter-spacing:1.2px;margin:6px 0 10px 0;'>"
+        + ("✏️ EDITAR NOTA" if es_edicion else "➕ NUEVA NOTA")
+        + "</div>",
+        unsafe_allow_html=True,
+    )
+    titulo = st.text_input("Título", value=(nota or {}).get("titulo", ""), max_chars=120, key=f"nota_tit_{n}")
+    c1, c2 = st.columns([2, 1])
+    categoria = c1.text_input(
+        "Categoría / etiqueta", value=(nota or {}).get("categoria", ""), max_chars=40,
+        placeholder="Ej. Restaurantes, Proveedores, Contactos", key=f"nota_cat_{n}",
+    )
+    nombres_color = list(NOTAS_COLORES.keys())
+    color_actual = (nota or {}).get("color", "#00e5ff")
+    idx_color = next((i for i, k in enumerate(nombres_color) if NOTAS_COLORES[k] == color_actual), 0)
+    nombre_color = c2.selectbox("Color", nombres_color, index=idx_color, key=f"nota_col_{n}")
+    texto = st.text_area("Texto", value=(nota or {}).get("texto", ""), height=150, key=f"nota_txt_{n}")
+
+    # Cada fila de link tiene un id propio para que las claves de los widgets no se mezclen al quitar filas
+    links_key = f"nota_links_{n}"
+    if links_key not in st.session_state:
+        iniciales = (nota or {}).get("links") or []
+        filas = [
+            {"rid": i, "nombre": lk.get("nombre", ""), "url": lk.get("url", "")}
+            for i, lk in enumerate(iniciales)
+        ] or [{"rid": 0, "nombre": "", "url": ""}]
+        st.session_state[links_key] = filas
+        st.session_state[f"{links_key}_next"] = len(filas)
+
+    st.markdown(
+        "<div style='color:#8ca4ba;font-size:11px;font-weight:800;letter-spacing:1px;margin-top:6px;'>LINKS</div>",
+        unsafe_allow_html=True,
+    )
+    for fila in st.session_state[links_key]:
+        rid = fila["rid"]
+        l1, l2, l3 = st.columns([2, 4, 0.7])
+        l1.text_input("Nombre", value=fila["nombre"], key=f"nota_ln_{n}_{rid}",
+                      placeholder="Nombre (opcional)", label_visibility="collapsed")
+        l2.text_input("URL", value=fila["url"], key=f"nota_lu_{n}_{rid}",
+                      placeholder="https://...", label_visibility="collapsed")
+        if l3.button("✖", key=f"nota_ld_{n}_{rid}", help="Quitar link"):
+            st.session_state[links_key] = [f for f in st.session_state[links_key] if f["rid"] != rid]
+            st.rerun(scope="fragment")
+    if st.button("＋ Agregar link", key=f"nota_addlink_{n}"):
+        nuevo = st.session_state[f"{links_key}_next"]
+        st.session_state[f"{links_key}_next"] = nuevo + 1
+        st.session_state[links_key].append({"rid": nuevo, "nombre": "", "url": ""})
+        st.rerun(scope="fragment")
+
+    b1, b2 = st.columns(2)
+    if b1.button("💾 GUARDAR NOTA", use_container_width=True, type="primary", key=f"nota_guardar_{n}"):
+        if not titulo.strip():
+            st.error("Ponle un título a la nota.")
+            return
+        links = []
+        for fila in st.session_state[links_key]:
+            rid = fila["rid"]
+            url = _nota_url(st.session_state.get(f"nota_lu_{n}_{rid}", ""))
+            if not url:
+                continue
+            nombre = st.session_state.get(f"nota_ln_{n}_{rid}", "").strip()
+            links.append({"nombre": nombre or _nota_host(url), "url": url})
+        data = {
+            "titulo": titulo.strip(),
+            "texto": texto,
+            "categoria": categoria.strip(),
+            "color": NOTAS_COLORES[nombre_color],
+            "links": links,
+        }
+        try:
+            if es_edicion:
+                guardar_nota(data, nota["id"])
+            else:
+                guardar_nota({**data, "fijada": False})
+        except Exception as e:
+            st.error(f"No se pudo guardar la nota: {e}")
+            return
+        st.session_state["notas_modo"] = None
+        st.session_state.pop("notas_editando", None)
+        st.rerun(scope="fragment")
+    if b2.button("Cancelar", use_container_width=True, key=f"nota_cancelar_{n}"):
+        st.session_state["notas_modo"] = None
+        st.session_state.pop("notas_editando", None)
+        st.rerun(scope="fragment")
+
+
+@st.dialog("📝 Notas", width="large")
+def notas_dialog() -> None:
+    """Bloc de notas con links: crear, editar, fijar, borrar y buscar."""
+    st.markdown(NOTAS_CSS, unsafe_allow_html=True)
+
+    if st.session_state.get("notas_modo") in ("nueva", "editar"):
+        _notas_editor()
+        return
+
+    try:
+        notas = cargar_notas()
+    except Exception as e:
+        st.error(
+            "No se pudieron leer las notas. Revisa que exista la tabla `notas` en Supabase "
+            f"(SQL abajo). Detalle: {e}"
+        )
+        st.code(NOTAS_SQL, language="sql")
+        return
+
+    top1, top2, top3 = st.columns([3, 2, 1.4])
+    busqueda = top1.text_input(
+        "Buscar", placeholder="Buscar por título, texto, categoría o link...",
+        key="notas_busqueda", label_visibility="collapsed",
+    )
+    categorias = sorted({(x.get("categoria") or "").strip() for x in notas} - {""})
+    todas = "Todas las categorías"
+    filtro_cat = top2.selectbox(
+        "Categoría", [todas] + categorias, key="notas_filtro_cat", label_visibility="collapsed",
+    )
+    if top3.button("➕ NUEVA NOTA", use_container_width=True, key="notas_btn_nueva"):
+        st.session_state["notas_modo"] = "nueva"
+        st.session_state["notas_editando"] = None
+        st.session_state["notas_nonce"] = st.session_state.get("notas_nonce", 0) + 1
+        st.rerun(scope="fragment")
+
+    q = busqueda.strip().lower()
+    visibles = []
+    for nota in notas:
+        if filtro_cat != todas and (nota.get("categoria") or "").strip() != filtro_cat:
+            continue
+        if q:
+            bolsa = " ".join(
+                [nota.get("titulo") or "", nota.get("texto") or "", nota.get("categoria") or ""]
+                + [(lk.get("nombre") or "") + " " + (lk.get("url") or "") for lk in (nota.get("links") or [])]
+            ).lower()
+            if q not in bolsa:
+                continue
+        visibles.append(nota)
+    visibles.sort(key=lambda x: not x.get("fijada"))  # fijadas primero (orden estable)
+
+    st.markdown(
+        f"<div style='color:#4a5a6a;font-size:11px;margin:6px 0 10px 0;'>{len(visibles)} de {len(notas)} notas</div>",
+        unsafe_allow_html=True,
+    )
+    if not visibles:
+        st.info("No hay notas todavía. Usa ➕ NUEVA NOTA para crear la primera.")
+        return
+
+    confirmar_id = st.session_state.get("notas_confirmar_borrar")
+    cols = st.columns(3)
+    for i, nota in enumerate(visibles):
+        nid = nota["id"]
+        with cols[i % 3]:
+            st.markdown(_nota_card_html(nota), unsafe_allow_html=True)
+            if confirmar_id == nid:
+                st.markdown(
+                    "<div style='color:#f87171;font-size:12px;font-weight:700;'>¿Borrar esta nota?</div>",
+                    unsafe_allow_html=True,
+                )
+                s1, s2 = st.columns(2)
+                if s1.button("Sí, borrar", key=f"nota_si_{nid}", use_container_width=True):
+                    try:
+                        eliminar_nota(nid)
+                    except Exception as e:
+                        st.error(f"No se pudo borrar: {e}")
+                    st.session_state.pop("notas_confirmar_borrar", None)
+                    st.rerun(scope="fragment")
+                if s2.button("No", key=f"nota_no_{nid}", use_container_width=True):
+                    st.session_state.pop("notas_confirmar_borrar", None)
+                    st.rerun(scope="fragment")
+            else:
+                a1, a2, a3 = st.columns(3)
+                etiqueta_pin = "📍 Quitar pin" if nota.get("fijada") else "📌 Fijar"
+                if a1.button(etiqueta_pin, key=f"nota_pin_{nid}", use_container_width=True):
+                    try:
+                        guardar_nota({"fijada": not bool(nota.get("fijada"))}, nid)
+                    except Exception as e:
+                        st.error(f"No se pudo fijar: {e}")
+                    st.rerun(scope="fragment")
+                if a2.button("✏️ Editar", key=f"nota_ed_{nid}", use_container_width=True):
+                    st.session_state["notas_modo"] = "editar"
+                    st.session_state["notas_editando"] = nota
+                    st.session_state["notas_nonce"] = st.session_state.get("notas_nonce", 0) + 1
+                    st.rerun(scope="fragment")
+                if a3.button("🗑️", key=f"nota_del_{nid}", use_container_width=True, help="Borrar nota"):
+                    st.session_state["notas_confirmar_borrar"] = nid
+                    st.rerun(scope="fragment")
+
+
 @st.dialog("📇 Directorio Telefónico", width="large")
 def directorio_dialog() -> None:
     """Popup con el directorio de personal: ver, buscar, editar y agregar."""
@@ -6767,6 +7085,11 @@ if st.session_state.pop("open_shared_counter", False):
 # Auto-abrir el popup de check-in del día.
 if st.session_state.pop("open_checkin_dia", False):
     checkin_dia_dialog()
+
+# Auto-abrir el bloc de notas (siempre arranca en la lista, no en el editor).
+if st.session_state.pop("open_notas", False):
+    st.session_state["notas_modo"] = None
+    notas_dialog()
 
 # Auto-abrir el popup de VIP Alert (captura + descarga en Word). Streamlit
 # sólo permite un popup a la vez: al abrirse se limpia la bandera de Editar.
