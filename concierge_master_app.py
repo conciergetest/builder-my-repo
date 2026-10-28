@@ -52,7 +52,8 @@ st.set_page_config(
 # -----------------------------------------------------------------------------
 # Splash Screen
 # -----------------------------------------------------------------------------
-
+if "splash_shown" not in st.session_state:
+    st.session_state.splash_shown = False
 
 # No mostrar splash si el usuario ya interactuo o viene de regresar a tabla
 has_action_params = any(k in st.query_params for k in ["action", "sel_id", "checkout_filtro", "fecha_date"])
