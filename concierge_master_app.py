@@ -4137,7 +4137,7 @@ def _find_qrcode_path() -> str | None:
     return None
 
 
-@st.dialog("🔗 QR Code", width="small")
+@st.dialog("🔗 QR Code", width="large")
 def qrcode_dialog() -> None:
     """Muestra QRCODE.png como un modal flotante, igual que el popup de Fred Wayne."""
     qr_path = _find_qrcode_path()
@@ -4147,7 +4147,7 @@ def qrcode_dialog() -> None:
             '<div style="display:flex;flex-direction:column;align-items:center;gap:14px;'
             'padding:18px 10px;background:#0d0d0d;border:1px solid #222222;border-radius:16px;">'
             f'<img src="data:image/png;base64,{encoded}" alt="QR Code" '
-            'style="max-width:100%;max-height:420px;object-fit:contain;border-radius:12px;">'
+            'style="width:100%;height:auto;max-height:78vh;object-fit:contain;border-radius:12px;">'
             '<div style="color:#22D3EE;font:800 13px/1.2 \'Segoe UI\',sans-serif;'
             'letter-spacing:1.5px;text-transform:uppercase;">QR Code</div>'
             "</div>",
