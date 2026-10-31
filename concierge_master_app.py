@@ -1620,14 +1620,14 @@ def show_header() -> None:
 <body>
   <div id="local-clock">--:--:--</div>
   <div id="local-date">Loading date…</div>
-  <div id="local-online">Online: …</div>
+  <div id="local-online">Online(<span id="local-since" style="color:#ff3b3b;">Mar 1, 2026</span>): <span id="local-elapsed">…</span></div>
 <script>
   const clock = document.getElementById('local-clock');
   const date = document.getElementById('local-date');
   const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit' });
   const dateFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   const ONLINE_SINCE = new Date(2026, 2, 1);
-  const online = document.getElementById('local-online');
+  const elapsed = document.getElementById('local-elapsed');
   function onlineTime(from, to) {
     let y = to.getFullYear() - from.getFullYear();
     let m = to.getMonth() - from.getMonth();
@@ -1641,7 +1641,7 @@ def show_header() -> None:
     clock.textContent = timeFormatter.format(now);
     date.textContent = dateFormatter.format(now);
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-    online.textContent = 'Online: ' + onlineTime(ONLINE_SINCE, endOfToday);
+    elapsed.textContent = onlineTime(ONLINE_SINCE, endOfToday);
   }
   updateLocalClock();
   setInterval(updateLocalClock, 1000);
