@@ -1614,7 +1614,7 @@ def show_header() -> None:
   body { margin:0; background:transparent; font-family:Segoe UI,sans-serif; text-align:right; }
   #local-clock { color:#00e5ff; font-size:16px; font-weight:800; line-height:1.2; text-shadow:0 0 12px rgba(0,229,255,.45); }
   #local-date { color:#00e5ff; font-size:14px; font-weight:700; margin-top:5px; text-transform:capitalize; }
-  #local-online { color:#d4af37; font-size:12px; font-weight:700; margin-top:3px; letter-spacing:.3px; }
+  #local-online { color:#00e5ff; font-size:12px; font-weight:700; margin-top:3px; letter-spacing:.3px; }
 </style>
 </head>
 <body>
