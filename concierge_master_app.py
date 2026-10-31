@@ -411,6 +411,11 @@ st.markdown(
         border-radius: 14px !important;
         box-shadow: 0 0 18px rgba(0,229,255,.65), 0 0 40px rgba(0,229,255,.25) !important;
     }
+    /* Cortina en TODOS los popups: se abren desde el centro hacia arriba y abajo (0.6 s) */
+    @keyframes menu_curtain { from { clip-path: inset(50% -60px 50% -60px); } to { clip-path: inset(-60px -60px -60px -60px); } }
+    div[data-testid="stDialog"] > div {
+        animation: menu_curtain .6s ease-out both;
+    }
 </style>
     """,
     unsafe_allow_html=True,
@@ -1801,9 +1806,6 @@ def render_menu() -> None:
         }
         /* Al abrir MENÚ: los botones aparecen uno por uno, con fade y subida suave (~1 s; cortina de 0.6 s) */
         @keyframes menu_rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-        /* Cortina: el menú se abre desde el centro hacia arriba y abajo (0.6 s) */
-        @keyframes menu_curtain { from { clip-path: inset(50% -60px 50% -60px); } to { clip-path: inset(-60px -60px -60px -60px); } }
-        div[data-testid="stDialog"]:has(.main-menu-marker) > div { animation: menu_curtain .6s ease-out both; }
         div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stColumn"] {
             animation: menu_rise .35s ease-out both;
         }
