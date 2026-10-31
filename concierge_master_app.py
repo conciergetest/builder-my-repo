@@ -1499,7 +1499,7 @@ def show_header() -> None:
         )
     with header_center:
         st.markdown(
-            "<div style='text-align:center;color:#6f879a;font-size:10px;letter-spacing:1px;margin:0 0 4px 0;'>"
+            "<div style='text-align:center;color:#00e5ff;font-size:13px;font-weight:800;letter-spacing:1px;margin:0 0 4px 0;'>"
             "Made by FREDDY DIAZ | CONCIERGE</div>",
             unsafe_allow_html=True,
         )
