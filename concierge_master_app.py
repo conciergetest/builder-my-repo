@@ -1490,7 +1490,7 @@ def show_header() -> None:
     <div>
       <div class="brand-name">WALDORF ASTORIA</div>
       <div class="brand-place">COSTA RICA · PUNTA CACIQUE</div>
-      <div class="brand-product">Concierge Master <span style="color:#6f879a">v5.1</span></div>
+      <div class="brand-product">Concierge Master <span style="color:#6f879a">v6.0</span></div>
     </div>
   </div>
 </div>
@@ -1498,6 +1498,11 @@ def show_header() -> None:
             unsafe_allow_html=True,
         )
     with header_center:
+        st.markdown(
+            "<div style='text-align:center;color:#6f879a;font-size:10px;letter-spacing:1px;margin:0 0 4px 0;'>"
+            "Made by FREDDY DIAZ | CONCIERGE</div>",
+            unsafe_allow_html=True,
+        )
         # Botones centrales: reemplazan el logo Fred Wayne. Abren popups de
         # "Arrivals By Date" y "Reminders" sobre el dashboard.
         st.markdown(
@@ -1760,7 +1765,7 @@ def menu_dialog() -> None:
         _menu_go(open_recognition=True)
     l12.link_button("📁 BOX FILES", BOX_FOLDER_URL, use_container_width=True)
 
-    st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1a1a1a;text-align:center;color:#4a5a6a;font-size:10px;'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v5.1</div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1a1a1a;text-align:center;color:#4a5a6a;font-size:10px;'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v6.0</div>", unsafe_allow_html=True)
 
 
 def render_menu() -> None:
