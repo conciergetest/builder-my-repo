@@ -1799,33 +1799,33 @@ def render_menu() -> None:
             filter: brightness(1.15) !important;
             transform: translateY(-1px) !important;
         }
-        /* Al abrir MENÚ: los botones aparecen uno por uno, con fade y subida suave (~0.5 s) */
+        /* Al abrir MENÚ: los botones aparecen uno por uno, con fade y subida suave (~1 s) */
         @keyframes menu_rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
         div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stColumn"] {
-            animation: menu_rise .22s ease-out both;
+            animation: menu_rise .35s ease-out both;
         }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(4) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.000s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(4) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.015s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(4) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.030s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(5) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.045s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(5) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.060s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(5) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.075s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(8) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.090s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(8) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.105s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(8) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.120s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(8) [data-testid="stColumn"]:nth-child(4) { animation-delay: 0.135s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(15) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.150s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(15) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.165s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(15) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.180s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(16) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.195s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(16) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.210s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(16) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.225s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(17) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.240s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(17) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.255s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(17) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.270s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(18) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.285s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(18) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.300s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(18) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.315s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(4) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.00s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(4) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.03s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(4) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.06s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(5) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.09s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(5) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.12s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(5) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.15s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(8) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.18s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(8) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.21s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(8) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.24s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(8) [data-testid="stColumn"]:nth-child(4) { animation-delay: 0.27s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(15) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.30s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(15) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.33s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(15) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.36s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(16) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.39s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(16) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.42s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(16) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.45s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(17) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.48s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(17) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.51s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(17) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.54s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(18) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.57s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(18) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.60s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(18) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.63s; }
         </style>
         """,
         unsafe_allow_html=True,
