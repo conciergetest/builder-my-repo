@@ -1614,20 +1614,34 @@ def show_header() -> None:
   body { margin:0; background:transparent; font-family:Segoe UI,sans-serif; text-align:right; }
   #local-clock { color:#00e5ff; font-size:16px; font-weight:800; line-height:1.2; text-shadow:0 0 12px rgba(0,229,255,.45); }
   #local-date { color:#00e5ff; font-size:14px; font-weight:700; margin-top:5px; text-transform:capitalize; }
+  #local-online { color:#d4af37; font-size:12px; font-weight:700; margin-top:3px; letter-spacing:.3px; }
 </style>
 </head>
 <body>
   <div id="local-clock">--:--:--</div>
   <div id="local-date">Loading date…</div>
+  <div id="local-online">Online: …</div>
 <script>
   const clock = document.getElementById('local-clock');
   const date = document.getElementById('local-date');
   const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit' });
   const dateFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const ONLINE_SINCE = new Date(2026, 4, 1);
+  const online = document.getElementById('local-online');
+  function onlineTime(from, to) {
+    let y = to.getFullYear() - from.getFullYear();
+    let m = to.getMonth() - from.getMonth();
+    let d = to.getDate() - from.getDate();
+    if (d < 0) { m -= 1; d += new Date(to.getFullYear(), to.getMonth(), 0).getDate(); }
+    if (m < 0) { y -= 1; m += 12; }
+    return y + ' Years, ' + m + ' Months, ' + d + ' Days';
+  }
   function updateLocalClock() {
     const now = new Date();
     clock.textContent = timeFormatter.format(now);
     date.textContent = dateFormatter.format(now);
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    online.textContent = 'Online: ' + onlineTime(ONLINE_SINCE, endOfToday);
   }
   updateLocalClock();
   setInterval(updateLocalClock, 1000);
@@ -1635,7 +1649,7 @@ def show_header() -> None:
 </body>
 </html>
             """,
-            height=54,
+            height=76,
             scrolling=False,
         )
 
