@@ -19,7 +19,7 @@ import math
 import re
 import html
 import os
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 from datetime import time as time_cls
 from io import BytesIO
 from urllib.parse import urlencode
@@ -243,6 +243,11 @@ if st.session_state.pop("splash_fade_in", False):
         """,
         unsafe_allow_html=True,
     )
+
+def ahora_cr() -> datetime:
+    """Hora local de Costa Rica (UTC-6, sin horario de verano), naive."""
+    return datetime.now(timezone(timedelta(hours=-6))).replace(tzinfo=None)
+
 
 TABLE_NAME = "huespedes"
 RECOGNITION_COLUMN = "recognition"
@@ -473,7 +478,7 @@ def exportar_pdf_bytes(df: pd.DataFrame, headers: dict[str, str] | None = None, 
     pdf.set_font("Helvetica", "B", 14)
     pdf.cell(0, 8, title, ln=1)
     pdf.set_font("Helvetica", "", 8)
-    pdf.cell(0, 5, f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}  ·  {len(export_df)} registros", ln=1)
+    pdf.cell(0, 5, f"Generado: {ahora_cr().strftime('%d/%m/%Y %H:%M')}  ·  {len(export_df)} registros", ln=1)
     pdf.ln(2)
 
     columns = list(export_df.columns)
@@ -570,7 +575,7 @@ def normalizar_fecha(value: object) -> str:
     date_value = parse_fecha(value)
     if date_value:
         if date_value.year == 1900:
-            date_value = date_value.replace(year=datetime.now().year)
+            date_value = date_value.replace(year=ahora_cr().year)
         return date_value.strftime("%B %d, %Y")
     return "" if value is None or pd.isna(value) else str(value).strip()
 
@@ -637,7 +642,7 @@ def formatear_fecha_corta(value: object) -> str:
     if not parsed:
         return text
     if parsed.year == 1900:
-        parsed = parsed.replace(year=datetime.now().year)
+        parsed = parsed.replace(year=ahora_cr().year)
     return parsed.strftime("%b %d, %Y")
 
 
@@ -655,7 +660,7 @@ def es_checkout_pasado(check_out_value: object) -> bool:
     dt = parse_fecha(cleaned)
     if not dt:
         return False
-    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today = ahora_cr().replace(hour=0, minute=0, second=0, microsecond=0)
     return dt.replace(hour=0, minute=0, second=0, microsecond=0) <= today
 
 
@@ -736,7 +741,7 @@ def calcular_noches(check_in: object, check_out: object) -> int | None:
     start, end = parse_fecha(check_in), parse_fecha(check_out)
     if not start or not end:
         return None
-    current_year = datetime.now().year
+    current_year = ahora_cr().year
     if start.year == 1900:
         start = start.replace(year=current_year)
     if end.year == 1900:
@@ -1044,7 +1049,7 @@ def limpiar_reminders_vencidos() -> None:
     df = cargar_reminders()
     if df.empty or "due_date" not in df.columns or "id" not in df.columns:
         return
-    hoy = datetime.today().date()
+    hoy = ahora_cr().date()
     vencidos = []
     for _, row in df.iterrows():
         due = parse_fecha(row.get("due_date"))
@@ -2111,7 +2116,7 @@ def _new_reservation_form(context: str = "page") -> None:
     r3 = st.columns(3)
     check_in = r3[0].date_input("Check In", key=field_key("check_in"))
     check_out = r3[1].date_input(
-        "Check Out", value=datetime.now().date() + timedelta(days=1), key=field_key("check_out")
+        "Check Out", value=ahora_cr().date() + timedelta(days=1), key=field_key("check_out")
     )
     phone = r3[2].text_input("Phone", placeholder="+1 555 0000", key=field_key("phone"))
     r4 = st.columns(3)
@@ -2178,8 +2183,8 @@ def render_new_reservation() -> None:
 
 def _edit_reservation_form(reservation: dict, context: str = "page") -> None:
     """Formulario de edicion, reutilizable en pagina o en popup."""
-    check_in_default = parse_fecha(reservation.get("check_in")) or datetime.now()
-    check_out_default = parse_fecha(reservation.get("check_out")) or datetime.now() + timedelta(days=1)
+    check_in_default = parse_fecha(reservation.get("check_in")) or ahora_cr()
+    check_out_default = parse_fecha(reservation.get("check_out")) or ahora_cr() + timedelta(days=1)
     qty_default = pd.to_numeric(reservation.get("qty", 0), errors="coerce")
     qty_default = 0.0 if pd.isna(qty_default) else float(qty_default)
     info_category_default, info_notes_default = split_information_category(reservation.get("info", ""))
@@ -2452,7 +2457,7 @@ def limpiar_checkins_pasados() -> None:
     Las marcas solo duran el día de la llegada: al abrir el popup en otro día,
     las reservas de días anteriores vuelven a quedar sin marcar en Supabase.
     """
-    hoy = datetime.today().date()
+    hoy = ahora_cr().date()
     df = cargar_reservaciones()
     if df.empty or "check_in" not in df.columns or CHECKIN_COLUMN not in df.columns:
         return
@@ -2511,13 +2516,13 @@ def _checkin_set_day(dia: date) -> None:
 
 
 def _checkin_shift_month(meses: int) -> None:
-    base = st.session_state.get("checkin_cal_mes") or date.today().replace(day=1)
+    base = st.session_state.get("checkin_cal_mes") or ahora_cr().date().replace(day=1)
     total = base.year * 12 + (base.month - 1) + meses
     st.session_state["checkin_cal_mes"] = date(total // 12, total % 12 + 1, 1)
 
 
 def _checkin_go_current_month() -> None:
-    st.session_state["checkin_cal_mes"] = date.today().replace(day=1)
+    st.session_state["checkin_cal_mes"] = ahora_cr().date().replace(day=1)
 
 
 def _render_checkin_calendar(counts: dict, seleccionada: date, hoy: date) -> None:
@@ -2596,7 +2601,7 @@ def checkin_dia_dialog() -> None:
         )
         return
 
-    hoy = datetime.today().date()
+    hoy = ahora_cr().date()
     # Solo una vez por día y sesión: si se corriera en cada rerun, desmarcaría
     # de inmediato lo que el usuario marca en fechas pasadas.
     if st.session_state.get("checkin_limpieza_dia") != hoy.isoformat():
@@ -2844,8 +2849,8 @@ def _vip_alert_prefill(reservation: object) -> dict:
         qty_label = str(int(round(float(qty_raw))))
     return {
         "client_name": str(reservation.get("name", "") or ""),
-        "arrival": parse_fecha(reservation.get("check_in")) or datetime.now(),
-        "departure": parse_fecha(reservation.get("check_out")) or datetime.now() + timedelta(days=1),
+        "arrival": parse_fecha(reservation.get("check_in")) or ahora_cr(),
+        "departure": parse_fecha(reservation.get("check_out")) or ahora_cr() + timedelta(days=1),
         "pax": qty_label,
         "transportation": str(reservation.get("trans", "") or ""),
         "room": str(reservation.get("room", "") or ""),
@@ -3036,16 +3041,16 @@ def vip_alert_dialog() -> None:
         fila2 = st.columns(2)
         arrival = fila2[0].date_input(
             "ARRIVAL",
-            value=(prefill.get("arrival") or datetime.now()).date()
+            value=(prefill.get("arrival") or ahora_cr()).date()
             if isinstance(prefill.get("arrival"), datetime)
-            else (prefill.get("arrival") or date.today()),
+            else (prefill.get("arrival") or ahora_cr().date()),
             key=f"vip_arrival_{nonce}",
         )
         departure = fila2[1].date_input(
             "DEPARTURE",
-            value=(prefill.get("departure") or datetime.now() + timedelta(days=1)).date()
+            value=(prefill.get("departure") or ahora_cr() + timedelta(days=1)).date()
             if isinstance(prefill.get("departure"), datetime)
-            else (prefill.get("departure") or date.today() + timedelta(days=1)),
+            else (prefill.get("departure") or ahora_cr().date() + timedelta(days=1)),
             key=f"vip_departure_{nonce}",
         )
 
@@ -3335,7 +3340,7 @@ def pdinning_dialog() -> None:
             "FAMILIA", value="", key="pdin_familia", placeholder="Ej: Familia Schwartz"
         )
         room = fila1[1].text_input("ROOM", value="", key="pdin_room", placeholder="Ej: 811")
-        fecha = fila1[2].date_input("FECHA", value=date.today(), key="pdin_fecha")
+        fecha = fila1[2].date_input("FECHA", value=ahora_cr().date(), key="pdin_fecha")
 
         fila2 = st.columns(3)
         pax = fila2[0].text_input("NO. PAX", value="", key="pdin_pax", placeholder="Ej: 4")
@@ -3671,7 +3676,7 @@ def _export_body(df: pd.DataFrame, context: str = "page") -> None:
         st.download_button(
             "DESCARGAR EXCEL",
             data=excel_data,
-            file_name=f"Arrivals_{datetime.now():%Y%m%d_%H%M}.xlsx",
+            file_name=f"Arrivals_{ahora_cr():%Y%m%d_%H%M}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
             key=f"download_export_{context}",
@@ -3695,7 +3700,7 @@ def render_export(df: pd.DataFrame) -> None:
 
 def _agenda_body(df: pd.DataFrame, context: str = "page") -> None:
     """Agenda de llegadas/salidas por fecha, reutilizable en pagina o popup."""
-    selected_date = st.date_input("Fecha", value=datetime.now().date(), key=f"agenda_date_{context}")
+    selected_date = st.date_input("Fecha", value=ahora_cr().date(), key=f"agenda_date_{context}")
     formatted = selected_date.strftime("%B %d, %Y")
     arrivals = df[df["check_in"] == formatted]
     departures = df[df["check_out"] == formatted]
@@ -3727,7 +3732,7 @@ def render_agenda(df: pd.DataFrame) -> None:
 
 def _report_body(df: pd.DataFrame, context: str = "page") -> None:
     """Reporte de ocupacion diario, reutilizable en pagina o popup."""
-    today = datetime.now()
+    today = ahora_cr()
     tomorrow = today + timedelta(days=1)
     today_label, tomorrow_label = today.strftime("%B %d, %Y"), tomorrow.strftime("%B %d, %Y")
 
@@ -4264,7 +4269,7 @@ def _arrivals_default_month(dates: list, active: datetime | None) -> str:
     mes de la próxima llegada; y si no hay ninguna por delante, el de la
     última registrada. Así nunca se abre en un mes vacío sin motivo.
     """
-    today = datetime.now()
+    today = ahora_cr()
     if active:
         return active.strftime("%Y-%m")
     if any(day.strftime("%Y-%m") == today.strftime("%Y-%m") for day, _, _ in dates):
@@ -4286,7 +4291,7 @@ def _render_arrivals_calendar(dates: list, active: datetime | None) -> None:
     """
     counts = {day.strftime("%Y-%m-%d"): count for day, _, count in dates}
     active_key = datetime(active.year, active.month, active.day) if active else None
-    now = datetime.now()
+    now = ahora_cr()
     today_key = datetime(now.year, now.month, now.day)
 
     month_key = st.session_state.get("arrivals_cal_month") or _arrivals_default_month(dates, active)
@@ -4564,7 +4569,7 @@ def _reminder_input_date(value: object) -> date:
     parsed = parse_fecha(value)
     if parsed:
         return parsed.date() if isinstance(parsed, datetime) else parsed
-    return datetime.today().date()
+    return ahora_cr().date()
 
 
 @st.dialog("🔔 Reminders", width="large")
@@ -5770,7 +5775,7 @@ def _letter_body(reservation: dict) -> None:
         st.download_button(
             "DESCARGAR CARTA DE DESPEDIDA",
             data=output,
-            file_name=f"Carta_Despedida_{safe_name}_{datetime.now():%Y%m%d_%H%M}.docx",
+            file_name=f"Carta_Despedida_{safe_name}_{ahora_cr():%Y%m%d_%H%M}.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             use_container_width=True,
         )
@@ -5879,7 +5884,7 @@ def render_bonus() -> None:
 
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-    year = st.selectbox("Año", options=list(range(2024, 2030)), index=list(range(2024, 2030)).index(datetime.now().year), key="bonus_year_select")
+    year = st.selectbox("Año", options=list(range(2024, 2030)), index=list(range(2024, 2030)).index(ahora_cr().year), key="bonus_year_select")
 
     # Cargar desde Supabase (o session_state como cache local)
     cache_key = f"bonus_loaded_{year}"
@@ -6680,7 +6685,7 @@ def category_detail_dialog() -> None:
 def render_dashboard(df: pd.DataFrame) -> None:
     # Borra automáticamente los reminders cuyo Due Date ya pasó (una vez por
     # día por sesión, para no golpear Supabase en cada rerun).
-    _hoy_iso = datetime.today().date().isoformat()
+    _hoy_iso = ahora_cr().date().isoformat()
     if st.session_state.get("reminders_cleanup_date") != _hoy_iso:
         try:
             limpiar_reminders_vencidos()
@@ -6697,7 +6702,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
     filtered, filters = apply_filters(df)
 
     with left:
-        today = datetime.now()
+        today = ahora_cr()
         checkout_links = []
         for offset in range(8):
             date = today + timedelta(days=offset)
@@ -6774,7 +6779,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with f1:
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
-        selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or datetime.now()).date())
+        selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or ahora_cr()).date())
 
     with f2:
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
