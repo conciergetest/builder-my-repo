@@ -1799,6 +1799,22 @@ def render_menu() -> None:
             filter: brightness(1.15) !important;
             transform: translateY(-1px) !important;
         }
+        /* Efecto al abrir MENÚ (0.4 s): barrido de luz cyan + cascada de botones */
+        @keyframes menu_sweep { from { transform: translateX(-100%); } to { transform: translateX(120%); } }
+        @keyframes menu_rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        div[data-testid="stDialog"]:has(.main-menu-marker) > div { position: relative; overflow: hidden; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) > div::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 45%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0,229,255,.28), transparent);
+            pointer-events: none; z-index: 5;
+            animation: menu_sweep .4s ease-out both;
+        }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stColumn"] > div {
+            animation: menu_rise .28s ease-out both;
+        }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stColumn"] > div:nth-child(2) { animation-delay: .04s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stColumn"] > div:nth-child(3) { animation-delay: .08s; }
+        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stColumn"] > div:nth-child(4) { animation-delay: .12s; }
         </style>
         """,
         unsafe_allow_html=True,
