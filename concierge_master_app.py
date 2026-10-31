@@ -1626,7 +1626,7 @@ def show_header() -> None:
   const date = document.getElementById('local-date');
   const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit' });
   const dateFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-  const ONLINE_SINCE = new Date(2026, 4, 1);
+  const ONLINE_SINCE = new Date(2026, 2, 1);
   const online = document.getElementById('local-online');
   function onlineTime(from, to) {
     let y = to.getFullYear() - from.getFullYear();
