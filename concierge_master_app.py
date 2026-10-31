@@ -1799,8 +1799,11 @@ def render_menu() -> None:
             filter: brightness(1.15) !important;
             transform: translateY(-1px) !important;
         }
-        /* Al abrir MENÚ: los botones aparecen uno por uno, con fade y subida suave (~1 s) */
+        /* Al abrir MENÚ: los botones aparecen uno por uno, con fade y subida suave (~1 s; cortina de 0.6 s) */
         @keyframes menu_rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        /* Cortina: el menú se abre desde el centro hacia arriba y abajo (0.6 s) */
+        @keyframes menu_curtain { from { clip-path: inset(50% -60px 50% -60px); } to { clip-path: inset(-60px -60px -60px -60px); } }
+        div[data-testid="stDialog"]:has(.main-menu-marker) > div { animation: menu_curtain .6s ease-out both; }
         div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stColumn"] {
             animation: menu_rise .35s ease-out both;
         }
