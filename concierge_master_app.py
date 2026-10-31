@@ -5767,6 +5767,14 @@ def _letter_body(reservation: dict) -> None:
                     for paragraph in cell.paragraphs:
                         replace_paragraph(paragraph)
 
+        # Tamaño A5 (148 x 210 mm) para que Word imprima en A5 por defecto
+        from docx.enum.section import WD_ORIENT
+        from docx.shared import Mm
+        for seccion_a5 in document.sections:
+            seccion_a5.orientation = WD_ORIENT.PORTRAIT
+            seccion_a5.page_width = Mm(148)
+            seccion_a5.page_height = Mm(210)
+
         output = BytesIO()
         document.save(output)
         output.seek(0)
