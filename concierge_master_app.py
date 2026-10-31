@@ -411,10 +411,10 @@ st.markdown(
         border-radius: 14px !important;
         box-shadow: 0 0 18px rgba(0,229,255,.65), 0 0 40px rgba(0,229,255,.25) !important;
     }
-    /* Cortina en TODOS los popups: se abren desde el centro hacia arriba y abajo (0.6 s) */
+    /* Cortina en TODOS los popups: se abren desde el centro hacia arriba y abajo (0.9 s) */
     @keyframes menu_curtain { from { clip-path: inset(50% -60px 50% -60px); } to { clip-path: inset(-60px -60px -60px -60px); } }
     div[data-testid="stDialog"] > div {
-        animation: menu_curtain .6s ease-out both;
+        animation: menu_curtain .9s ease-out both;
     }
 </style>
     """,
