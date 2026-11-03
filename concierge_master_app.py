@@ -1626,20 +1626,24 @@ def show_header() -> None:
 <html>
 <head>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
   body { margin:0; background:transparent; font-family:Segoe UI,sans-serif; text-align:right; }
-  #local-clock { color:#00e5ff; font-size:16px; font-weight:800; line-height:1.2; text-shadow:0 0 12px rgba(0,229,255,.45); }
+  #digital-box { display:inline-block; padding:4px 14px 3px 14px; border-radius:10px; border:2px solid #00e5ff; background:linear-gradient(180deg,#041a24,#02101a); box-shadow:0 0 10px rgba(0,229,255,.55), inset 0 0 12px rgba(0,229,255,.25); }
+  #local-clock { font-family:'Orbitron','Digital-7','Courier New',monospace; color:#7ff6ff; font-size:26px; font-weight:700; line-height:1.1; letter-spacing:2px; text-shadow:0 0 6px #00e5ff, 0 0 16px rgba(0,229,255,.8); white-space:nowrap; }
+  #local-ampm { font-size:12px; margin-left:4px; color:#7ff6ff; text-shadow:0 0 6px #00e5ff; }
   #local-date { color:#00e5ff; font-size:14px; font-weight:700; margin-top:5px; text-transform:capitalize; }
   #local-online { color:#00e5ff; font-size:12px; font-weight:700; margin-top:3px; letter-spacing:.3px; }
 </style>
 </head>
 <body>
-  <div id="local-clock">--:--:--</div>
+  <div id="digital-box"><span id="local-clock">--:--:--</span><span id="local-ampm"></span></div>
   <div id="local-date">Loading date…</div>
   <div id="local-online">Online(<span id="local-since" style="color:#ff3b3b;">Mar 1, 2026</span>): <span id="local-elapsed">…</span></div>
 <script>
   const clock = document.getElementById('local-clock');
+  const ampmEl = document.getElementById('local-ampm');
   const date = document.getElementById('local-date');
-  const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  const timeFormatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
   const dateFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   const ONLINE_SINCE = new Date(2026, 2, 1);
   const elapsed = document.getElementById('local-elapsed');
@@ -1653,7 +1657,9 @@ def show_header() -> None:
   }
   function updateLocalClock() {
     const now = new Date();
-    clock.textContent = timeFormatter.format(now);
+    const partes = timeFormatter.formatToParts(now);
+    clock.textContent = partes.filter(p => p.type !== 'dayPeriod').map(p => p.value).join('').trim();
+    ampmEl.textContent = (partes.find(p => p.type === 'dayPeriod') || {}).value || '';
     date.textContent = dateFormatter.format(now);
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
     elapsed.textContent = onlineTime(ONLINE_SINCE, endOfToday);
@@ -1664,7 +1670,7 @@ def show_header() -> None:
 </body>
 </html>
             """,
-            height=76,
+            height=110,
             scrolling=False,
         )
 
