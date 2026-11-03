@@ -98,7 +98,7 @@ if not st.session_state.splash_shown and not has_action_params:
                 radial-gradient(ellipse at 18% 72%, rgba(0,229,255,.13) 0%, rgba(0,229,255,0) 43%),
                 radial-gradient(ellipse at 84% 28%, rgba(20,149,145,.19) 0%, rgba(20,149,145,0) 44%);
             filter: blur(28px);
-            animation: splashAtmosphere 7s ease-in-out infinite alternate;
+            animation: splashAtmosphere 10s ease-in-out infinite alternate;
         }
         .splash-backdrop { display: none; }
         .splash-root img.splash-photo {
@@ -117,7 +117,7 @@ if not st.session_state.splash_shown and not has_action_params:
             position: relative;
             width: min(100vw, calc(100dvh * 1.7393)); aspect-ratio: 1654 / 951;
             transform-origin: 50% 50%;
-            animation: splashKen 7s cubic-bezier(.2,.68,.28,1) both;
+            animation: splashKen 10s cubic-bezier(.2,.68,.28,1) both;
         }
         .splash-spin {
             position: absolute; z-index: 2; width: 3.6%; aspect-ratio: 1; border-radius: 50%;
@@ -173,7 +173,7 @@ if not st.session_state.splash_shown and not has_action_params:
             background: linear-gradient(90deg, #8a6f22 0%, #D4AF37 48%, #F7E9AE 78%, #D4AF37 100%);
             box-shadow: 0 0 10px rgba(212,175,55,0.85), 0 0 26px rgba(212,175,55,0.45);
             will-change: width;
-            animation: splashFill 5.6s cubic-bezier(0.22, 0.61, 0.36, 1.0) forwards;
+            animation: splashFill 8s cubic-bezier(0.22, 0.61, 0.36, 1.0) forwards;
         }
         .splash-loader-fill::after {
             content: ""; position: absolute; right: 0; top: 50%;
@@ -187,11 +187,11 @@ if not st.session_state.splash_shown and not has_action_params:
             position: absolute; top: 0; bottom: 0; left: 0; width: 30%;
             background: linear-gradient(90deg, rgba(255,248,214,0) 0%, rgba(255,248,214,0.55) 50%,
                         rgba(255,248,214,0) 100%);
-            animation: splashGlow 1.4s ease-in-out 5.4s 1 both;
+            animation: splashGlow 1.4s ease-in-out 7.7s 1 both;
         }
         .splash-out {
             position: absolute; inset: 0; z-index: 6; background: #000;
-            opacity: 0; pointer-events: none; animation: splashOut 7s ease-in forwards;
+            opacity: 0; pointer-events: none; animation: splashOut 10s ease-in forwards;
         }
 
         @keyframes splashIn     { from { opacity: 0; } to { opacity: 1; } }
@@ -257,7 +257,7 @@ if not st.session_state.splash_shown and not has_action_params:
 
     @st.fragment(run_every=0.1)
     def _finish_splash_after_animation() -> None:
-        if time.monotonic() - st.session_state["splash_started_at"] >= 7:
+        if time.monotonic() - st.session_state["splash_started_at"] >= 10:
             st.session_state.splash_shown = True
             st.session_state.splash_fade_in = True
             st.rerun(scope="app")
