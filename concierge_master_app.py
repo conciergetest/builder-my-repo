@@ -106,8 +106,40 @@ if not st.session_state.splash_shown and not has_action_params:
             display: block; width: 100%; height: 100%; object-fit: contain; object-position: center;
             transform-origin: 50% 50%;
             filter: drop-shadow(0 12px 34px rgba(0,0,0,.42));
-            animation: splashKen 7s cubic-bezier(.2,.68,.28,1) both, splashIn 1.2s ease-out both;
+            animation: splashIn 1.2s ease-out both;
         }
+        /* Escenario con la proporción exacta de la imagen: los anillos quedan pegados al nombre */
+        .splash-stage {
+            position: absolute; inset: 0; z-index: 1; pointer-events: none;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .splash-fit {
+            position: relative;
+            width: min(100vw, calc(100dvh * 1.7393)); aspect-ratio: 1654 / 951;
+            transform-origin: 50% 50%;
+            animation: splashKen 7s cubic-bezier(.2,.68,.28,1) both;
+        }
+        .splash-spin {
+            position: absolute; z-index: 2; width: 3.6%; aspect-ratio: 1; border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none;
+            animation: splashIn 1.2s ease-out .9s both;
+        }
+        .splash-spin::before, .splash-spin::after {
+            content: ""; position: absolute; border-radius: 50%;
+        }
+        .splash-spin::before {
+            inset: 0; border: 2px solid rgba(0,229,255,.14);
+            border-top-color: #00e5ff; border-right-color: rgba(0,229,255,.5);
+            box-shadow: 0 0 8px rgba(0,229,255,.6), inset 0 0 6px rgba(0,229,255,.25);
+            animation: splashSpin 1.1s linear infinite;
+        }
+        .splash-spin::after {
+            inset: 26%; border: 2px solid rgba(0,229,255,.1);
+            border-bottom-color: #7ff6ff;
+            box-shadow: 0 0 6px rgba(0,229,255,.5);
+            animation: splashSpin 1.7s linear infinite reverse;
+        }
+
         .splash-veil {
             position: absolute; inset: 0; z-index: 2; pointer-events: none;
             background:
@@ -178,6 +210,7 @@ if not st.session_state.splash_shown and not has_action_params:
                                   30%  { opacity: 1; }
                                   100% { transform: translateX(430%); opacity: 0; } }
         @keyframes splashOut    { 0%, 80% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes splashSpin   { to { transform: rotate(360deg); } }
         /* Pantallas verticales (celular): la foto completa se ve sobre un fondo desenfocado a pantalla completa */
         @media (max-aspect-ratio: 1/1) {
             .splash-root img.splash-backdrop {
@@ -200,9 +233,13 @@ if not st.session_state.splash_shown and not has_action_params:
             '<img class="splash-backdrop" alt="" src="data:image/jpeg;base64,'
             + _splash_backdrop_b64(splash_path)
             + '">'
+            '<div class="splash-stage"><div class="splash-fit">'
             '<img class="splash-photo" src="data:image/png;base64,'
             + base64.b64encode(open(splash_path, "rb").read()).decode("utf-8")
             + '" alt="Concierge Master">'
+            '<div class="splash-spin" style="left:33.3%;top:52.7%"></div>'
+            '<div class="splash-spin" style="left:67.7%;top:52.7%"></div>'
+            '</div></div>'
             '<div class="splash-veil"></div>'
             '<div class="splash-sheen"></div>'
             '<div class="splash-frame"></div>'
