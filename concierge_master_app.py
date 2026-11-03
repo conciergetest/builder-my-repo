@@ -98,7 +98,7 @@ if not st.session_state.splash_shown and not has_action_params:
                 radial-gradient(ellipse at 18% 72%, rgba(0,229,255,.13) 0%, rgba(0,229,255,0) 43%),
                 radial-gradient(ellipse at 84% 28%, rgba(20,149,145,.19) 0%, rgba(20,149,145,0) 44%);
             filter: blur(28px);
-            animation: splashAtmosphere 10s ease-in-out infinite alternate;
+            animation: splashAtmosphere 7s ease-in-out infinite alternate;
         }
         .splash-backdrop { display: none; }
         .splash-root img.splash-photo {
@@ -106,40 +106,8 @@ if not st.session_state.splash_shown and not has_action_params:
             display: block; width: 100%; height: 100%; object-fit: contain; object-position: center;
             transform-origin: 50% 50%;
             filter: drop-shadow(0 12px 34px rgba(0,0,0,.42));
-            animation: splashIn 1.2s ease-out both;
+            animation: splashKen 7s cubic-bezier(.2,.68,.28,1) both, splashIn 1.2s ease-out both;
         }
-        /* Escenario con la proporción exacta de la imagen: los anillos quedan pegados al nombre */
-        .splash-stage {
-            position: absolute; inset: 0; z-index: 1; pointer-events: none;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .splash-fit {
-            position: relative;
-            width: min(100vw, calc(100dvh * 1.7393)); aspect-ratio: 1654 / 951;
-            transform-origin: 50% 50%;
-            animation: splashKen 10s cubic-bezier(.2,.68,.28,1) both;
-        }
-        .splash-spin {
-            position: absolute; z-index: 2; width: 3.6%; aspect-ratio: 1; border-radius: 50%;
-            transform: translate(-50%, -50%); pointer-events: none;
-            animation: splashIn 1.2s ease-out .9s both;
-        }
-        .splash-spin::before, .splash-spin::after {
-            content: ""; position: absolute; border-radius: 50%;
-        }
-        .splash-spin::before {
-            inset: 0; border: 2px solid rgba(0,229,255,.14);
-            border-top-color: #00e5ff; border-right-color: rgba(0,229,255,.5);
-            box-shadow: 0 0 8px rgba(0,229,255,.6), inset 0 0 6px rgba(0,229,255,.25);
-            animation: splashSpin 1.1s linear infinite;
-        }
-        .splash-spin::after {
-            inset: 26%; border: 2px solid rgba(0,229,255,.1);
-            border-bottom-color: #7ff6ff;
-            box-shadow: 0 0 6px rgba(0,229,255,.5);
-            animation: splashSpin 1.7s linear infinite reverse;
-        }
-
         .splash-veil {
             position: absolute; inset: 0; z-index: 2; pointer-events: none;
             background:
@@ -173,7 +141,7 @@ if not st.session_state.splash_shown and not has_action_params:
             background: linear-gradient(90deg, #8a6f22 0%, #D4AF37 48%, #F7E9AE 78%, #D4AF37 100%);
             box-shadow: 0 0 10px rgba(212,175,55,0.85), 0 0 26px rgba(212,175,55,0.45);
             will-change: width;
-            animation: splashFill 8s cubic-bezier(0.22, 0.61, 0.36, 1.0) forwards;
+            animation: splashFill 5.6s cubic-bezier(0.22, 0.61, 0.36, 1.0) forwards;
         }
         .splash-loader-fill::after {
             content: ""; position: absolute; right: 0; top: 50%;
@@ -187,11 +155,11 @@ if not st.session_state.splash_shown and not has_action_params:
             position: absolute; top: 0; bottom: 0; left: 0; width: 30%;
             background: linear-gradient(90deg, rgba(255,248,214,0) 0%, rgba(255,248,214,0.55) 50%,
                         rgba(255,248,214,0) 100%);
-            animation: splashGlow 1.4s ease-in-out 7.7s 1 both;
+            animation: splashGlow 1.4s ease-in-out 5.4s 1 both;
         }
         .splash-out {
             position: absolute; inset: 0; z-index: 6; background: #000;
-            opacity: 0; pointer-events: none; animation: splashOut 10s ease-in forwards;
+            opacity: 0; pointer-events: none; animation: splashOut 7s ease-in forwards;
         }
 
         @keyframes splashIn     { from { opacity: 0; } to { opacity: 1; } }
@@ -210,7 +178,6 @@ if not st.session_state.splash_shown and not has_action_params:
                                   30%  { opacity: 1; }
                                   100% { transform: translateX(430%); opacity: 0; } }
         @keyframes splashOut    { 0%, 80% { opacity: 0; } 100% { opacity: 1; } }
-        @keyframes splashSpin   { to { transform: rotate(360deg); } }
         /* Pantallas verticales (celular): la foto completa se ve sobre un fondo desenfocado a pantalla completa */
         @media (max-aspect-ratio: 1/1) {
             .splash-root img.splash-backdrop {
@@ -233,13 +200,9 @@ if not st.session_state.splash_shown and not has_action_params:
             '<img class="splash-backdrop" alt="" src="data:image/jpeg;base64,'
             + _splash_backdrop_b64(splash_path)
             + '">'
-            '<div class="splash-stage"><div class="splash-fit">'
             '<img class="splash-photo" src="data:image/png;base64,'
             + base64.b64encode(open(splash_path, "rb").read()).decode("utf-8")
             + '" alt="Concierge Master">'
-            '<div class="splash-spin" style="left:33.3%;top:52.7%"></div>'
-            '<div class="splash-spin" style="left:67.7%;top:52.7%"></div>'
-            '</div></div>'
             '<div class="splash-veil"></div>'
             '<div class="splash-sheen"></div>'
             '<div class="splash-frame"></div>'
@@ -257,7 +220,7 @@ if not st.session_state.splash_shown and not has_action_params:
 
     @st.fragment(run_every=0.1)
     def _finish_splash_after_animation() -> None:
-        if time.monotonic() - st.session_state["splash_started_at"] >= 10:
+        if time.monotonic() - st.session_state["splash_started_at"] >= 7:
             st.session_state.splash_shown = True
             st.session_state.splash_fade_in = True
             st.rerun(scope="app")
@@ -1663,24 +1626,20 @@ def show_header() -> None:
 <html>
 <head>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
   body { margin:0; background:transparent; font-family:Segoe UI,sans-serif; text-align:right; }
-  #digital-box { display:inline-block; padding:4px 14px 3px 14px; border-radius:10px; border:2px solid #00e5ff; background:linear-gradient(180deg,#041a24,#02101a); box-shadow:0 0 10px rgba(0,229,255,.55), inset 0 0 12px rgba(0,229,255,.25); }
-  #local-clock { font-family:'Orbitron','Digital-7','Courier New',monospace; color:#7ff6ff; font-size:26px; font-weight:700; line-height:1.1; letter-spacing:2px; text-shadow:0 0 6px #00e5ff, 0 0 16px rgba(0,229,255,.8); white-space:nowrap; }
-  #local-ampm { font-size:12px; margin-left:4px; color:#7ff6ff; text-shadow:0 0 6px #00e5ff; }
+  #local-clock { color:#00e5ff; font-size:16px; font-weight:800; line-height:1.2; text-shadow:0 0 12px rgba(0,229,255,.45); }
   #local-date { color:#00e5ff; font-size:14px; font-weight:700; margin-top:5px; text-transform:capitalize; }
   #local-online { color:#00e5ff; font-size:12px; font-weight:700; margin-top:3px; letter-spacing:.3px; }
 </style>
 </head>
 <body>
-  <div id="digital-box"><span id="local-clock">--:--:--</span><span id="local-ampm"></span></div>
+  <div id="local-clock">--:--:--</div>
   <div id="local-date">Loading date…</div>
   <div id="local-online">Online(<span id="local-since" style="color:#ff3b3b;">Mar 1, 2026</span>): <span id="local-elapsed">…</span></div>
 <script>
   const clock = document.getElementById('local-clock');
-  const ampmEl = document.getElementById('local-ampm');
   const date = document.getElementById('local-date');
-  const timeFormatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+  const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit' });
   const dateFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   const ONLINE_SINCE = new Date(2026, 2, 1);
   const elapsed = document.getElementById('local-elapsed');
@@ -1694,9 +1653,7 @@ def show_header() -> None:
   }
   function updateLocalClock() {
     const now = new Date();
-    const partes = timeFormatter.formatToParts(now);
-    clock.textContent = partes.filter(p => p.type !== 'dayPeriod').map(p => p.value).join('').trim();
-    ampmEl.textContent = (partes.find(p => p.type === 'dayPeriod') || {}).value || '';
+    clock.textContent = timeFormatter.format(now);
     date.textContent = dateFormatter.format(now);
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
     elapsed.textContent = onlineTime(ONLINE_SINCE, endOfToday);
@@ -1707,7 +1664,7 @@ def show_header() -> None:
 </body>
 </html>
             """,
-            height=110,
+            height=76,
             scrolling=False,
         )
 
