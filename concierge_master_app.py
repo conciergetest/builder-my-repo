@@ -6767,6 +6767,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 f'<span>{date:%b %d}: {count}</span>'
                 f'<span class="chip-arrow"><svg width="12" height="16" viewBox="0 0 12 16" fill="none" stroke="#00e5ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2l6 6-6 6"/></svg></span></a>'
             )
+        st.markdown('<div style="color:#e8c170;font:800 12px \'Segoe UI\',sans-serif;letter-spacing:.6px;line-height:1.5;margin:0 0 12px 2px">Checking-Out Rooms</div>', unsafe_allow_html=True)
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
         st.markdown(f'<div style="margin-top:7px"><a class="action-link btn-ver-todas" href="{url_with(skip_splash="1")}" target="_self">« VER TODAS »</a></div>', unsafe_allow_html=True)
 
@@ -6784,7 +6785,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 st.session_state.bulk_selected_ids = []
                 st.rerun()
             count_sel = len(st.session_state.get("bulk_selected_ids", []))
-            st.markdown(f'<div style="text-align:center;color:#8ca4ba;font-size:10px;margin-top:4px">{count_sel} de {len(all_ids_current)} seleccionadas</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="text-align:center;color:#e8c170;font-size:13px;font-weight:700;margin-top:4px">{count_sel} de {len(all_ids_current)} seleccionadas</div>', unsafe_allow_html=True)
         else:
             st.markdown('<div style="color:#8ca4ba;font-size:10px;text-align:center">No hay reservas para seleccionar</div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
@@ -7249,4 +7250,5 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
