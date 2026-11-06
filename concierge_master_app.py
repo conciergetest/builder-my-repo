@@ -6769,7 +6769,6 @@ def render_dashboard(df: pd.DataFrame) -> None:
             )
         st.markdown('<div style="color:#e8c170;font:800 12px \'Segoe UI\',sans-serif;letter-spacing:.6px;line-height:1.5;margin:0 0 12px 2px">Checking-Out Rooms</div>', unsafe_allow_html=True)
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
-        st.markdown(f'<div style="margin-top:7px"><a class="action-link btn-ver-todas" href="{url_with(skip_splash="1")}" target="_self">« VER TODAS »</a></div>', unsafe_allow_html=True)
 
         # Panel de seleccion masiva
         st.markdown('<div class="panel" style="margin-top:10px"><div class="bulk-head"><svg width="26" height="20" viewBox="0 0 26 20"><g fill="#e8c170"><circle cx="7" cy="6" r="3.2"/><circle cx="19" cy="6" r="3.2"/><circle cx="13" cy="7" r="3.8"/><path d="M1 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M13 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M7 18c0-4 3-6 6-6s6 2 6 6z" opacity=".9"/></g></svg><span>SELECCION MASIVA</span></div>', unsafe_allow_html=True)
@@ -6843,7 +6842,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:linear-gradient(135deg,#0b3b46,#0d2b3e);border:1px solid #22d3ee;box-shadow:0 0 8px rgba(34,211,238,.25),inset 0 0 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;height:38px;margin-top:28px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
     with f3:
-        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:linear-gradient(135deg,#1f2937,#111827);border:1px solid #6b7280;box-shadow:0 0 8px rgba(107,114,128,.25),inset 0 0 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;height:38px;margin-top:28px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="action-link btn-ver-todas" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="display:flex;align-items:center;justify-content:center;height:38px;margin-top:28px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with f4:
         render_menu()
@@ -7250,6 +7249,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
