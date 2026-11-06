@@ -379,13 +379,22 @@ st.markdown(
     .total-badge .summary-label { font-size:10px; }
     .total-badge .summary-value { margin-top:0; font-size:18px; }
     .category-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
-    .category-card { min-height:46px; border-radius:7px; padding:9px 11px 7px; }
+    .category-card { min-height:60px; border-radius:12px; padding:11px 12px; box-shadow:0 0 14px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04); }
     .category-card-head { display:flex; justify-content:space-between; gap:5px; color:var(--category-color); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.4px; }
     .category-card-track { height:4px; margin-top:7px; border-radius:3px; background:rgba(0,0,0,.25); overflow:hidden; }
     .category-card-fill { height:100%; border-radius:3px; background:var(--category-color); }
     .st-key-category_chart_panel { background:transparent !important; border:0 !important; padding:0 !important; }
     .st-key-category_chart_panel [data-testid="stVerticalBlock"] { gap:.22rem !important; }
-    .category-chart-title { color:#00e5ff; font-size:10px; font-weight:900; letter-spacing:.7px; text-transform:uppercase; margin:0 0 5px 1px; }
+    .category-chart-title { display:flex; align-items:center; gap:12px; color:#d4af37; font-family:Georgia,'Times New Roman',serif; font-size:20px; font-weight:400; letter-spacing:.3px; margin:0 0 8px 2px; }
+    .category-chart-title::after { content:""; flex:1; height:1px; background:linear-gradient(90deg,#d4af37,rgba(212,175,55,0)); }
+    .cc-row { display:flex; align-items:center; gap:11px; }
+    .cc-icon { flex:0 0 38px; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; line-height:1; }
+    .cc-main { flex:1; min-width:0; padding-right:34px; }
+    .cc-label { color:#f1f1f1; font-size:11px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cc-track { height:4px; margin-top:8px; border-radius:3px; background:rgba(255,255,255,.08); overflow:hidden; }
+    .cc-fill { height:100%; border-radius:3px; }
+    .cc-count { flex:0 0 auto; display:flex; align-items:center; gap:6px; color:#f5f5f5; font-size:24px; font-weight:500; font-family:Georgia,'Times New Roman',serif; line-height:1; padding-right:30px; }
+    .cc-person { font-size:13px; opacity:.55; font-family:'Segoe UI Emoji','Apple Color Emoji',sans-serif; }
     .category-row { display:flex; align-items:center; gap:8px; margin:6px 0; }
     .category-label { color:#b9cad8; font-size:10px; width:92px; text-align:right; white-space:nowrap; }
     .category-track { flex:1; height:13px; background:#111111; border-radius:5px; overflow:hidden; }
@@ -1951,13 +1960,24 @@ def category_match_mask(df: pd.DataFrame, category: str) -> pd.Series:
     return info.str.contains(category, na=False)
 
 
+CATEGORY_CHART_ICONS = {
+    "VIP": "💎",
+    "BIRTHDAY": "🎂",
+    "HONEYMOON": "💍",
+    "BABYMOON": "🍼",
+    "ANNIVERSARY": "📅",
+    "TEAM MEMBER": "👥",
+    "LEISURE": "🌴",
+}
+
+
 def render_category_chart(df: pd.DataFrame) -> None:
     # Categorías que se muestran en el grid (RELAXURY se excluye de aquí;
     # tiene su propia barra debajo).
     chart_categories = {k: v for k, v in CATEGORY_CHART_COLORS.items() if k != "RELAXURY"}
 
     with st.container(key="category_chart_panel"):
-        st.markdown('<div class="category-chart-title">Guest categories</div>', unsafe_allow_html=True)
+        st.markdown('<div class="category-chart-title">Guest Categories</div>', unsafe_allow_html=True)
 
         counts: dict[str, int] = {}
         for category in chart_categories:
@@ -1978,11 +1998,15 @@ def render_category_chart(df: pd.DataFrame) -> None:
             pct = max(4, min(100, round(count / max_count * 100)))
             with col:
                 with st.container(key=f"catcard_{slug}"):
+                    icon = CATEGORY_CHART_ICONS.get(category, "•")
                     st.markdown(
-                        f'<div class="category-card" style="--category-color:{color};background:{color}14;border:1px solid {color}40;">'
-                        f'<div class="category-card-head"><span>{category}</span><span style="padding-right:22px">{count}</span></div>'
-                        f'<div class="category-card-track"><div class="category-card-fill" style="width:{pct}%;"></div></div>'
-                        f'</div>',
+                        f'<div class="category-card" style="--category-color:{color};background:linear-gradient(135deg,{color}24 0%,#0b0b0b 85%);border:1px solid {color}55;">'
+                        f'<div class="cc-row">'
+                        f'<div class="cc-icon" style="background:{color}22;border:1px solid {color}66;box-shadow:0 0 12px {color}40;">{icon}</div>'
+                        f'<div class="cc-main"><div class="cc-label">{category}</div>'
+                        f'<div class="cc-track"><div class="cc-fill" style="width:{pct}%;background:linear-gradient(90deg,{color}88,{color});box-shadow:0 0 8px {color}88;"></div></div></div>'
+                        f'<div class="cc-count"><span>{count}</span><span class="cc-person">👤</span></div>'
+                        f'</div></div>',
                         unsafe_allow_html=True,
                     )
                     clicked = st.button("📊", key=f"do_open_cat_{slug}")
@@ -1995,7 +2019,7 @@ def render_category_chart(df: pd.DataFrame) -> None:
                 f'.st-key-catcard_{slug} {{ position:relative !important; min-height:54px !important; }}'
                 f'.st-key-catcard_{slug} [data-testid="stVerticalBlock"] {{ gap:0 !important; }}'
                 f'.st-key-do_open_cat_{slug} {{'
-                f' position:absolute !important; top:6px !important; right:9px !important;'
+                f' position:absolute !important; top:50% !important; right:10px !important; transform:translateY(-50%) !important;'
                 f' width:20px !important; height:20px !important; z-index:5 !important; margin:0 !important;}}'
                 f'.st-key-do_open_cat_{slug} button {{'
                 f' width:20px !important; height:20px !important; min-height:20px !important; padding:0 !important;'
