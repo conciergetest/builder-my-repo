@@ -1529,9 +1529,9 @@ def show_header() -> None:
             <style>
             .st-key-header_center_btns { display:flex; justify-content:center; align-items:center; gap:8px; }
             .st-key-header_arrivals_btn button {
-                background: linear-gradient(135deg,#0891B2,#00e5ff) !important;
-                color:#001018 !important;
-                border:1px solid rgba(0,229,255,.55) !important;
+                background: linear-gradient(135deg,#0b3b46,#0d2b3e) !important;
+                color:#fff !important;
+                border:1px solid #22d3ee !important;
                 border-radius:10px !important;
                 font: 800 11px/1.15 'Segoe UI', sans-serif !important;
                 letter-spacing:0.4px !important;
@@ -1539,7 +1539,7 @@ def show_header() -> None:
                 padding:10px 8px !important;
                 white-space:nowrap !important;
                 overflow:visible !important;
-                box-shadow:0 4px 14px rgba(0,229,255,.25) !important;
+                box-shadow:0 0 8px rgba(34,211,238,.25), inset 0 0 10px rgba(0,0,0,.35) !important;
                 transition: all .12s ease !important;
             }
             .st-key-header_arrivals_btn button:hover {
@@ -1547,9 +1547,9 @@ def show_header() -> None:
                 transform:translateY(-1px) !important;
             }
             .st-key-header_reminders_btn button {
-                background: linear-gradient(135deg,#D97706,#FACC15) !important;
-                color:#1C1300 !important;
-                border:1px solid rgba(250,204,21,.55) !important;
+                background: linear-gradient(135deg,#3a2a08,#2a1f06) !important;
+                color:#f5d78a !important;
+                border:1px solid #d4a94f !important;
                 border-radius:10px !important;
                 font: 800 11px/1.15 'Segoe UI', sans-serif !important;
                 letter-spacing:0.4px !important;
@@ -1557,7 +1557,7 @@ def show_header() -> None:
                 padding:10px 8px !important;
                 white-space:nowrap !important;
                 overflow:visible !important;
-                box-shadow:0 4px 14px rgba(250,204,21,.25) !important;
+                box-shadow:0 0 8px rgba(212,169,79,.3), inset 0 0 10px rgba(0,0,0,.35) !important;
                 transition: all .12s ease !important;
             }
             .st-key-header_reminders_btn button:hover {
@@ -1565,9 +1565,9 @@ def show_header() -> None:
                 transform:translateY(-1px) !important;
             }
             .st-key-header_qrcode_btn button {
-                background: linear-gradient(135deg,#0EA5E9,#22D3EE) !important;
-                color:#04212B !important;
-                border:1px solid rgba(34,211,238,.55) !important;
+                background: linear-gradient(135deg,#0f2a4a,#0a1c33) !important;
+                color:#fff !important;
+                border:1px solid #3b82f6 !important;
                 border-radius:10px !important;
                 font: 800 11px/1.15 'Segoe UI', sans-serif !important;
                 letter-spacing:0.4px !important;
@@ -1575,7 +1575,7 @@ def show_header() -> None:
                 padding:10px 8px !important;
                 white-space:nowrap !important;
                 overflow:visible !important;
-                box-shadow:0 4px 14px rgba(34,211,238,.25) !important;
+                box-shadow:0 0 8px rgba(59,130,246,.25), inset 0 0 10px rgba(0,0,0,.35) !important;
                 transition: all .12s ease !important;
             }
             .st-key-header_qrcode_btn button:hover {
@@ -1884,7 +1884,7 @@ def render_app_links() -> None:
         ("🗄️ VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/", "#059669"),
     ]
     buttons = "".join(
-        f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="background:{bg}">'
+        f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="--c:{bg}">'
         f'<span>{label}</span></a>'
         for label, url, bg in apps
     )
@@ -1892,12 +1892,12 @@ def render_app_links() -> None:
         '<style>'
         '.app-links { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:14px 0 4px; }'
         '.app-link { display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; '
-        'border:1px solid rgba(255,255,255,.08); border-radius:10px; color:#fff !important; text-decoration:none !important; '
+        'border:1px solid var(--c); border-radius:10px; color:#fff !important; text-decoration:none !important; '
         'font:800 12px/1.1 "Segoe UI",sans-serif; letter-spacing:.3px; text-align:center; '
-        'box-shadow:0 4px 12px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08); '
+        'background:linear-gradient(135deg,#0a1322,#0e1b2e); box-shadow:0 0 10px color-mix(in srgb, var(--c) 55%, transparent), inset 0 0 10px rgba(0,0,0,.35); '
         'transition:all .15s ease; }'
         '.app-link:hover, .app-link:visited, .app-link:active { color:#fff !important; text-decoration:none !important; }'
-        '.app-link:hover { filter:brightness(1.15); transform:translateY(-2px); border-color:rgba(255,255,255,.25); }'
+        '.app-link:hover { filter:brightness(1.2); transform:translateY(-2px); }'
         '.app-link span { color:#fff !important; text-decoration:none !important; text-shadow:0 1px 2px rgba(0,0,0,.4); }'
         '@media (max-width:980px){ .app-links { grid-template-columns:repeat(2,1fr); } }'
         '</style>'
@@ -6840,10 +6840,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with f2:
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:#0891B2;display:flex;align-items:center;justify-content:center;height:38px;margin-top:28px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="action-link" href="{date_link}" target="_self" style="background:linear-gradient(135deg,#0b3b46,#0d2b3e);border:1px solid #22d3ee;box-shadow:0 0 8px rgba(34,211,238,.25),inset 0 0 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;height:38px;margin-top:28px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
     with f3:
-        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:#3a3a3a;display:flex;align-items:center;justify-content:center;height:38px;margin-top:28px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="action-link" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="background:linear-gradient(135deg,#1f2937,#111827);border:1px solid #6b7280;box-shadow:0 0 8px rgba(107,114,128,.25),inset 0 0 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;height:38px;margin-top:28px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with f4:
         render_menu()
@@ -6853,9 +6853,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
         """
         <style>
         .st-key-btn_vip_candidates button {
-            background: linear-gradient(135deg,#7C3AED,#00E5FF) !important;
-            color:#04070d !important;
-            border:1px solid rgba(0,229,255,.5) !important;
+            background: linear-gradient(135deg,#2e1065,#1e1b4b) !important;
+            color:#fff !important;
+            border:1px solid #a855f7 !important;
             border-radius:8px !important;
             font: 800 11.5px/1.1 'Segoe UI', sans-serif !important;
             letter-spacing:.4px !important;
@@ -6868,9 +6868,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
             transform:translateY(-1px) !important;
         }
         .st-key-btn_guests_directory button {
-            background: linear-gradient(135deg,#0F766E,#00E5FF) !important;
-            color:#04070d !important;
-            border:1px solid rgba(0,229,255,.5) !important;
+            background: linear-gradient(135deg,#0b3b46,#0d2b3e) !important;
+            color:#fff !important;
+            border:1px solid #14b8a6 !important;
             border-radius:8px !important;
             font: 800 11.5px/1.1 'Segoe UI', sans-serif !important;
             letter-spacing:.4px !important;
@@ -6883,9 +6883,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
             transform:translateY(-1px) !important;
         }
         .st-key-btn_pending button {
-            background: linear-gradient(135deg,#D97706,#00E5FF) !important;
-            color:#04070d !important;
-            border:1px solid rgba(0,229,255,.5) !important;
+            background: linear-gradient(135deg,#3a2a08,#2a1f06) !important;
+            color:#f5d78a !important;
+            border:1px solid #d4a94f !important;
             border-radius:8px !important;
             font: 800 11.5px/1.1 'Segoe UI', sans-serif !important;
             letter-spacing:.4px !important;
@@ -7250,5 +7250,6 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
