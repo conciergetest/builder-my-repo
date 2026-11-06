@@ -70,42 +70,77 @@ def check_password() -> bool:
         st.error("Falta APP_PASSWORD en los Secrets de la app.")
         return False
 
-    st.markdown(
+    with st.container(key="login_card"):
+        st.markdown(
         """
         <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
         [data-testid="stHeader"], [data-testid="stSidebar"], [data-testid="stToolbar"] { display:none !important; }
-        .stApp { background: radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 70%) !important; }
-        .login-wrap { max-width:420px; margin:6vh auto 0 auto; padding:44px 36px 36px 36px;
-            border:2px solid #D4AF37; border-radius:6px; background:#0d0d0d;
-            box-shadow:0 0 0 1px rgba(212,175,55,.25), 0 0 40px rgba(212,175,55,.12); text-align:center; }
-        .login-title { color:#D4AF37; font-family:Georgia,'Times New Roman',serif; font-size:30px;
-            letter-spacing:4px; margin:0 0 26px 0; font-weight:400; }
-        .login-logo { width:86px; height:86px; margin:0 auto 16px auto; border-radius:50%;
-            border:2px solid #D4AF37; display:flex; align-items:center; justify-content:center;
-            color:#D4AF37; font-family:Georgia,'Times New Roman',serif; font-size:30px; letter-spacing:2px; }
-        .login-name { color:#D4AF37; font-family:Georgia,'Times New Roman',serif; font-size:20px;
-            letter-spacing:3px; margin:0; }
-        .login-sub { color:#D4AF37; font-size:11px; letter-spacing:2.5px; margin:6px 0 26px 0; opacity:.85; }
-        .st-key-login_form { max-width:420px !important; margin:0 auto !important; }
-        .st-key-login_form label p { color:#D4AF37 !important; font-size:13px !important; letter-spacing:1px; }
-        .st-key-login_form input { background:#0a0a0a !important; color:#f5f5f5 !important; border:1px solid #D4AF37 !important; }
-        [data-testid="stFormSubmitButton"] button { background:#D4AF37 !important; color:#0a0a0a !important; border:none !important;
-            font-weight:700 !important; letter-spacing:2px; width:100%; margin-top:14px; }
-        [data-testid="stFormSubmitButton"] button:hover, [data-testid="stFormSubmitButton"] button:focus { background:#e6c04a !important; color:#0a0a0a !important; }
-        [data-testid="stFormSubmitButton"] button p { color:#0a0a0a !important; }
-        .login-err { color:#ff6b6b; font-size:13px; text-align:center; margin-top:10px; }
+        .stApp {
+            background:
+              radial-gradient(ellipse at 50% 35%, rgba(212,175,55,.10) 0%, rgba(0,0,0,0) 55%),
+              #0b0a08 !important;
+        }
+        .st-key-login_card {
+            max-width:520px !important; margin:7vh auto 0 auto !important; padding:0 0 34px 0 !important;
+            border:1px solid rgba(212,175,55,.55) !important; border-radius:10px !important;
+            background:
+              linear-gradient(180deg, rgba(255,255,255,.035) 0%, rgba(0,0,0,0) 40%),
+              radial-gradient(ellipse at 50% 45%, #2b2922 0%, #161512 65%, #0e0d0b 100%) !important;
+            box-shadow: 0 0 28px rgba(212,175,55,.22), inset 0 0 40px rgba(0,0,0,.55) !important;
+            overflow:hidden;
+        }
+        .login-head {
+            font-family:'Cinzel',Georgia,serif; color:#ece3c8; font-size:24px; letter-spacing:3px;
+            text-align:center; padding:22px 0 16px 0; margin:0 0 26px 0;
+            background:linear-gradient(180deg, #23211c 0%, #1b1a16 100%);
+            border-bottom:1px solid rgba(243,227,161,.55); box-shadow:0 2px 12px rgba(212,175,55,.35);
+        }
+        .login-brand { display:flex; align-items:center; gap:22px; padding:0 34px; margin-bottom:26px; }
+        .login-logo {
+            flex:0 0 auto; width:86px; height:86px; border-radius:50%; box-sizing:border-box;
+            border:2px solid #b8962e; background:radial-gradient(circle at 50% 40%, #2a2822 0%, #0d0c0a 80%);
+            box-shadow:0 0 12px rgba(212,175,55,.3), inset 0 0 10px rgba(0,0,0,.8);
+            display:flex; align-items:center; justify-content:center;
+            color:#d9c27a; font-family:'Cinzel',Georgia,serif; font-size:28px; font-weight:600; letter-spacing:1px;
+        }
+        .login-name { font-family:'Cinzel',Georgia,serif; color:#ece3c8; font-size:26px; letter-spacing:2px; line-height:1.1; margin:0; }
+        .login-sub { font-family:'Cinzel',Georgia,serif; color:#c9a84c; font-size:11.5px; letter-spacing:.6px; margin:6px 0 0 0; white-space:nowrap; }
+        .st-key-login_card [data-testid="stForm"] { border:none !important; padding:0 34px !important; }
+        .st-key-login_card [data-testid="stTextInput"] label p { color:#e8dcc0 !important; font-size:15px !important; font-family:'Cinzel',Georgia,serif; letter-spacing:.5px; }
+        .st-key-login_card [data-testid="stTextInput"] [data-baseweb="input"],
+        .st-key-login_card [data-testid="stTextInput"] [data-baseweb="base-input"] {
+            background:#15140f !important; border:1px solid #b89a5a !important; border-radius:4px !important;
+            box-shadow:inset 0 0 8px rgba(0,0,0,.6);
+        }
+        .st-key-login_card [data-testid="stTextInput"] > div > div > div { background:#15140f !important; border-color:#b89a5a !important; }
+        .st-key-login_card [data-testid="stTextInput"] > div > div { background:#15140f !important; border:1px solid #b89a5a !important; border-radius:4px !important; }
+        .st-key-login_card [data-testid="stTextInput"] input { background:transparent !important; color:#f5f0e1 !important; font-size:16px !important; }
+        .st-key-login_card [data-testid="stTextInput"] div[data-baseweb="input"] button { color:#d4af37 !important; background:transparent !important; }
+        .st-key-login_card [data-testid="stTextInput"] div[data-baseweb="input"] button svg { fill:#d4af37 !important; color:#d4af37 !important; }
+        [data-testid="stFormSubmitButton"] button {
+            background:linear-gradient(90deg, #c9a84c 0%, #f3e3a1 50%, #c9a84c 100%) !important;
+            color:#111 !important; border:none !important; border-radius:4px !important; height:46px;
+            font-family:'Cinzel',Georgia,serif !important; font-weight:700 !important; font-size:16px !important; letter-spacing:2px;
+            width:100%; margin-top:16px; box-shadow:0 0 16px rgba(243,227,161,.45);
+        }
+        [data-testid="stFormSubmitButton"] button:hover, [data-testid="stFormSubmitButton"] button:focus {
+            background:linear-gradient(90deg, #d9b95c 0%, #fff0b8 50%, #d9b95c 100%) !important; color:#111 !important;
+        }
+        [data-testid="stFormSubmitButton"] button p { color:#111 !important; }
+        .login-err { font-family:'Cinzel',Georgia,serif; color:#ff7b7b; font-size:13px; text-align:center; margin-top:12px; letter-spacing:.5px; }
         </style>
-        <div class="login-wrap">
-          <p class="login-title">WELCOME BACK</p>
+        <div class="login-head">WELCOME BACK</div>
+        <div class="login-brand">
           <div class="login-logo">FW</div>
-          <p class="login-name">FRED WAYNE</p>
-          <p class="login-sub">CONCIERGE MASTER SOFTWARE</p>
+          <div>
+            <p class="login-name">FRED WAYNE</p>
+            <p class="login-sub">CONCIERGE MASTER SOFTWARE</p>
+          </div>
         </div>
         """,
         unsafe_allow_html=True,
-    )
-
-    with st.container(key="login_form"):
+        )
         with st.form("login_form_inner", clear_on_submit=False, border=False):
             pwd = st.text_input("Password", type="password", key="login_pwd")
             submitted = st.form_submit_button("SIGN IN", use_container_width=True)
@@ -7342,6 +7377,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
