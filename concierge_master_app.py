@@ -50,6 +50,99 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
+# Login por contraseña (va antes del splash)
+# -----------------------------------------------------------------------------
+def check_password() -> bool:
+    """Muestra el login y devuelve True solo si la clave APP_PASSWORD es correcta."""
+    import hmac
+    import time as _time
+
+    if st.session_state.get("auth_ok"):
+        last = st.session_state.get("last_activity", 0)
+        if _time.time() - last <= INACTIVITY_MINUTES * 60:
+            st.session_state.last_activity = _time.time()
+            return True
+        st.session_state.auth_ok = False
+        st.session_state.login_expired = True
+
+    expected = st.secrets.get("APP_PASSWORD", "")
+    if not expected:
+        st.error("Falta APP_PASSWORD en los Secrets de la app.")
+        return False
+
+    st.markdown(
+        """
+        <style>
+        [data-testid="stHeader"], [data-testid="stSidebar"], [data-testid="stToolbar"] { display:none !important; }
+        .stApp { background: radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 70%) !important; }
+        .login-wrap { max-width:420px; margin:6vh auto 0 auto; padding:44px 36px 36px 36px;
+            border:2px solid #D4AF37; border-radius:6px; background:#0d0d0d;
+            box-shadow:0 0 0 1px rgba(212,175,55,.25), 0 0 40px rgba(212,175,55,.12); text-align:center; }
+        .login-title { color:#D4AF37; font-family:Georgia,'Times New Roman',serif; font-size:30px;
+            letter-spacing:4px; margin:0 0 26px 0; font-weight:400; }
+        .login-logo { width:86px; height:86px; margin:0 auto 16px auto; border-radius:50%;
+            border:2px solid #D4AF37; display:flex; align-items:center; justify-content:center;
+            color:#D4AF37; font-family:Georgia,'Times New Roman',serif; font-size:30px; letter-spacing:2px; }
+        .login-name { color:#D4AF37; font-family:Georgia,'Times New Roman',serif; font-size:20px;
+            letter-spacing:3px; margin:0; }
+        .login-sub { color:#D4AF37; font-size:11px; letter-spacing:2.5px; margin:6px 0 26px 0; opacity:.85; }
+        .st-key-login_form { max-width:420px !important; margin:0 auto !important; }
+        .st-key-login_form label p { color:#D4AF37 !important; font-size:13px !important; letter-spacing:1px; }
+        .st-key-login_form input { background:#0a0a0a !important; color:#f5f5f5 !important; border:1px solid #D4AF37 !important; }
+        [data-testid="stFormSubmitButton"] button { background:#D4AF37 !important; color:#0a0a0a !important; border:none !important;
+            font-weight:700 !important; letter-spacing:2px; width:100%; margin-top:14px; }
+        [data-testid="stFormSubmitButton"] button:hover, [data-testid="stFormSubmitButton"] button:focus { background:#e6c04a !important; color:#0a0a0a !important; }
+        [data-testid="stFormSubmitButton"] button p { color:#0a0a0a !important; }
+        .login-err { color:#ff6b6b; font-size:13px; text-align:center; margin-top:10px; }
+        </style>
+        <div class="login-wrap">
+          <p class="login-title">WELCOME BACK</p>
+          <div class="login-logo">FW</div>
+          <p class="login-name">FRED WAYNE</p>
+          <p class="login-sub">CONCIERGE MASTER SOFTWARE</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.container(key="login_form"):
+        with st.form("login_form_inner", clear_on_submit=False, border=False):
+            pwd = st.text_input("Password", type="password", key="login_pwd")
+            submitted = st.form_submit_button("SIGN IN", use_container_width=True)
+
+    if submitted:
+        if hmac.compare_digest(str(pwd), str(expected)):
+            st.session_state.auth_ok = True
+            st.session_state.last_activity = _time.time()
+            st.session_state.login_expired = False
+            st.session_state.pop("login_pwd", None)
+            st.rerun()
+        else:
+            st.markdown('<div class="login-err">Clave incorrecta</div>', unsafe_allow_html=True)
+    elif st.session_state.get("login_expired"):
+        st.markdown('<div class="login-err">Sesión cerrada por inactividad</div>', unsafe_allow_html=True)
+    return False
+
+
+INACTIVITY_MINUTES = 30
+
+
+@st.fragment(run_every=60)
+def _vigilar_inactividad():
+    # Solo revisa; no renueva last_activity, así un tab abierto sin uso sí expira.
+    import time as _time
+    if st.session_state.get("auth_ok"):
+        if _time.time() - st.session_state.get("last_activity", 0) > INACTIVITY_MINUTES * 60:
+            st.session_state.auth_ok = False
+            st.session_state.login_expired = True
+            st.rerun()
+
+
+if not check_password():
+    st.stop()
+_vigilar_inactividad()
+
+# -----------------------------------------------------------------------------
 # Splash Screen
 # -----------------------------------------------------------------------------
 if "splash_shown" not in st.session_state:
@@ -7249,6 +7342,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
