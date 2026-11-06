@@ -355,6 +355,16 @@ st.markdown(
     .quick-link:hover, .action-link:hover { filter: brightness(1.15); transform: translateY(-1px); }
     .action-links { display: grid; grid-template-columns: repeat(6, minmax(100px, 1fr)); gap: 8px; margin: 10px 0 3px; }
     .action-link { min-height: 36px; font-size: 11px; }
+    .chip-day { position: relative; min-height: 40px; font-size: 12px !important; padding: 6px 24px !important; white-space: nowrap !important; gap: 0 !important; border-radius: 9px !important; background: linear-gradient(90deg, #0b3b46 0%, #0d2b3e 100%) !important; border: 1px solid #22d3ee !important; box-shadow: 0 0 8px rgba(34,211,238,.25), inset 0 0 10px rgba(0,0,0,.35) !important; }
+    .chip-day.alt { background: linear-gradient(90deg, #0f2a4a 0%, #0a1c33 100%) !important; border-color: #3b82f6 !important; box-shadow: 0 0 8px rgba(59,130,246,.25), inset 0 0 10px rgba(0,0,0,.35) !important; }
+    .chip-day .chip-ico { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); }
+    .chip-day .chip-arrow { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+    .btn-ver-todas { background: linear-gradient(90deg, #1a1408 0%, #2a2110 50%, #1a1408 100%) !important; border: 1px solid #d4a94f !important; box-shadow: 0 0 10px rgba(212,169,79,.35), inset 0 0 12px rgba(212,169,79,.15) !important; color: #f5d78a !important; letter-spacing: 1.5px; font-size: 13px !important; min-height: 38px !important; }
+    .bulk-head { display: flex; align-items: center; gap: 8px; margin: 12px 0 8px; color: #e8c170; font: 800 14px "Segoe UI", sans-serif; letter-spacing: .5px; }
+    .bulk-head::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, #d4a94f, rgba(212,169,79,0)); }
+    .st-key-bulk_all button, .st-key-bulk_none button { background: linear-gradient(90deg, #0d1f3a, #14284a) !important; border: 1px solid #3b82f6 !important; color: #fff !important; font-weight: 800 !important; border-radius: 9px !important; min-height: 40px !important; padding: 6px 4px 6px 26px !important; font-size: 9.5px !important; letter-spacing: -.2px; white-space: nowrap !important; position: relative; }
+    .st-key-bulk_all button::before, .st-key-bulk_none button::before { content: "✔"; position: absolute; left: 6px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; border-radius: 50%; background: #fff; color: #0d1f3a; font-size: 10px; line-height: 18px; text-align: center; }
+    .st-key-bulk_none button::before { content: "✖"; }
     .page-title { display:flex; justify-content:space-between; gap:18px; align-items:center; margin-bottom:10px; }
     .brand { display:flex; align-items:center; gap:11px; }
     .brand-mark { color:#d4af37; font: 32px Georgia, serif; letter-spacing:5px; padding-right:11px; border-right:1px solid #766129; }
@@ -6752,22 +6762,25 @@ def render_dashboard(df: pd.DataFrame) -> None:
             stored = date.strftime("%B %d, %Y")
             count = int((df["check_out"] == stored).sum())
             checkout_links.append(
-                f'<a class="quick-link" href="{url_with(checkout_filtro=stored)}" target="_self" style="background:#{"0F766E" if offset % 2 == 0 else "155E75"}">{date:%b %d}: {count}</a>'
+                f'<a class="quick-link chip-day{"" if offset % 2 == 0 else " alt"}" href="{url_with(checkout_filtro=stored)}" target="_self">'
+                f'<span class="chip-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7 14h2M11 14h2M15 14h2M7 18h2M11 18h2" stroke-width="2.4"/></svg></span>'
+                f'<span>{date:%b %d}: {count}</span>'
+                f'<span class="chip-arrow"><svg width="12" height="16" viewBox="0 0 12 16" fill="none" stroke="#00e5ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2l6 6-6 6"/></svg></span></a>'
             )
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
-        st.markdown(f'<div style="margin-top:7px"><a class="action-link" href="{url_with(skip_splash="1")}" target="_self" style="background:#2a2a2a">« VER TODAS »</a></div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="margin-top:7px"><a class="action-link btn-ver-todas" href="{url_with(skip_splash="1")}" target="_self">« VER TODAS »</a></div>', unsafe_allow_html=True)
 
         # Panel de seleccion masiva
-        st.markdown('<div class="panel" style="margin-top:10px"><div class="panel-title">Seleccion masiva</div>', unsafe_allow_html=True)
+        st.markdown('<div class="panel" style="margin-top:10px"><div class="bulk-head"><svg width="26" height="20" viewBox="0 0 26 20"><g fill="#e8c170"><circle cx="7" cy="6" r="3.2"/><circle cx="19" cy="6" r="3.2"/><circle cx="13" cy="7" r="3.8"/><path d="M1 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M13 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M7 18c0-4 3-6 6-6s6 2 6 6z" opacity=".9"/></g></svg><span>SELECCION MASIVA</span></div>', unsafe_allow_html=True)
         if not filtered.empty:
             all_ids_current = filtered["id"].dropna().astype(str).tolist()
             c1, c2 = st.columns(2)
-            if c1.button("SELECC. TODO", use_container_width=True):
+            if c1.button("SELECC. TODO", use_container_width=True, key="bulk_all"):
                 st.session_state.bulk_selected_ids = all_ids_current
                 st.session_state.pop("selected_reservation", None)
                 st.session_state.pop("selected_reservation_id", None)
                 st.rerun()
-            if c2.button("DESMARCAR", use_container_width=True):
+            if c2.button("DESMARCAR", use_container_width=True, key="bulk_none"):
                 st.session_state.bulk_selected_ids = []
                 st.rerun()
             count_sel = len(st.session_state.get("bulk_selected_ids", []))
@@ -7236,3 +7249,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
