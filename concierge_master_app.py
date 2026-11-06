@@ -115,7 +115,7 @@ def check_password() -> bool:
         }
         .st-key-login_card [data-testid="stTextInput"] > div > div > div { background:#15140f !important; border-color:#b89a5a !important; }
         .st-key-login_card [data-testid="stTextInput"] > div > div { background:#15140f !important; border:1px solid #b89a5a !important; border-radius:4px !important; }
-        .st-key-login_card [data-testid="stTextInput"] input { background:transparent !important; color:#f5f0e1 !important; font-size:16px !important; }
+        .st-key-login_card [data-testid="stTextInput"] input { background:transparent !important; color:#00e5ff !important; -webkit-text-fill-color:#00e5ff !important; font-size:24px !important; letter-spacing:3px; }
         .st-key-login_card [data-testid="stTextInput"] div[data-baseweb="input"] button { color:#d4af37 !important; background:transparent !important; }
         .st-key-login_card [data-testid="stTextInput"] div[data-baseweb="input"] button svg { fill:#d4af37 !important; color:#d4af37 !important; }
         [data-testid="stFormSubmitButton"] button {
@@ -7418,6 +7418,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
