@@ -156,6 +156,47 @@ def check_password() -> bool:
             st.markdown('<div class="login-err">Clave incorrecta</div>', unsafe_allow_html=True)
     elif st.session_state.get("login_expired"):
         st.markdown('<div class="login-err">Sesión cerrada por inactividad</div>', unsafe_allow_html=True)
+    import streamlit.components.v1 as components
+    with st.container(key="login_clock"):
+        components.html(
+            """
+<!doctype html>
+<html>
+<head>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+  body { margin:0; background:transparent; font-family:Segoe UI,sans-serif; text-align:center; }
+  #digital-box { display:inline-block; padding:4px 14px 3px 14px; border-radius:10px; border:2px solid #00e5ff; background:linear-gradient(180deg,#041a24,#02101a); box-shadow:0 0 10px rgba(0,229,255,.55), inset 0 0 12px rgba(0,229,255,.25); }
+  #local-clock { font-family:'Orbitron','Digital-7','Courier New',monospace; color:#7ff6ff; font-size:26px; font-weight:700; line-height:1.1; letter-spacing:2px; text-shadow:0 0 6px #00e5ff, 0 0 16px rgba(0,229,255,.8); white-space:nowrap; }
+  #local-ampm { font-size:12px; margin-left:4px; color:#7ff6ff; text-shadow:0 0 6px #00e5ff; }
+  #local-date { color:#00e5ff; font-size:14px; font-weight:700; margin-top:5px; text-transform:capitalize; }
+</style>
+</head>
+<body>
+  <div id="digital-box"><span id="local-clock">--:--:--</span><span id="local-ampm"></span></div>
+  <div id="local-date">Loading date…</div>
+<script>
+  const clock = document.getElementById('local-clock');
+  const date = document.getElementById('local-date');
+  const ampmEl = document.getElementById('local-ampm');
+  const timeFormatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+  const dateFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  function updateLocalClock() {
+    const now = new Date();
+    const partes = timeFormatter.formatToParts(now);
+    clock.textContent = partes.filter(p => p.type !== 'dayPeriod').map(p => p.value).join('').trim();
+    ampmEl.textContent = (partes.find(p => p.type === 'dayPeriod') || {}).value || '';
+    date.textContent = dateFormatter.format(now);
+  }
+  updateLocalClock();
+  setInterval(updateLocalClock, 1000);
+</script>
+</body>
+</html>
+            """,
+            height=100,
+            scrolling=False,
+        )
     return False
 
 
@@ -7377,6 +7418,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
