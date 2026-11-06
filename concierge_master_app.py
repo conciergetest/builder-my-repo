@@ -394,7 +394,7 @@ st.markdown(
     .cc-track { height:4px; margin-top:8px; border-radius:3px; background:rgba(255,255,255,.08); overflow:hidden; }
     .cc-fill { height:100%; border-radius:3px; }
     .cc-count { flex:0 0 auto; display:flex; align-items:center; gap:6px; color:#f5f5f5; font-size:24px; font-weight:500; font-family:Georgia,'Times New Roman',serif; line-height:1; padding-right:30px; }
-    .cc-person { font-size:13px; opacity:.55; font-family:'Segoe UI Emoji','Apple Color Emoji',sans-serif; }
+    .cc-person { width:14px; height:14px; flex:0 0 14px; }
     .category-row { display:flex; align-items:center; gap:8px; margin:6px 0; }
     .category-label { color:#b9cad8; font-size:10px; width:92px; text-align:right; white-space:nowrap; }
     .category-track { flex:1; height:13px; background:#111111; border-radius:5px; overflow:hidden; }
@@ -2005,7 +2005,7 @@ def render_category_chart(df: pd.DataFrame) -> None:
                         f'<div class="cc-icon" style="background:{color}22;border:1px solid {color}66;box-shadow:0 0 12px {color}40;">{icon}</div>'
                         f'<div class="cc-main"><div class="cc-label">{category}</div>'
                         f'<div class="cc-track"><div class="cc-fill" style="width:{pct}%;background:linear-gradient(90deg,{color}88,{color});box-shadow:0 0 8px {color}88;"></div></div></div>'
-                        f'<div class="cc-count"><span>{count}</span><span class="cc-person">👤</span></div>'
+                        f'<div class="cc-count"><span>{count}</span><svg class="cc-person" width="14" height="14" viewBox="0 0 24 24" style="fill:#00e5ff;filter:drop-shadow(0 0 4px rgba(0,229,255,.7));"><circle cx="12" cy="7.5" r="4.5"/><path d="M3.5 21.5c0-4.9 3.8-8 8.5-8s8.5 3.1 8.5 8z"/></svg></div>'
                         f'</div></div>',
                         unsafe_allow_html=True,
                     )
