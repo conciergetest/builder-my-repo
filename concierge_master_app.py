@@ -4124,15 +4124,42 @@ def _agenda_body(df: pd.DataFrame, context: str = "page") -> None:
     c2.metric("Salen", len(departures))
     c3.metric("Total en base", len(df))
     arrivals_tab, departures_tab = st.tabs(["Llegadas", "Salidas"])
+    agenda_widths = {
+        "eta": 56, "name": 140, "qty": 46, "room": 56, "check_in": 124, "check_out": 124,
+        "nights": 62, "res_number": 104, "phone": 130, "email": 180, "info": 170,
+        "ird": 96, "hsk": 56, "rate": 74, "trans": 140,
+    }
+    agenda_config = {
+        column: st.column_config.Column(width=width)
+        for column, width in agenda_widths.items()
+    }
     with arrivals_tab:
-        st.dataframe(arrivals[[column for column in DISPLAY_COLUMNS if column in arrivals]], use_container_width=True, hide_index=True)
+        st.dataframe(
+            arrivals[[column for column in DISPLAY_COLUMNS if column in arrivals]],
+            use_container_width=True, hide_index=True, height=560, column_config=agenda_config,
+        )
     with departures_tab:
-        st.dataframe(departures[[column for column in DISPLAY_COLUMNS if column in departures]], use_container_width=True, hide_index=True)
+        st.dataframe(
+            departures[[column for column in DISPLAY_COLUMNS if column in departures]],
+            use_container_width=True, hide_index=True, height=560, column_config=agenda_config,
+        )
 
 
 @st.dialog("📅 Agenda de Reservaciones", width="large")
 def agenda_dialog() -> None:
     """Popup flotante con llegadas y salidas de una fecha."""
+    st.markdown(
+        """
+        <span class='agenda-marker'></span>
+        <style>
+        div[data-testid="stDialog"]:has(.agenda-marker) > div {
+            width: 96vw !important;
+            max-width: 96vw !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
     _agenda_body(cargar_reservaciones(), "dialog")
     if st.button("Cerrar", use_container_width=True, key="close_agenda_dialog"):
         st.rerun()
