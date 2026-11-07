@@ -1968,95 +1968,228 @@ def _menu_go(**flags) -> None:
     _app_rerun()
 
 
-@st.dialog("☰ MENÚ", width="medium")
+MENU_DIALOG_CSS = """
+<style>
+div[data-testid="stDialog"]:has(.main-menu-marker) > div {
+    background: radial-gradient(circle at 50% 0%, #0b1a2e 0%, #050812 55%, #03050a 100%) !important;
+    border: 2px solid #00e5ff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 0 18px rgba(0,229,255,.65), 0 0 40px rgba(0,229,255,.25) !important;
+    padding: 18px !important;
+}
+div[data-testid="stDialog"]:has(.main-menu-marker) .mn-title {
+    text-align: center;
+    display: block;
+    font: 800 20px/1.1 "Georgia", "Times New Roman", serif;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, #f5e6b0, #d4af37, #f5e6b0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 4px 0 2px;
+}
+div[data-testid="stDialog"]:has(.main-menu-marker) .mn-sub {
+    text-align: center;
+    color: #8ca4ba;
+    font: 600 11px "Segoe UI", sans-serif;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+div[data-testid="stDialog"]:has(.main-menu-marker) .mn-bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 14px;
+    border-top: 1px solid rgba(0,229,255,.35);
+    border-bottom: 1px solid rgba(0,229,255,.35);
+    color: #cfe9f5;
+    font: 600 11px "Segoe UI", sans-serif;
+    margin-bottom: 14px;
+}
+div[data-testid="stDialog"]:has(.main-menu-marker) [class*="st-key-mn_"] {
+    margin-bottom: 14px;
+    animation: menu_rise .4s ease-out both;
+}
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_ops { --sc: #00e5ff; animation-delay: 0s; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_tools { --sc: #a78bfa; animation-delay: .08s; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_services { --sc: #4ade80; animation-delay: .16s; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick { --sc: #fbbf24; animation-delay: .24s; }
+@keyframes menu_rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+div[data-testid="stDialog"]:has(.main-menu-marker) .mn-sec {
+    display: inline-block;
+    color: #eafaff;
+    font: 800 13px "Segoe UI", sans-serif;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    padding: 2px 14px 6px 4px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid color-mix(in srgb, var(--sc) 60%, transparent);
+    text-shadow: 0 0 8px var(--sc);
+    width: 100%;
+}
+div[data-testid="stDialog"]:has(.main-menu-marker) .mn-ico { color: var(--sc); margin-right: 8px; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_ops button,
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_tools button,
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_services button,
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick button,
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick a {
+    background: linear-gradient(180deg, rgba(10,22,38,.95), rgba(4,9,18,.95)) !important;
+    border: 1px solid var(--sc) !important;
+    color: #eafaff !important;
+    border-radius: 12px !important;
+    font: 800 12px "Segoe UI", sans-serif !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+    text-decoration: none !important;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--sc) 45%, transparent), inset 0 0 12px color-mix(in srgb, var(--sc) 18%, transparent) !important;
+    transition: all .15s ease !important;
+}
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_ops button,
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_tools button,
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_services button {
+    min-height: 60px !important;
+}
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick button,
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick a {
+    min-height: 38px !important;
+    font-size: 11px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_ops button:hover,
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_tools button:hover,
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_services button:hover,
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick button:hover,
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick a:hover {
+    filter: brightness(1.25) !important;
+    transform: translateY(-2px) !important;
+    border-color: #ffffff !important;
+}
+div[data-testid="stDialog"]:has(.main-menu-marker) .mn-foot {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #1a2a3a;
+    text-align: center;
+    color: #4a5a6a;
+    font-size: 10px;
+}
+</style>
+"""
+
+
+def _mn_sec(title: str, icon: str) -> None:
+    """Encabezado de sección dentro del MENÚ (el color lo pone el contenedor vía --sc)."""
+    st.markdown(
+        f"<div class='mn-sec'><span class='mn-ico'>{icon}</span>{html.escape(title)}</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def _mn_link(label: str, url: str) -> str:
+    return f'<a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">{html.escape(label)}</a>'
+
+
+@st.dialog("☰ MENÚ", width="large")
 def menu_dialog() -> None:
-    """Menú principal centrado en la app."""
+    """Menú principal centrado en la app (diseño neón por secciones)."""
     st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
-    st.markdown("<div style='color:#d4af37;font-size:14px;font-weight:800;letter-spacing:1.5px;text-align:center;margin-bottom:14px;'>CONCIERGE MASTER</div>", unsafe_allow_html=True)
+    st.markdown(MENU_DIALOG_CSS, unsafe_allow_html=True)
+    st.markdown(
+        "<div class='mn-title'>CONCIERGE MASTER</div><div class='mn-sub'>Waldorf Astoria Costa Rica · Luxury Services at Your Fingertips</div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<div class='mn-bar'><span>User: Fred Wayne</span><span>Concierge Master v6.0</span></div>",
+        unsafe_allow_html=True,
+    )
 
     # ── Operaciones ──
-    st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #00e5ff;padding-left:8px;'>Operaciones</div>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    if c1.button("➕ NUEVA", use_container_width=True):
-        # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
-        st.query_params["skip_splash"] = "1"
-        _menu_go(open_nueva=True)
-    if c2.button("⬆ IMPORTAR", use_container_width=True):
-        st.query_params["skip_splash"] = "1"
-        _menu_go(open_importar=True)
-    if c3.button("⬇ EXPORTAR", use_container_width=True):
-        st.query_params["skip_splash"] = "1"
-        _menu_go(open_exportar=True)
-    c4, c5, c6 = st.columns(3)
-    if c4.button("📊 REPORTE", use_container_width=True):
-        st.query_params["skip_splash"] = "1"
-        _menu_go(open_reporte=True)
-    if c5.button("📅 AGENDA", use_container_width=True):
-        st.query_params["skip_splash"] = "1"
-        _menu_go(open_agenda=True)
-    if c6.button("💰 BONUS", use_container_width=True):
-        st.query_params["action"] = "bonus"
-        _menu_go()
-
-    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+    with st.container(key="mn_ops"):
+        _mn_sec("Operaciones", "⚙")
+        c1, c2, c3, c4, c5, c6 = st.columns(6)
+        if c1.button("➕ NUEVA", use_container_width=True):
+            # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_nueva=True)
+        if c2.button("⬆ IMPORTAR", use_container_width=True):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_importar=True)
+        if c3.button("⬇ EXPORTAR", use_container_width=True):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_exportar=True)
+        if c4.button("📊 REPORTE", use_container_width=True):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_reporte=True)
+        if c5.button("📅 AGENDA", use_container_width=True):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_agenda=True)
+        if c6.button("💰 BONUS", use_container_width=True):
+            st.query_params["action"] = "bonus"
+            _menu_go()
 
     # ── Herramientas ──
-    st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #a78bfa;padding-left:8px;'>Herramientas</div>", unsafe_allow_html=True)
-    h1, h2, h3, h4 = st.columns(4)
-    if h1.button("🧮 CALCULADORA", use_container_width=True):
-        st.query_params["action"] = "calculadora"
-        _menu_go()
-    if h2.button("📆 ALMANAQUE", use_container_width=True):
-        st.query_params["action"] = "almanaque"
-        _menu_go()
-    if h3.button("🏷️ FRED WAYNE", use_container_width=True):
-        _menu_go(open_logo=True)
-    if h4.button("📇 DIRECTORIO", use_container_width=True):
-        st.query_params["skip_splash"] = "1"
-        _menu_go(open_directorio=True)
-    if st.button("🍽️ P. DINNING", use_container_width=True, key="menu_open_pdinning"):
-        st.query_params["skip_splash"] = "1"
-        _menu_go(open_pdinning=True)
-    if st.button("🔢 CONTADOR", use_container_width=True, key="menu_open_shared_counter"):
-        st.query_params["skip_splash"] = "1"
-        _menu_go(open_shared_counter=True)
-    if st.button("✅ CHECK-IN DEL DÍA", use_container_width=True, key="menu_open_checkin_dia"):
-        st.query_params["skip_splash"] = "1"
-        _menu_go(open_checkin_dia=True)
-    if st.button("📝 NOTAS", use_container_width=True, key="menu_open_notas"):
-        st.query_params["skip_splash"] = "1"
-        _menu_go(open_notas=True)
+    with st.container(key="mn_tools"):
+        _mn_sec("Herramientas", "🛠")
+        h1, h2, h3, h4 = st.columns(4)
+        if h1.button("🧮 CALCULADORA", use_container_width=True):
+            st.query_params["action"] = "calculadora"
+            _menu_go()
+        if h2.button("📆 ALMANAQUE", use_container_width=True):
+            st.query_params["action"] = "almanaque"
+            _menu_go()
+        if h3.button("🏷️ FRED WAYNE", use_container_width=True):
+            _menu_go(open_logo=True)
+        if h4.button("📇 DIRECTORIO", use_container_width=True):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_directorio=True)
 
-    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+    # ── Concierge Services ──
+    with st.container(key="mn_services"):
+        _mn_sec("Concierge Services", "🛎")
+        s1, s2, s3, s4 = st.columns(4)
+        if s1.button("🍽️ P. DINNING", use_container_width=True, key="menu_open_pdinning"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_pdinning=True)
+        if s2.button("🔢 CONTADOR", use_container_width=True, key="menu_open_shared_counter"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_shared_counter=True)
+        if s3.button("✅ CHECK-IN DEL DÍA", use_container_width=True, key="menu_open_checkin_dia"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_checkin_dia=True)
+        if s4.button("📝 NOTAS", use_container_width=True, key="menu_open_notas"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_notas=True)
 
-    # ── Enlaces Rápidos ──
-    st.markdown("<div style='color:#8ca4ba;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;border-left:3px solid #4ade80;padding-left:8px;'>Enlaces Rápidos</div>", unsafe_allow_html=True)
+    # ── Quick Access (enlaces rápidos) ──
+    with st.container(key="mn_quick"):
+        _mn_sec("Quick Access", "⚡")
+        q1, q2, q3 = st.columns(3)
+        q1.markdown(_mn_link("ACT. CALEND", QUICK_LINKS[0][1]), unsafe_allow_html=True)
+        q2.markdown(_mn_link("ALICE", QUICK_LINKS[1][1]), unsafe_allow_html=True)
+        q3.markdown(_mn_link("ARRIVALS", QUICK_LINKS[2][1]), unsafe_allow_html=True)
 
-    link_style = 'display:block;text-align:center;padding:8px 4px;border-radius:8px;border:1px solid #1a1a1a;background:#0a0a0a;color:#eafaff;text-decoration:none;font-size:11px;font-weight:700;transition:all .12s;'
+        q4, q5, q6 = st.columns(3)
+        q4.markdown(_mn_link("LA CERNIA", QUICK_LINKS[3][1]), unsafe_allow_html=True)
+        q5.markdown(_mn_link("NO LIMIT", QUICK_LINKS[4][1]), unsafe_allow_html=True)
+        q6.markdown(_mn_link("OPEN TABLE", QUICK_LINKS[5][1]), unsafe_allow_html=True)
 
-    l1, l2, l3 = st.columns(3)
-    l1.markdown(f'<a href="{html.escape(QUICK_LINKS[0][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fbbf24;">ACT. CALEND</a>', unsafe_allow_html=True)
-    l2.markdown(f'<a href="{html.escape(QUICK_LINKS[1][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#a5b4fc;">ALICE</a>', unsafe_allow_html=True)
-    l3.markdown(f'<a href="{html.escape(QUICK_LINKS[2][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">ARRIVALS</a>', unsafe_allow_html=True)
+        q7, q8, q9 = st.columns(3)
+        q7.markdown(_mn_link("OUTLOOK-FW", QUICK_LINKS[6][1]), unsafe_allow_html=True)
+        q8.markdown(_mn_link("OUTLOOK-PC", QUICK_LINKS[7][1]), unsafe_allow_html=True)
+        q9.markdown(_mn_link("OUTLOOK-RES", QUICK_LINKS[8][1]), unsafe_allow_html=True)
 
-    l4, l5, l6 = st.columns(3)
-    l4.markdown(f'<a href="{html.escape(QUICK_LINKS[3][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#34d399;">LA CERNIA</a>', unsafe_allow_html=True)
-    l5.markdown(f'<a href="{html.escape(QUICK_LINKS[4][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#fb923c;">NO LIMIT</a>', unsafe_allow_html=True)
-    l6.markdown(f'<a href="{html.escape(QUICK_LINKS[5][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f87171;">OPEN TABLE</a>', unsafe_allow_html=True)
+        q10, q11, q12 = st.columns(3)
+        q10.markdown(_mn_link("RELAXURY", QUICK_LINKS[9][1]), unsafe_allow_html=True)
+        if q11.button("Recognition", use_container_width=True, key="menu_open_recognition"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_recognition=True)
+        q12.link_button("📁 BOX FILES", BOX_FOLDER_URL, use_container_width=True)
 
-    l7, l8, l9 = st.columns(3)
-    l7.markdown(f'<a href="{html.escape(QUICK_LINKS[6][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#60a5fa;">OUTLOOK-FW</a>', unsafe_allow_html=True)
-    l8.markdown(f'<a href="{html.escape(QUICK_LINKS[7][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#38bdf8;">OUTLOOK-PC</a>', unsafe_allow_html=True)
-    l9.markdown(f'<a href="{html.escape(QUICK_LINKS[8][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#c4b5fd;">OUTLOOK-RES</a>', unsafe_allow_html=True)
-
-    l10, l11, l12 = st.columns(3)
-    l10.markdown(f'<a href="{html.escape(QUICK_LINKS[9][1], quote=True)}" target="_blank" rel="noopener noreferrer" style="{link_style}color:#f472b6;">RELAXURY</a>', unsafe_allow_html=True)
-    if l11.button("Recognition", use_container_width=True, key="menu_open_recognition"):
-        st.query_params["skip_splash"] = "1"
-        _menu_go(open_recognition=True)
-    l12.link_button("📁 BOX FILES", BOX_FOLDER_URL, use_container_width=True)
-
-    st.markdown("<div style='margin-top:12px;padding-top:10px;border-top:1px solid #1a1a1a;text-align:center;color:#4a5a6a;font-size:10px;'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v6.0</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='mn-foot'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v6.0</div>",
+        unsafe_allow_html=True,
+    )
 
 
 def render_menu() -> None:
@@ -2085,53 +2218,6 @@ def render_menu() -> None:
             border-color: #00e5ff !important;
             box-shadow: 0 0 16px rgba(0,229,255,.25) !important;
         }
-        div[data-testid="stDialog"]:has(.main-menu-marker) > div {
-            background: #050505 !important;
-            border: 2px solid #00e5ff !important;
-            border-radius: 14px !important;
-            box-shadow: 0 0 18px rgba(0,229,255,.65), 0 0 40px rgba(0,229,255,.25) !important;
-            padding: 18px !important;
-        }
-        div[data-testid="stDialog"]:has(.main-menu-marker) button {
-            background: #0a0a0a !important;
-            border: 1px solid #1a1a1a !important;
-            color: #eafaff !important;
-            border-radius: 8px !important;
-            font-weight: 700 !important;
-            font-size: 11px !important;
-            transition: all .12s ease !important;
-        }
-        div[data-testid="stDialog"]:has(.main-menu-marker) button:hover {
-            filter: brightness(1.15) !important;
-            transform: translateY(-1px) !important;
-        }
-        /* Al abrir MENÚ: los botones aparecen uno por uno, con fade y subida suave (~1 s; cortina de 0.6 s) */
-        @keyframes menu_rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stColumn"] {
-            animation: menu_rise .35s ease-out both;
-        }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(4) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.00s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(4) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.03s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(4) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.06s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(5) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.09s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(5) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.12s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(5) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.15s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(8) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.18s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(8) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.21s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(8) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.24s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(8) [data-testid="stColumn"]:nth-child(4) { animation-delay: 0.27s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(15) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.30s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(15) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.33s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(15) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.36s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(16) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.39s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(16) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.42s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(16) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.45s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(17) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.48s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(17) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.51s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(17) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.54s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(18) [data-testid="stColumn"]:nth-child(1) { animation-delay: 0.57s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(18) [data-testid="stColumn"]:nth-child(2) { animation-delay: 0.60s; }
-        div[data-testid="stDialog"]:has(.main-menu-marker) [data-testid="stLayoutWrapper"]:nth-child(18) [data-testid="stColumn"]:nth-child(3) { animation-delay: 0.63s; }
         </style>
         """,
         unsafe_allow_html=True,
@@ -7515,4 +7601,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
