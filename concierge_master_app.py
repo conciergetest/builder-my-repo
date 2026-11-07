@@ -1774,8 +1774,8 @@ def show_header() -> None:
     <div class="brand-mark">WA</div>
     <div>
       <div class="brand-name">WALDORF ASTORIA</div>
-      <div class="brand-place">COSTA RICA · PUNTA CACIQUE</div>
-      <div class="brand-product">Concierge Master <span style="color:#6f879a">v6.0</span></div>
+      <div class="brand-place">COSTA RICA PAPAGAYO</div>
+      <div class="brand-product">CONCIERGE MASTER <span style="color:#6f879a">V6.0</span></div>
     </div>
   </div>
 </div>
@@ -1785,7 +1785,11 @@ def show_header() -> None:
     with header_center:
         st.markdown(
             "<div style='text-align:center;color:#00e5ff;font-size:13px;font-weight:800;letter-spacing:1px;margin:0 0 4px 0;'>"
-            "Made by FREDDY DIAZ | CONCIERGE</div>",
+            "Made by FREDDY DIAZ | CONCIERGE</div>"
+            "<div style='text-align:center;margin:0 0 8px 0;line-height:1.2'>"
+            "<div style='color:#8ca4ba;font-size:11px;letter-spacing:.6px'>Connection Status:</div>"
+            "<div style='color:#22ff88;font-size:13px;font-weight:800;letter-spacing:.8px;text-shadow:0 0 8px rgba(34,255,136,.7)'>"
+            "<span style='display:inline-block;width:9px;height:9px;border-radius:50%;background:#22ff88;box-shadow:0 0 8px #22ff88;margin-right:6px;vertical-align:middle'></span>ONLINE</div></div>",
             unsafe_allow_html=True,
         )
         # Botones centrales: reemplazan el logo Fred Wayne. Abren popups de
@@ -7132,7 +7136,23 @@ def category_detail_dialog() -> None:
         st.rerun()
 
 
+DASHBOARD_ZONES_CSS = """
+<style>
+.st-key-zone_checkout, .st-key-zone_dashboard, .st-key-zone_quick {
+    border:1px solid #d4a94f !important; border-radius:10px !important;
+    box-shadow:0 0 10px rgba(212,169,79,.28), inset 0 0 14px rgba(212,169,79,.06) !important;
+    padding:10px 12px !important;
+}
+.st-key-zone_checkout { background:#050505 !important; }
+.st-key-zone_dashboard { background:#050505 !important; }
+.st-key-zone_quick { background:#050505 !important; margin-top:10px !important; }
+.st-key-zone_quick .app-links { margin-top:6px !important; }
+</style>
+"""
+
+
 def render_dashboard(df: pd.DataFrame) -> None:
+    st.markdown(DASHBOARD_ZONES_CSS, unsafe_allow_html=True)
     # Borra automáticamente los reminders cuyo Due Date ya pasó (una vez por
     # día por sesión, para no golpear Supabase en cada rerun).
     _hoy_iso = ahora_cr().date().isoformat()
@@ -7151,7 +7171,12 @@ def render_dashboard(df: pd.DataFrame) -> None:
     left, right = st.columns([1.35, 5.65], gap="small")
     filtered, filters = apply_filters(df)
 
-    with left:
+    with left, st.container(key="zone_checkout"):
+        st.markdown(
+            "<style>.st-key-zone_checkout .chip-day{min-height:30px !important;padding:4px 22px !important;font-size:11px !important;}"
+            ".st-key-zone_checkout .chip-ico svg,.st-key-zone_checkout .chip-arrow svg{width:16px;height:16px}</style>",
+            unsafe_allow_html=True,
+        )
         today = ahora_cr()
         checkout_links = []
         for offset in range(8):
@@ -7188,7 +7213,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown("</div>", unsafe_allow_html=True)
 
 
-    with right:
+    with right, st.container(key="zone_dashboard"):
         render_category_chart(filtered)
         relaxury = int(category_match_mask(filtered, "RELAXURY").sum())
         with st.container(key="catbtn_RELAXURY_strip"):
@@ -7223,11 +7248,15 @@ def render_dashboard(df: pd.DataFrame) -> None:
             """,
             unsafe_allow_html=True,
         )
+
+
+    # Quick Actions: franja completa
+    with st.container(key="zone_quick"):
+        st.markdown('<div class="category-chart-title">Quick Actions</div>', unsafe_allow_html=True)
         render_app_links()
 
-
-    # Fila horizontal: filtros + menú
-    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+    # Guest Management: filtros, menú y tabla
+    st.markdown('<div class="category-chart-title" style="margin-top:10px">Guest Management</div>', unsafe_allow_html=True)
     f1, f2, f3, f4 = st.columns([2.2, 1.3, 1.3, 1])
 
     with f1:
@@ -7646,3 +7675,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
