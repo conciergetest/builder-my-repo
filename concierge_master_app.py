@@ -6639,6 +6639,7 @@ function(params) {
 )
 
 GRID_CSS = {
+    "html, body": {"background-color": "#050505 !important"},
     ".ag-root-wrapper": {
         "--ag-selected-row-background-color": "transparent !important",
         "--ag-range-selection-background-color": "transparent !important",
@@ -6713,6 +6714,53 @@ def format_integerish(value) -> str:
     return str(int(number)) if number.is_integer() else text
 
 
+@st.cache_data(show_spinner=False)
+def _grid_logo_uri() -> str | None:
+    """Logo Waldorf reducido (PNG base64) para el espacio vacío del grid."""
+    b64 = _waldorf_logo_b64()
+    if not b64:
+        return None
+    from PIL import Image
+    img = Image.open(BytesIO(base64.b64decode(b64))).convert("RGBA")
+    ancho = 360
+    alto = max(1, round(img.height * ancho / img.width))
+    img = img.resize((ancho, alto), Image.LANCZOS)
+    out = BytesIO()
+    img.save(out, format="PNG", optimize=True)
+    return base64.b64encode(out.getvalue()).decode("utf-8")
+
+
+def _grid_fit_js(logo_b64: str | None) -> str:
+    """Función JS del grid: pinta el espacio vacío bajo las filas en oscuro y
+    ubica el logo ahí, escalado al alto que queda libre."""
+    img_tag = (
+        "var img=document.createElement('img');"
+        "img.src='data:image/png;base64," + logo_b64.replace('/', '\\/') + "';"
+        "img.style.cssText='max-height:100%;max-width:70%;object-fit:contain;opacity:.9;';"
+        "box.appendChild(img);"
+    ) if logo_b64 else ""
+    return (
+        "function(p){"
+        "var root=document.querySelector('.ag-root-wrapper');"
+        "var vp=document.querySelector('.ag-body-viewport');"
+        "if(!root||!vp||!p.api){return;}"
+        "root.style.position='relative';"
+        "var box=document.getElementById('wa-empty');"
+        "if(!box){box=document.createElement('div');box.id='wa-empty';"
+        "box.style.cssText='position:absolute;left:0;right:0;display:none;align-items:center;"
+        "justify-content:center;pointer-events:none;background:#050505;z-index:2;overflow:hidden;';"
+        + img_tag +
+        "root.appendChild(box);}"
+        "var rr=root.getBoundingClientRect();var vr=vp.getBoundingClientRect();"
+        "var rowsEnd=(vr.top-rr.top)+p.api.getDisplayedRowCount()*34;"
+        "var vpBottom=vr.bottom-rr.top;"
+        "if(vpBottom-rowsEnd<30){box.style.display='none';return;}"
+        "box.style.display='flex';box.style.top=rowsEnd+'px';"
+        "box.style.bottom=(rr.bottom-vr.bottom)+'px';"
+        "}"
+    )
+
+
 def render_reservations_grid(df: pd.DataFrame) -> None:
     visible = df[[column for column in DISPLAY_COLUMNS if column in df.columns]].copy()
 
@@ -6771,6 +6819,9 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         suppressRowHoverHighlight=True,
         animateRows=True,
         navigateToNextCell=NAVIGATE_JS,
+        onFirstDataRendered=JsCode(_grid_fit_js(_grid_logo_uri())),
+        onModelUpdated=JsCode(_grid_fit_js(_grid_logo_uri())),
+        onGridSizeChanged=JsCode(_grid_fit_js(_grid_logo_uri())),
     )
 
     fields = {
