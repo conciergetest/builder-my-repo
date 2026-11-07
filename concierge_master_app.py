@@ -1788,6 +1788,13 @@ def show_header() -> None:
             "Made by FREDDY DIAZ | CONCIERGE</div>",
             unsafe_allow_html=True,
         )
+        st.markdown(
+            "<div style='text-align:center;margin:2px 0 8px 0;line-height:1.15;font-family:\"Segoe UI\",Arial,sans-serif'>"
+            "<div style='color:#f1f5f9;font-size:15px;letter-spacing:.3px'>Connection Status</div>"
+            "<div style='color:#4ade80;font-size:17px;letter-spacing:1px;margin-top:2px;text-shadow:0 0 8px rgba(74,222,128,.55)'>"
+            "<span style='display:inline-block;width:11px;height:11px;border-radius:50%;background:#4ade80;box-shadow:0 0 10px #4ade80;margin-right:8px;vertical-align:middle'></span>ONLINE</div></div>",
+            unsafe_allow_html=True,
+        )
         # Botones centrales: reemplazan el logo Fred Wayne. Abren popups de
         # "Arrivals By Date" y "Reminders" sobre el dashboard.
         st.markdown(
@@ -7646,5 +7653,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
-
