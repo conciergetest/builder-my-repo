@@ -58,10 +58,12 @@ def _firma_auth(secret: str, ts: str) -> str:
     return hmac.new(secret.encode("utf-8"), ts.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
-def _leer_cookie_auth(secret: str):
-    """Devuelve el timestamp de actividad de la cookie de sesión firmada, o None si no es válida."""
+def _leer_token_auth(secret: str):
+    """Devuelve el timestamp de actividad del token ?k= de la URL, o None si no es válido.
+    No usa cookies ni iframes: el token viaja en la URL, así que F5 y los botones internos no piden clave.
+    Al cerrar el navegador y abrir la app de nuevo (URL sin token) sí se pide la clave."""
     import hmac
-    raw = str(st.context.cookies.get("cm_auth", "") or "")
+    raw = str(st.query_params.get("k", "") or "")
     if "." not in raw:
         return None
     ts_txt, firma = raw.split(".", 1)
@@ -73,25 +75,16 @@ def _leer_cookie_auth(secret: str):
         return None
 
 
-def _guardar_cookie_auth(secret: str) -> None:
-    """Escribe la cookie de sesión firmada con la hora de última actividad.
-    Sin max-age: el navegador la borra al cerrarse, así que al reabrir pide la clave."""
+def _guardar_token_auth(secret: str) -> None:
+    """Escribe en la URL el token firmado con la hora de última actividad."""
     import time as _time
-    import streamlit.components.v1 as components
     ts = str(int(_time.time()))
-    valor = f"{ts}.{_firma_auth(secret, ts)}"
-    components.html(
-        f"<script>document.cookie = 'cm_auth={valor}; path=/; SameSite=Lax';</script>",
-        height=0,
-    )
+    st.query_params["k"] = f"{ts}.{_firma_auth(secret, ts)}"
 
 
-def _borrar_cookie_auth() -> None:
-    import streamlit.components.v1 as components
-    components.html(
-        "<script>document.cookie = 'cm_auth=; path=/; max-age=0; SameSite=Lax';</script>",
-        height=0,
-    )
+def _quitar_token_auth() -> None:
+    if "k" in st.query_params:
+        del st.query_params["k"]
 
 
 def check_password() -> bool:
@@ -108,19 +101,19 @@ def check_password() -> bool:
     if st.session_state.get("auth_ok"):
         if _time.time() - st.session_state.get("last_activity", 0) <= limite:
             st.session_state.last_activity = _time.time()
-            _guardar_cookie_auth(expected)
+            _guardar_token_auth(expected)
             return True
         st.session_state.auth_ok = False
         st.session_state.login_expired = True
-        _borrar_cookie_auth()
+        _quitar_token_auth()
     else:
-        # Sin sesión en memoria (F5 o clic en enlace interno): usar la cookie de sesión del navegador
-        ts = _leer_cookie_auth(expected)
+        # Sin sesión en memoria (F5 o clic en botón/enlace interno): usar el token firmado de la URL
+        ts = _leer_token_auth(expected)
         if ts is not None and _time.time() - ts <= limite:
             st.session_state.auth_ok = True
             st.session_state.last_activity = _time.time()
             st.session_state.login_expired = False
-            _guardar_cookie_auth(expected)
+            _guardar_token_auth(expected)
             return True
 
     with st.container(key="login_card"):
