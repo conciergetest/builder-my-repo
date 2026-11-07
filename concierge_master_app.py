@@ -7529,6 +7529,18 @@ def render_dashboard(df: pd.DataFrame) -> None:
 # App
 # -----------------------------------------------------------------------------
 
+# Cursor dorado con halo (estilo Glow Pointer)
+st.markdown(
+    """<style>
+html, body, [data-testid="stAppViewContainer"], .stApp {
+    cursor: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22h%22%20cx%3D%2250%25%22%20cy%3D%2250%25%22%20r%3D%2250%25%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23FFD700%22%20stop-opacity%3D%220.55%22%2F%3E%3Cstop%20offset%3D%220.5%22%20stop-color%3D%22%23FFD700%22%20stop-opacity%3D%220.18%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23FFD700%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3CradialGradient%20id%3D%22d%22%20cx%3D%2240%25%22%20cy%3D%2240%25%22%20r%3D%2260%25%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23FFF6CC%22%2F%3E%3Cstop%20offset%3D%220.6%22%20stop-color%3D%22%23FFD700%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23B8860B%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2215%22%20fill%3D%22url%28%23h%29%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%223.2%22%20fill%3D%22url%28%23d%29%22%2F%3E%3C%2Fsvg%3E') 16 16, auto !important;
+}
+button, a, [role="button"], select, summary, label[for] {
+    cursor: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22h%22%20cx%3D%2250%25%22%20cy%3D%2250%25%22%20r%3D%2250%25%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23FFD700%22%20stop-opacity%3D%220.5%22%2F%3E%3Cstop%20offset%3D%220.6%22%20stop-color%3D%22%23FFD700%22%20stop-opacity%3D%220.15%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23FFD700%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2215%22%20fill%3D%22url%28%23h%29%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%229%22%20fill%3D%22none%22%20stroke%3D%22%23FFD700%22%20stroke-width%3D%221.6%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%222%22%20fill%3D%22%23FFF6CC%22%2F%3E%3C%2Fsvg%3E') 16 16, pointer !important;
+}
+</style>""",
+    unsafe_allow_html=True,
+)
 show_header()
 reservations = cargar_reservaciones()
 action = get_action()
