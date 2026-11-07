@@ -59,7 +59,7 @@ def _firma_auth(secret: str, ts: str) -> str:
 
 
 def _leer_cookie_auth(secret: str):
-    """Devuelve el timestamp de la cookie firmada del navegador, o None si no es válida."""
+    """Devuelve el timestamp de actividad de la cookie de sesión firmada, o None si no es válida."""
     import hmac
     raw = str(st.context.cookies.get("cm_auth", "") or "")
     if "." not in raw:
@@ -74,13 +74,22 @@ def _leer_cookie_auth(secret: str):
 
 
 def _guardar_cookie_auth(secret: str) -> None:
-    """Refresca la cookie firmada (vence según INACTIVITY_MINUTES desde la última actividad)."""
+    """Escribe la cookie de sesión firmada con la hora de última actividad.
+    Sin max-age: el navegador la borra al cerrarse, así que al reabrir pide la clave."""
     import time as _time
     import streamlit.components.v1 as components
     ts = str(int(_time.time()))
     valor = f"{ts}.{_firma_auth(secret, ts)}"
     components.html(
-        f"<script>document.cookie = 'cm_auth={valor}; path=/; max-age={INACTIVITY_MINUTES * 60}; SameSite=Lax';</script>",
+        f"<script>document.cookie = 'cm_auth={valor}; path=/; SameSite=Lax';</script>",
+        height=0,
+    )
+
+
+def _borrar_cookie_auth() -> None:
+    import streamlit.components.v1 as components
+    components.html(
+        "<script>document.cookie = 'cm_auth=; path=/; max-age=0; SameSite=Lax';</script>",
         height=0,
     )
 
@@ -103,8 +112,9 @@ def check_password() -> bool:
             return True
         st.session_state.auth_ok = False
         st.session_state.login_expired = True
+        _borrar_cookie_auth()
     else:
-        # Sin sesión en memoria (F5 o recarga por enlace): usar la cookie firmada del navegador
+        # Sin sesión en memoria (F5 o clic en enlace interno): usar la cookie de sesión del navegador
         ts = _leer_cookie_auth(expected)
         if ts is not None and _time.time() - ts <= limite:
             st.session_state.auth_ok = True
@@ -243,7 +253,7 @@ def check_password() -> bool:
     return False
 
 
-INACTIVITY_MINUTES = 30
+INACTIVITY_MINUTES = 10
 
 
 @st.fragment(run_every=60)
@@ -7461,11 +7471,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
-
-
-
-
-
-
-
