@@ -52,23 +52,66 @@ st.set_page_config(
 # -----------------------------------------------------------------------------
 # Login por contraseña (va antes del splash)
 # -----------------------------------------------------------------------------
+def _firma_auth(secret: str, ts: str) -> str:
+    import hmac
+    import hashlib
+    return hmac.new(secret.encode("utf-8"), ts.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def _leer_cookie_auth(secret: str):
+    """Devuelve el timestamp de la cookie firmada del navegador, o None si no es válida."""
+    import hmac
+    raw = str(st.context.cookies.get("cm_auth", "") or "")
+    if "." not in raw:
+        return None
+    ts_txt, firma = raw.split(".", 1)
+    if not hmac.compare_digest(firma, _firma_auth(secret, ts_txt)):
+        return None
+    try:
+        return int(ts_txt)
+    except ValueError:
+        return None
+
+
+def _guardar_cookie_auth(secret: str) -> None:
+    """Refresca la cookie firmada (vence según INACTIVITY_MINUTES desde la última actividad)."""
+    import time as _time
+    import streamlit.components.v1 as components
+    ts = str(int(_time.time()))
+    valor = f"{ts}.{_firma_auth(secret, ts)}"
+    components.html(
+        f"<script>document.cookie = 'cm_auth={valor}; path=/; max-age={INACTIVITY_MINUTES * 60}; SameSite=Lax';</script>",
+        height=0,
+    )
+
+
 def check_password() -> bool:
     """Muestra el login y devuelve True solo si la clave APP_PASSWORD es correcta."""
     import hmac
     import time as _time
 
-    if st.session_state.get("auth_ok"):
-        last = st.session_state.get("last_activity", 0)
-        if _time.time() - last <= INACTIVITY_MINUTES * 60:
-            st.session_state.last_activity = _time.time()
-            return True
-        st.session_state.auth_ok = False
-        st.session_state.login_expired = True
-
     expected = st.secrets.get("APP_PASSWORD", "")
     if not expected:
         st.error("Falta APP_PASSWORD en los Secrets de la app.")
         return False
+
+    limite = INACTIVITY_MINUTES * 60
+    if st.session_state.get("auth_ok"):
+        if _time.time() - st.session_state.get("last_activity", 0) <= limite:
+            st.session_state.last_activity = _time.time()
+            _guardar_cookie_auth(expected)
+            return True
+        st.session_state.auth_ok = False
+        st.session_state.login_expired = True
+    else:
+        # Sin sesión en memoria (F5 o recarga por enlace): usar la cookie firmada del navegador
+        ts = _leer_cookie_auth(expected)
+        if ts is not None and _time.time() - ts <= limite:
+            st.session_state.auth_ok = True
+            st.session_state.last_activity = _time.time()
+            st.session_state.login_expired = False
+            _guardar_cookie_auth(expected)
+            return True
 
     with st.container(key="login_card"):
         st.markdown(
