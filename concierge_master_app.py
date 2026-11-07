@@ -1762,13 +1762,51 @@ def exportar_reporte_excel(data: dict[str, pd.DataFrame], report_date: datetime)
     return output
 
 
+WALDORF_LOGO_FILENAMES = (
+    "Waldorf Logo.png", "Waldorf_Logo.png", "Waldorf logo.png",
+    "waldorf logo.png", "waldorf_logo.png", "WaldorfLogo.png",
+)
+
+
+@st.cache_data(show_spinner=False)
+def _waldorf_logo_b64() -> str | None:
+    """Devuelve el logo dorado de Waldorf Astoria (base64) si esta junto a la app."""
+    base = os.path.dirname(os.path.abspath(__file__))
+    for name in WALDORF_LOGO_FILENAMES:
+        path = os.path.join(base, name)
+        if os.path.isfile(path):
+            with open(path, "rb") as fh:
+                return base64.b64encode(fh.read()).decode("utf-8")
+    return None
+
+
 def show_header() -> None:
     import streamlit.components.v1 as components
 
     header_left, header_center, header_right = st.columns([1.15, 1.35, 0.85])
     with header_left:
-        st.markdown(
-            """
+        _logo_b64 = _waldorf_logo_b64()
+        if _logo_b64:
+            st.markdown(
+                """
+<style>
+.wa-brand { display:flex; align-items:center; gap:26px; padding:2px 0 4px 2px; }
+.wa-logo { height:80px; width:auto; display:block; filter:drop-shadow(0 0 6px rgba(212,175,55,.25)); }
+.wa-div { width:2px; height:66px; flex:0 0 2px; background:linear-gradient(180deg,transparent,#d4af37 20%,#d4af37 80%,transparent); }
+.wa-prod { color:#00e5ff; font:800 24px/1.15 'Segoe UI',Arial,sans-serif; letter-spacing:.3px; text-shadow:0 0 8px rgba(0,229,255,.6); white-space:nowrap; }
+.wa-prod span { color:#8ca4ba; font-weight:700; }
+</style>
+<div class="wa-brand">
+  <img class="wa-logo" alt="Waldorf Astoria" src="data:image/png;base64,""" + _logo_b64 + """" />
+  <span class="wa-div"></span>
+  <div class="wa-prod">Concierge Master <span>v6.0</span></div>
+</div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                """
 <div class="page-title">
   <div class="brand">
     <div class="brand-mark">WA</div>
@@ -1779,9 +1817,9 @@ def show_header() -> None:
     </div>
   </div>
 </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                """,
+                unsafe_allow_html=True,
+            )
     with header_center:
         st.markdown(
             "<div style='text-align:center;color:#00e5ff;font-size:13px;font-weight:800;letter-spacing:1px;margin:0 0 4px 0;'>"
