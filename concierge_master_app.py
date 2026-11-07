@@ -264,6 +264,57 @@ if not check_password():
     st.stop()
 _vigilar_inactividad()
 
+# Botón LOGOUT (neón azul). Enlaza a la URL base sin token: vuelve a la pantalla de clave.
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+    .logout-btn {
+        position: fixed; top: 14px; right: 230px; z-index: 999; width: 196px; height: 52px;
+        box-sizing: border-box; display: flex; align-items: center; border-radius: 999px;
+        text-decoration: none !important; cursor: pointer;
+        background: linear-gradient(90deg, #02101f 0%, #061d38 55%, #02101f 100%);
+        border: 2px solid #1e9bff;
+        box-shadow: 0 0 6px #1e9bff, 0 0 18px rgba(30,155,255,.55), inset 0 0 14px rgba(30,155,255,.35);
+        transition: box-shadow .2s ease;
+    }
+    .logout-btn:hover {
+        box-shadow: 0 0 10px #4fd8ff, 0 0 28px rgba(0,212,255,.85), inset 0 0 18px rgba(30,155,255,.55);
+    }
+    .logout-btn .lo-ico {
+        flex: 0 0 auto; width: 42px; height: 42px; margin-left: 3px; border-radius: 50%; box-sizing: border-box;
+        border: 2px solid #39a8ff; display: flex; align-items: center; justify-content: center;
+        background: radial-gradient(circle, #0b2b52 0%, #02101f 85%);
+        box-shadow: 0 0 8px #1e9bff, inset 0 0 8px rgba(30,155,255,.5);
+    }
+    .logout-btn .lo-sep {
+        flex: 0 0 auto; width: 2px; height: 32px; margin: 0 14px;
+        background: linear-gradient(#00d4ff, #0066ff); box-shadow: 0 0 6px #00d4ff;
+    }
+    .logout-btn .lo-txt {
+        flex: 1; font-family: 'Orbitron', 'Segoe UI', sans-serif; font-weight: 700; font-size: 17px;
+        letter-spacing: 2px; color: #f0faff; text-shadow: 0 0 6px #5ec8ff, 0 0 14px rgba(0,212,255,.6);
+    }
+    .logout-btn .lo-arr {
+        flex: 0 0 auto; margin-right: 12px; color: #5ee7ff; font-size: 20px; font-weight: 700;
+        text-shadow: 0 0 6px #00d4ff;
+    }
+    </style>
+    <a class="logout-btn" href="./" target="_self" title="Cerrar sesión">
+      <span class="lo-ico">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px #00d4ff)">
+          <path d="M11 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h6"/>
+          <path d="M9 12h11"/><path d="M16 8l4 4-4 4"/>
+        </svg>
+      </span>
+      <span class="lo-sep"></span>
+      <span class="lo-txt">LOGOUT</span>
+      <span class="lo-arr">&raquo;</span>
+    </a>
+    """,
+    unsafe_allow_html=True,
+)
+
 # -----------------------------------------------------------------------------
 # Splash Screen
 # -----------------------------------------------------------------------------
@@ -7464,3 +7515,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
