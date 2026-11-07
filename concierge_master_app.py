@@ -2163,8 +2163,15 @@ def menu_dialog() -> None:
     """Menú principal centrado en la app (diseño neón por secciones)."""
     st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
     st.markdown(MENU_DIALOG_CSS, unsafe_allow_html=True)
+    _menu_logo = _waldorf_logo_b64()
+    _menu_logo_html = (
+        "<img alt='Waldorf Astoria' src='data:image/png;base64," + _menu_logo + "' "
+        "style='display:block;margin:0 auto 4px auto;height:72px;width:auto;"
+        "filter:drop-shadow(0 0 6px rgba(212,175,55,.25));' />"
+    ) if _menu_logo else ""
     st.markdown(
-        "<div class='mn-title'>CONCIERGE MASTER</div><div class='mn-sub'>Waldorf Astoria Costa Rica · Luxury Services at Your Fingertips</div>",
+        _menu_logo_html
+        + "<div class='mn-title'>CONCIERGE MASTER</div><div class='mn-sub'>Waldorf Astoria Costa Rica · Luxury Services at Your Fingertips</div>",
         unsafe_allow_html=True,
     )
     _mn_bar()
