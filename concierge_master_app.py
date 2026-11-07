@@ -2000,11 +2000,18 @@ div[data-testid="stDialog"]:has(.main-menu-marker) .mn-bar {
     justify-content: space-between;
     gap: 10px;
     padding: 8px 14px;
+    align-items: center;
     border-top: 1px solid rgba(0,229,255,.35);
     border-bottom: 1px solid rgba(0,229,255,.35);
     color: #cfe9f5;
     font: 600 11px "Segoe UI", sans-serif;
     margin-bottom: 14px;
+}
+div[data-testid="stDialog"]:has(.main-menu-marker) .mn-fecha {
+    color: #00e5ff;
+    font-weight: 800;
+    letter-spacing: .6px;
+    text-shadow: 0 0 8px rgba(0,229,255,.7);
 }
 div[data-testid="stDialog"]:has(.main-menu-marker) [class*="st-key-mn_"] {
     margin-bottom: 14px;
@@ -2090,6 +2097,22 @@ def _mn_link(label: str, url: str) -> str:
     return f'<a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">{html.escape(label)}</a>'
 
 
+_MN_DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+_MN_MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+
+
+@st.fragment(run_every=15)
+def _mn_bar() -> None:
+    """Franja del usuario con fecha y hora actual (Costa Rica), se refresca sola."""
+    ahora = ahora_cr()
+    hora = ahora.strftime("%I:%M %p").lstrip("0")
+    fecha = f"{_MN_DIAS[ahora.weekday()]}, {ahora.day} {_MN_MESES[ahora.month - 1]} {ahora.year}  |  {hora}"
+    st.markdown(
+        f"<div class='mn-bar'><span>User: Fred Wayne</span><span class='mn-fecha'>{html.escape(fecha)}</span><span>Concierge Master v6.0</span></div>",
+        unsafe_allow_html=True,
+    )
+
+
 @st.dialog("☰ MENÚ", width="large")
 def menu_dialog() -> None:
     """Menú principal centrado en la app (diseño neón por secciones)."""
@@ -2099,10 +2122,7 @@ def menu_dialog() -> None:
         "<div class='mn-title'>CONCIERGE MASTER</div><div class='mn-sub'>Waldorf Astoria Costa Rica · Luxury Services at Your Fingertips</div>",
         unsafe_allow_html=True,
     )
-    st.markdown(
-        "<div class='mn-bar'><span>User: Fred Wayne</span><span>Concierge Master v6.0</span></div>",
-        unsafe_allow_html=True,
-    )
+    _mn_bar()
 
     # ── Operaciones ──
     with st.container(key="mn_ops"):
@@ -2165,26 +2185,24 @@ def menu_dialog() -> None:
     with st.container(key="mn_quick"):
         _mn_sec("Quick Access", "⚡")
         q1, q2, q3 = st.columns(3)
-        q1.markdown(_mn_link("ACT. CALEND", QUICK_LINKS[0][1]), unsafe_allow_html=True)
-        q2.markdown(_mn_link("ALICE", QUICK_LINKS[1][1]), unsafe_allow_html=True)
-        q3.markdown(_mn_link("ARRIVALS", QUICK_LINKS[2][1]), unsafe_allow_html=True)
+        q1.markdown(_mn_link("ALICE", QUICK_LINKS[1][1]), unsafe_allow_html=True)
+        q2.markdown(_mn_link("LA CERNIA", QUICK_LINKS[3][1]), unsafe_allow_html=True)
+        q3.markdown(_mn_link("NO LIMIT", QUICK_LINKS[4][1]), unsafe_allow_html=True)
 
         q4, q5, q6 = st.columns(3)
-        q4.markdown(_mn_link("LA CERNIA", QUICK_LINKS[3][1]), unsafe_allow_html=True)
-        q5.markdown(_mn_link("NO LIMIT", QUICK_LINKS[4][1]), unsafe_allow_html=True)
-        q6.markdown(_mn_link("OPEN TABLE", QUICK_LINKS[5][1]), unsafe_allow_html=True)
+        q4.markdown(_mn_link("OPEN TABLE", QUICK_LINKS[5][1]), unsafe_allow_html=True)
+        q5.markdown(_mn_link("OUTLOOK-FW", QUICK_LINKS[6][1]), unsafe_allow_html=True)
+        q6.markdown(_mn_link("OUTLOOK-PC", QUICK_LINKS[7][1]), unsafe_allow_html=True)
 
         q7, q8, q9 = st.columns(3)
-        q7.markdown(_mn_link("OUTLOOK-FW", QUICK_LINKS[6][1]), unsafe_allow_html=True)
-        q8.markdown(_mn_link("OUTLOOK-PC", QUICK_LINKS[7][1]), unsafe_allow_html=True)
-        q9.markdown(_mn_link("OUTLOOK-RES", QUICK_LINKS[8][1]), unsafe_allow_html=True)
-
-        q10, q11, q12 = st.columns(3)
-        q10.markdown(_mn_link("RELAXURY", QUICK_LINKS[9][1]), unsafe_allow_html=True)
-        if q11.button("Recognition", use_container_width=True, key="menu_open_recognition"):
+        q7.markdown(_mn_link("OUTLOOK-RES", QUICK_LINKS[8][1]), unsafe_allow_html=True)
+        q8.markdown(_mn_link("RELAXURY", QUICK_LINKS[9][1]), unsafe_allow_html=True)
+        if q9.button("Recognition", use_container_width=True, key="menu_open_recognition"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_recognition=True)
-        q12.link_button("📁 BOX FILES", BOX_FOLDER_URL, use_container_width=True)
+
+        q10 = st.columns(3)[0]
+        q10.link_button("📁 BOX FILES", BOX_FOLDER_URL, use_container_width=True)
 
     st.markdown(
         "<div class='mn-foot'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v6.0</div>",
