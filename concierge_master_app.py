@@ -2406,6 +2406,49 @@ CATEGORY_CHART_ICONS = {
 }
 
 
+def render_relaxury_card(count: int, max_count: int) -> None:
+    """RELAXURY con el mismo estilo de tarjeta que Guest Categories."""
+    color = "#f472b6"
+    pct = max(4, min(100, round(count / max(max_count, 1) * 100)))
+    with st.container(key="catbtn_RELAXURY_strip"):
+        st.markdown(
+            f'<div class="category-card" style="--category-color:{color};background:linear-gradient(135deg,{color}24 0%,#0b0b0b 85%);border:1px solid {color}55;">'
+            f'<div class="cc-row">'
+            f'<div class="cc-icon" style="background:{color}22;border:1px solid {color}66;box-shadow:0 0 12px {color}40;">🧘</div>'
+            f'<div class="cc-main"><div class="cc-label">RELAXURY</div>'
+            f'<div class="cc-track"><div class="cc-fill" style="width:{pct}%;background:linear-gradient(90deg,{color}88,{color});box-shadow:0 0 8px {color}88;"></div></div></div>'
+            f'<div class="cc-count"><span>{count}</span><svg class="cc-person" width="14" height="14" viewBox="0 0 24 24" style="fill:#00e5ff;filter:drop-shadow(0 0 4px rgba(0,229,255,.7));"><circle cx="12" cy="7.5" r="4.5"/><path d="M3.5 21.5c0-4.9 3.8-8 8.5-8s8.5 3.1 8.5 8z"/></svg></div>'
+            f'</div></div>',
+            unsafe_allow_html=True,
+        )
+        clicked = st.button("📊", key="do_open_cat_RELAXURY_strip")
+    if clicked:
+        st.session_state["category_detail_name"] = "RELAXURY"
+        st.session_state["open_category_detail"] = True
+        st.query_params["skip_splash"] = "1"
+        st.rerun()
+    st.markdown(
+        """
+        <style>
+        .st-key-catbtn_RELAXURY_strip { position:relative !important; min-height:54px !important; }
+        .st-key-catbtn_RELAXURY_strip [data-testid="stVerticalBlock"] { gap:0 !important; }
+        .st-key-do_open_cat_RELAXURY_strip {
+            position:absolute !important; top:50% !important; right:36px !important; transform:translateY(-50%) !important;
+            width:24px !important; height:24px !important; z-index:5 !important; margin:0 !important;
+        }
+        .st-key-do_open_cat_RELAXURY_strip button {
+            width:24px !important; height:24px !important; min-height:24px !important; padding:0 !important;
+            background:transparent !important; border:none !important; color:transparent !important;
+            font-size:1px !important; line-height:1 !important; box-shadow:none !important; cursor:pointer !important;
+        }
+        .st-key-do_open_cat_RELAXURY_strip button:hover { background:#f472b626 !important; border-radius:50% !important; }
+        .st-key-do_open_cat_RELAXURY_strip [data-testid="stTooltipIcon"] { display:none !important; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_category_chart(df: pd.DataFrame) -> None:
     # Categorías que se muestran en el grid (RELAXURY se excluye de aquí;
     # tiene su propia barra debajo).
@@ -7297,38 +7340,8 @@ def render_dashboard(df: pd.DataFrame) -> None:
     with right:
         render_category_chart(filtered)
         relaxury = int(category_match_mask(filtered, "RELAXURY").sum())
-        with st.container(key="catbtn_RELAXURY_strip"):
-            st.markdown(
-                f'<div class="total-strip" style="border-color:#f472b6;padding-right:34px">'
-                f'RELAXURY <strong style="color:#f472b6">{relaxury}</strong></div>',
-                unsafe_allow_html=True,
-            )
-            if st.button("📊", key="do_open_cat_RELAXURY_strip"):
-                st.session_state["category_detail_name"] = "RELAXURY"
-                st.session_state["open_category_detail"] = True
-                st.query_params["skip_splash"] = "1"
-                st.rerun()
-        st.markdown(
-            """
-            <style>
-            .st-key-catbtn_RELAXURY_strip { position:relative !important; }
-            .st-key-do_open_cat_RELAXURY_strip {
-                position:absolute !important; top:6px !important; right:10px !important;
-                width:20px !important; height:20px !important; z-index:5 !important; margin:0 !important;
-            }
-            .st-key-do_open_cat_RELAXURY_strip button {
-                width:20px !important; height:20px !important; min-height:20px !important; padding:0 !important;
-                background:transparent !important; border:none !important; color:#f472b6 !important;
-                font-size:11px !important; line-height:1 !important; box-shadow:none !important;
-            }
-            .st-key-do_open_cat_RELAXURY_strip button:hover {
-                background:#f472b633 !important; border-radius:5px !important;
-            }
-            .st-key-do_open_cat_RELAXURY_strip [data-testid="stTooltipIcon"] { display:none !important; }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
+        max_cat = max([int(category_match_mask(filtered, c).sum()) for c in CATEGORY_CHART_COLORS] + [1])
+        render_relaxury_card(relaxury, max_cat)
         render_app_links()
 
 
@@ -7474,25 +7487,52 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown(
             """
             <style>
-            .st-key-selection_actions { max-width:700px; }
+            .st-key-selection_actions { max-width:none; }
+            div[data-testid="stHorizontalBlock"]:has(.st-key-btn_sel_editar) { justify-content:flex-start !important; gap:12px !important; }
+            div[data-testid="stHorizontalBlock"]:has(.st-key-btn_sel_editar) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
+            .st-key-selection_actions [data-testid="stButton"] { display:flex !important; justify-content:flex-start !important; width:100% !important; }
             .st-key-selection_actions button {
-                border:none !important;
-                border-radius:8px !important;
-                color:#fff !important;
-                font: 800 12px/1.1 'Segoe UI', sans-serif !important;
-                letter-spacing:1.1px !important;
+                position:relative !important; overflow:visible !important;
+                width:fit-content !important; min-width:0 !important;
+                height:46px !important; min-height:46px !important; padding:0 26px 0 68px !important;
+                background: linear-gradient(90deg, #05080f 0%, #0d1320 55%, #05080f 100%) !important;
+                border:2px solid var(--c) !important; border-radius:999px !important;
+                color:#f5f7fb !important;
+                font-family:'Orbitron','Segoe UI',sans-serif !important;
+                font-weight:700 !important; font-size:13px !important; letter-spacing:2px !important;
                 text-transform:uppercase !important;
-                padding:9px 10px !important;
-                transition: all .12s ease !important;
+                text-shadow:0 0 4px var(--c) !important;
+                box-shadow: 0 0 3px var(--c), 0 0 9px color-mix(in srgb, var(--c) 30%, transparent), inset 0 0 8px color-mix(in srgb, var(--c) 18%, transparent) !important;
+                transition: box-shadow .2s ease, filter .2s ease !important;
+            }
+            .st-key-selection_actions button p {
+                color:inherit !important; font-family:inherit !important; font-weight:inherit !important;
+                letter-spacing:inherit !important; margin:0 !important;
+            }
+            .st-key-selection_actions button::before {
+                content:var(--ico); position:absolute; left:4px; top:50%; transform:translateY(-50%);
+                width:36px; height:36px; box-sizing:border-box; border-radius:50%;
+                border:2px solid var(--c); display:flex; align-items:center; justify-content:center;
+                background: radial-gradient(circle, color-mix(in srgb, var(--c) 30%, #000) 0%, #05080f 85%);
+                box-shadow: 0 0 6px var(--c), inset 0 0 8px color-mix(in srgb, var(--c) 45%, transparent);
+                color:#ffffff; font-size:17px; line-height:1; text-shadow:0 0 6px var(--c);
+            }
+            .st-key-selection_actions button::after {
+                content:""; position:absolute; left:50px; top:50%; transform:translateY(-50%);
+                width:2px; height:28px; background:linear-gradient(var(--c), color-mix(in srgb, var(--c) 50%, #fff));
+                box-shadow:0 0 6px var(--c);
+            }
+            .st-key-selection_actions button:focus, .st-key-selection_actions button:focus-visible, .st-key-selection_actions button:active {
+                outline:none !important; border-color:var(--c) !important;
             }
             .st-key-selection_actions button:hover {
-                filter:brightness(1.15) !important;
-                transform:translateY(-1px) !important;
+                filter:brightness(1.15) !important; border-color:var(--c) !important; color:#ffffff !important;
+                box-shadow: 0 0 4px var(--c), 0 0 14px color-mix(in srgb, var(--c) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 25%, transparent) !important;
             }
-            .st-key-btn_sel_editar button { background:#D97706 !important; }
-            .st-key-btn_sel_carta  button { background:#7C3AED !important; }
-            .st-key-btn_sel_borrar button { background:#E11D48 !important; }
-            .st-key-btn_sel_deselect button { background:#3a3a3a !important; }
+            .st-key-btn_sel_editar { --c:#D97706; --ico:"✎"; }
+            .st-key-btn_sel_carta { --c:#7C3AED; --ico:"✉"; }
+            .st-key-btn_sel_borrar { --c:#E11D48; --ico:"🗑"; }
+            .st-key-btn_sel_deselect { --c:#3a3a3a; --ico:"✖"; }
             </style>
             """,
             unsafe_allow_html=True,
@@ -7733,8 +7773,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
-
-
-
-
