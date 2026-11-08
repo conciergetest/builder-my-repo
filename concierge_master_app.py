@@ -1751,6 +1751,23 @@ def _waldorf_logo_b64() -> str | None:
     return None
 
 
+WALDORF_MINI_LOGO_FILENAMES = (
+    "Waldorf Logo Mini.png", "Waldorf_Logo_Mini.png", "waldorf logo mini.png", "WaldorfLogoMini.png",
+)
+
+
+@st.cache_data(show_spinner=False)
+def _waldorf_mini_logo_b64() -> str | None:
+    """Logo Waldorf Mini (base64) para el centro del Reporte de Ocupación, si esta junto a la app."""
+    base = os.path.dirname(os.path.abspath(__file__))
+    for name in WALDORF_MINI_LOGO_FILENAMES:
+        path = os.path.join(base, name)
+        if os.path.isfile(path):
+            with open(path, "rb") as fh:
+                return base64.b64encode(fh.read()).decode("utf-8")
+    return None
+
+
 NEON_PILL_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
@@ -2376,6 +2393,14 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
         "</style>",
         unsafe_allow_html=True,
     )
+    mini_logo = _waldorf_mini_logo_b64()
+    if mini_logo:
+        st.markdown(
+            "<style>.st-key-occ_wrap::before { content:''; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);"
+            " width:200px; height:200px; background:url('data:image/png;base64," + mini_logo + "') center / contain no-repeat;"
+            " pointer-events:none; z-index:-1; }</style>",
+            unsafe_allow_html=True,
+        )
     with st.container(key="occ_outer"):
         with st.container(key="occ_wrap"):
             st.markdown("<div class='occ-title'>Reporte de Ocupación</div>", unsafe_allow_html=True)
@@ -7866,6 +7891,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
