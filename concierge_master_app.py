@@ -1817,6 +1817,8 @@ def show_header() -> None:
             """
             <style>
             .st-key-header_center_btns { display:flex; justify-content:center; align-items:center; gap:8px; }
+            .st-key-header_center_btns [data-testid="stHorizontalBlock"] { justify-content:center !important; gap:10px !important; }
+            .st-key-header_center_btns [data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
             .st-key-header_arrivals_btn button { --c:#1e9bff; }
             .st-key-header_reminders_btn button { --c:#1e9bff; }
             .st-key-header_qrcode_btn button { --c:#1e9bff; }
@@ -2291,7 +2293,7 @@ def render_app_links() -> None:
     )
     st.markdown(
         '<style>'
-        '.app-links { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:14px 0 4px; }'
+        '.app-links { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin:14px 0 4px; }'
         '.app-link { display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; '
         'box-sizing:border-box; width:fit-content; max-width:100%; justify-self:center; padding:0 22px; border:2px solid var(--c); border-radius:999px; color:#f0faff !important; text-decoration:none !important; '
         "font-family:'Orbitron','Segoe UI',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; text-align:center; white-space:nowrap; overflow:hidden; "
@@ -2301,7 +2303,7 @@ def render_app_links() -> None:
         '.app-link:hover, .app-link:visited, .app-link:active { color:#fff !important; text-decoration:none !important; }'
         '.app-link:hover { box-shadow:0 0 10px var(--c), 0 0 28px color-mix(in srgb, var(--c) 85%, transparent), inset 0 0 18px color-mix(in srgb, var(--c) 55%, transparent); }'
         '.app-link span { color:#f0faff !important; text-decoration:none !important; text-shadow:0 0 6px var(--c); }'
-        '@media (max-width:980px){ .app-links { grid-template-columns:repeat(2,1fr); } }'
+        '@media (max-width:980px){ .app-links { justify-content:center; } }'
         '</style>'
         f'<div class="app-links">{buttons}</div>',
         unsafe_allow_html=True,
@@ -7312,6 +7314,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
     # Fila horizontal: filtros + menú
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
     st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
+    st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(a.neon-pill) > div[data-testid="stColumn"]:has(a.neon-pill) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
     f1, f2, f3, f4 = st.columns([2.2, 1.3, 1.3, 1])
 
     with f1:
@@ -7320,10 +7323,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with f2:
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;height:46px;margin-top:28px;width:fit-content;margin-left:auto;margin-right:auto;padding:0 22px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;height:46px;margin-top:28px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
     with f3:
-        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;height:46px;margin-top:28px;width:fit-content;margin-left:auto;margin-right:auto;padding:0 22px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;height:46px;margin-top:28px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with f4:
         render_menu()
@@ -7336,6 +7339,8 @@ def render_dashboard(df: pd.DataFrame) -> None:
         .st-key-btn_vip_candidates button { --c:#1e9bff; }
         .st-key-btn_guests_directory button { --c:#1e9bff; }
         .st-key-btn_pending button { --c:#1e9bff; }
+        div[data-testid="stHorizontalBlock"]:has(.st-key-btn_pending) { justify-content:center !important; gap:12px !important; }
+        div[data-testid="stHorizontalBlock"]:has(.st-key-btn_pending) [data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
         </style>
         """,
         unsafe_allow_html=True,
@@ -7702,5 +7707,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
-
