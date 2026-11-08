@@ -2374,7 +2374,7 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
         "<style>"
         ".st-key-occ_outer { position:relative !important; height:0 !important; min-height:0 !important; overflow:visible !important; }"
         ".st-key-occ_outer > div, .st-key-occ_outer [data-testid='stVerticalBlock'] { overflow:visible !important; }"
-        ".st-key-occ_wrap { position:absolute !important; top:0; left:auto; right:0; width:318px; z-index:5; height:282px; box-sizing:border-box;"
+        ".st-key-occ_wrap { position:absolute !important; top:0; left:auto; right:0; width:480px; z-index:5; height:282px; box-sizing:border-box;"
         " margin-top:14px; padding:16px 20px 14px; border:1px solid #1e9bff55; border-radius:12px;"
         " background:linear-gradient(135deg,#1e9bff14 0%,#05080f 85%); box-shadow:0 0 10px rgba(30,155,255,.15);"
         " display:flex; flex-direction:column; justify-content:space-between; overflow:visible !important; }"
@@ -2385,8 +2385,8 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
         ".st-key-occ_wrap [data-testid='stHorizontalBlock'] > [data-testid='stColumn']:last-child { flex:0 0 58px !important; width:58px !important; min-width:58px !important; }"
         ".st-key-occ_wrap [data-testid='stHorizontalBlock'] > [data-testid='stColumn']:first-child { flex:1 1 auto !important; min-width:0 !important; }"
         ".st-key-occ_wrap [data-testid='stButton'] button { background:transparent !important; border:none !important; box-shadow:none !important;"
-        " color:#D4AF37 !important; font-family:'Orbitron','Segoe UI',sans-serif !important; font-size:13px !important; font-weight:700 !important;"
-        " letter-spacing:1.5px !important; text-transform:uppercase !important; justify-content:flex-start !important;"
+        " color:#D4AF37 !important; font-family:'Orbitron','Segoe UI',sans-serif !important; font-size:12px !important; font-weight:700 !important;"
+        " letter-spacing:1px !important; text-transform:uppercase !important; justify-content:flex-start !important;"
         " padding:6px 6px !important; min-height:0 !important; width:100%; text-align:left !important;"
         " text-shadow:0 0 6px rgba(212,175,55,.55) !important; }"
         ".st-key-occ_wrap [data-testid='stButton'] button > div, .st-key-occ_wrap [data-testid='stButton'] button p { justify-content:flex-start !important; text-align:left !important; width:100%; margin:0 !important; font-family:'Orbitron','Segoe UI',sans-serif !important; color:#D4AF37 !important; }"
@@ -2402,7 +2402,7 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
     if mini_logo:
         st.markdown(
             "<style>.st-key-occ_wrap::before { content:''; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);"
-            " width:150px; height:150px; background:url('data:image/png;base64," + mini_logo + "') center / contain no-repeat;"
+            " width:130px; height:130px; background:url('data:image/png;base64," + mini_logo + "') center / contain no-repeat;"
             " pointer-events:none; z-index:-1; }</style>",
             unsafe_allow_html=True,
         )
@@ -7896,6 +7896,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
