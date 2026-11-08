@@ -2247,37 +2247,42 @@ def menu_dialog() -> None:
 
 
 def render_menu() -> None:
-    """Botón ☰ MENÚ: al presionarlo abre el menú centrado en la pantalla."""
+    """Botón ☰ MENÚ: pill dorado ajustado al texto (mismo formato que LOGOUT). Abre el menú centrado."""
     menu_nonce = st.session_state.get("main_menu_nonce", 0)
     st.markdown(
         """
         <style>
-        div[class*="st-key-main_menu_btn"] {
-            margin-top: 21px !important;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+        div[class*="st-key-main_menu_btn"] { margin-top:17px !important; }
+        div[class*="st-key-main_menu_btn"] [data-testid="stButton"] { display:flex !important; justify-content:flex-end !important; width:100% !important; }
         div[class*="st-key-main_menu_btn"] button {
-            height: 38px !important;
-            min-height: 38px !important;
-            background: linear-gradient(135deg, #0a0a0a 0%, #0d0d0d 100%) !important;
-            border: 1px solid #1a1a1a !important;
-            color: #00e5ff !important;
-            font-weight: 800 !important;
-            font-size: 13px !important;
-            letter-spacing: 1.2px !important;
-            text-transform: uppercase !important;
-            border-radius: 10px !important;
-            box-shadow: 0 4px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06) !important;
+            width:fit-content !important; min-width:0 !important; display:flex !important;
+            height:46px !important; min-height:46px !important; padding:0 26px !important;
+            background: linear-gradient(90deg, #0d0a02 0%, #1f1705 55%, #0d0a02 100%) !important;
+            border: 2px solid #d4af37 !important;
+            border-radius: 999px !important;
+            color: #f3e3a1 !important;
+            font-family: 'Orbitron','Segoe UI',sans-serif !important;
+            font-weight: 700 !important; font-size: 14px !important;
+            letter-spacing: 2px !important; text-transform: uppercase !important;
+            text-shadow: 0 0 4px rgba(212,175,55,.7) !important;
+            box-shadow: 0 0 3px #d4af37, 0 0 9px rgba(212,175,55,.3), inset 0 0 8px rgba(212,175,55,.18) !important;
+            transition: box-shadow .2s ease !important;
+        }
+        div[class*="st-key-main_menu_btn"] button p {
+            color:inherit !important; font-family:inherit !important; font-weight:inherit !important;
+            letter-spacing:inherit !important; margin:0 !important;
         }
         div[class*="st-key-main_menu_btn"] button:hover {
-            border-color: #00e5ff !important;
-            box-shadow: 0 0 16px rgba(0,229,255,.25) !important;
+            border-color:#f3e3a1 !important; color:#fff7d6 !important;
+            box-shadow: 0 0 4px #f3e3a1, 0 0 14px rgba(212,175,55,.4), inset 0 0 10px rgba(212,175,55,.25) !important;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    if st.button("☰ MENÚ", use_container_width=True, key=f"main_menu_btn_{menu_nonce}"):
+    if st.button("☰ MENÚ »", key=f"main_menu_btn_{menu_nonce}"):
         menu_dialog()
 
 
@@ -7318,11 +7323,13 @@ def render_dashboard(df: pd.DataFrame) -> None:
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
     st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
     st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(a.neon-pill) > div[data-testid="stColumn"]:has(a.neon-pill) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
-    f1, f2, f3, f4 = st.columns([2.2, 1.3, 1.3, 1])
+    f1, f2, f3, f4 = st.columns([0.8, 0.9, 0.9, 2.4])
 
     with f1:
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
-        selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or ahora_cr()).date())
+        with st.container(key="checkin_date_wrap"):
+            selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or ahora_cr()).date())
+        st.markdown("<style>.st-key-checkin_date_wrap { width:230px !important; max-width:100% !important; } .st-key-checkin_date_wrap [data-testid='stDateInput'] { width:100% !important; }</style>", unsafe_allow_html=True)
 
     with f2:
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
@@ -7712,5 +7719,6 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
