@@ -2320,13 +2320,13 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
     )
     st.markdown(
         "<style>"
-        ".st-key-occ_wrap { position:relative !important; height:0 !important; min-height:0 !important; overflow:visible !important; }.st-key-occ_wrap [data-testid='stVerticalBlock'], .st-key-occ_wrap [data-testid='stElementContainer'], .st-key-occ_wrap [data-testid='stMarkdownContainer'] { overflow:visible !important; }.st-key-occ_wrap .occ-panel { position:absolute !important; top:0; left:0; right:0; z-index:5; }.occ-panel { box-sizing:border-box; margin-top:14px; padding:10px 18px 10px; border:1px solid #1e9bff55; border-radius:12px;"
+        ".st-key-occ_wrap { position:relative !important; height:0 !important; min-height:0 !important; overflow:visible !important; }.st-key-occ_wrap [data-testid='stVerticalBlock'], .st-key-occ_wrap [data-testid='stElementContainer'], .st-key-occ_wrap [data-testid='stMarkdownContainer'] { overflow:visible !important; }.st-key-occ_wrap .occ-panel { position:absolute !important; top:0; left:0; right:0; z-index:5; height:282px; display:flex; flex-direction:column; justify-content:space-between; }.occ-panel { box-sizing:border-box; margin-top:14px; padding:16px 22px 14px; border:1px solid #1e9bff55; border-radius:12px;"
         " background:linear-gradient(135deg,#1e9bff14 0%,#05080f 85%); box-shadow:0 0 10px rgba(30,155,255,.15); }"
-        ".occ-title { text-align:center; color:#1e9bff; font-family:'Orbitron','Segoe UI',sans-serif; font-size:13px; font-weight:700;"
-        " letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; text-shadow:0 0 4px rgba(30,155,255,.5); }"
-        ".occ-row { display:flex; justify-content:space-between; align-items:center; padding:4px 6px; border-top:1px solid #1e9bff22; }"
-        ".occ-label { color:#1e9bff; font-size:13px; font-weight:600; }"
-        ".occ-value { color:#1e9bff; font-family:Georgia,'Times New Roman',serif; font-size:16px; font-weight:600; }"
+        ".occ-title { text-align:center; color:#1e9bff; font-family:'Orbitron','Segoe UI',sans-serif; font-size:15px; font-weight:700;"
+        " letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; text-shadow:0 0 4px rgba(30,155,255,.5); }"
+        ".occ-row { display:flex; flex:1; justify-content:space-between; align-items:center; padding:6px 8px; border-top:1px solid #1e9bff22; }"
+        ".occ-label { color:#1e9bff; font-size:15px; font-weight:600; }"
+        ".occ-value { color:#1e9bff; font-family:Georgia,'Times New Roman',serif; font-size:19px; font-weight:600; }"
         "</style>"
         f"<div class='occ-panel'><div class='occ-title'>Reporte de Ocupación</div>{rows}</div>",
         unsafe_allow_html=True,
@@ -7812,6 +7812,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
