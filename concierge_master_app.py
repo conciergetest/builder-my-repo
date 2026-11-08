@@ -656,6 +656,15 @@ st.markdown(
         div.st-key-occ_outer { height: auto !important; min-height: 0 !important; }
         div.st-key-occ_wrap { position: relative !important; top: auto !important; right: auto !important; width: 100% !important;
             height: auto !important; min-height: 282px; margin: 10px 0 !important; }
+        /* Lista del Reporte de Ocupación en celular: cada fila se queda en una línea (4 columnas) */
+        div[data-testid="stDialog"]:has(.occ-detail-title) [data-testid="stHorizontalBlock"] { flex-wrap: nowrap !important; gap: 4px !important; }
+        div[data-testid="stDialog"]:has(.occ-detail-title) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { width: auto !important; flex: 1 1 0 !important; min-width: 0 !important; }
+        div[data-testid="stDialog"]:has(.occ-detail-title) [data-testid="stButton"] button { font-size: 12px !important; padding: 6px 4px !important; word-break: break-word !important; }
+        div[data-testid="stDialog"]:has(.occ-detail-title) .occ-detail-head { font-size: 9px !important; padding: 6px 4px !important; white-space: nowrap !important; }
+        div[data-testid="stDialog"]:has(.occ-detail-title) .occ-h-full { display: none !important; }
+        div[data-testid="stDialog"]:has(.occ-detail-title) .occ-h-short { display: inline !important; }
+        /* En celular el logo del Reporte de Ocupación estorbaba los números: se oculta */
+        div.st-key-occ_wrap::before { display: none !important; }
         div[data-testid="stDialog"] > div { width: 96vw !important; max-width: 96vw !important; }
         div[data-testid="stDialog"] > div:first-child { width: 96vw !important; max-width: 96vw !important; }
     }
@@ -2359,6 +2368,7 @@ def occ_detail_dialog(label: str, frame: pd.DataFrame) -> None:
         " font-weight:700; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; text-shadow:0 0 5px rgba(30,155,255,.5); }"
         ".occ-detail-head { color:#FFD700; font-family:'Orbitron','Segoe UI',sans-serif; font-size:11px; letter-spacing:1px;"
         " text-transform:uppercase; border-bottom:1px solid #1e9bff55; padding:8px 10px; }"
+        ".occ-h-short { display:none; }"
         ".st-key-occ_detail_list [data-testid='stHorizontalBlock'] { gap:0 !important; }"
         ".st-key-occ_detail_list [data-testid='stButton'] button { background:transparent !important; border:none !important;"
         " border-bottom:1px solid #1e9bff22 !important; border-radius:0 !important; box-shadow:none !important;"
@@ -2370,7 +2380,11 @@ def occ_detail_dialog(label: str, frame: pd.DataFrame) -> None:
         unsafe_allow_html=True,
     )
     heads = st.columns([1.2, 2.5, 1.6, 1.6])
-    for col, title in zip(heads, ["Habitación", "Huésped", "Entrada", "Salida"]):
+    head_labels = [
+        "<span class='occ-h-full'>Habitación</span><span class='occ-h-short'>Hab.</span>",
+        "Huésped", "Entrada", "Salida",
+    ]
+    for col, title in zip(heads, head_labels):
         col.markdown(f"<div class='occ-detail-head'>{title}</div>", unsafe_allow_html=True)
     with st.container(key="occ_detail_list"):
         for i, (_, g) in enumerate(frame.iterrows()):
@@ -8034,6 +8048,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
