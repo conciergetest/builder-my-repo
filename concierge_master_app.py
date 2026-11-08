@@ -1817,9 +1817,9 @@ def show_header() -> None:
             """
             <style>
             .st-key-header_center_btns { display:flex; justify-content:center; align-items:center; gap:8px; }
-            .st-key-header_arrivals_btn button { --c:#22d3ee; }
-            .st-key-header_reminders_btn button { --c:#d4a94f; }
-            .st-key-header_qrcode_btn button { --c:#3b82f6; }
+            .st-key-header_arrivals_btn button { --c:#1e9bff; }
+            .st-key-header_reminders_btn button { --c:#1e9bff; }
+            .st-key-header_qrcode_btn button { --c:#1e9bff; }
             </style>
             """,
             unsafe_allow_html=True,
@@ -2279,10 +2279,10 @@ def render_menu() -> None:
 def render_app_links() -> None:
     """Muestra los 4 botones de acceso rápido a otras apps en el centro del dashboard."""
     apps = [
-        ("🏊 Aquatic Reservations", "https://activities-avhsghtxc4ewcdvhqjejrp.streamlit.app/", "#0891B2"),
-        ("📋 Operator's Log", "https://hotel-logbook-zu2ywlashxhykapkbxawfc.streamlit.app/", "#D97706"),
-        ("✏️ VT Creator", "https://activity-certificate-waldorf-jwxquxl93r5ntvye4w3ftu.streamlit.app/", "#7C3AED"),
-        ("🗄️ VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/", "#059669"),
+        ("🏊 Aquatic Reservations", "https://activities-avhsghtxc4ewcdvhqjejrp.streamlit.app/", "#1e9bff"),
+        ("📋 Operator's Log", "https://hotel-logbook-zu2ywlashxhykapkbxawfc.streamlit.app/", "#1e9bff"),
+        ("✏️ VT Creator", "https://activity-certificate-waldorf-jwxquxl93r5ntvye4w3ftu.streamlit.app/", "#1e9bff"),
+        ("🗄️ VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/", "#1e9bff"),
     ]
     buttons = "".join(
         f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="--c:{bg}">'
@@ -7320,10 +7320,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
     with f2:
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
         st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
-        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#22d3ee;height:46px;margin-top:28px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;height:46px;margin-top:28px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
     with f3:
-        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#d4a94f;height:46px;margin-top:28px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;height:46px;margin-top:28px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with f4:
         render_menu()
@@ -7333,9 +7333,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
     st.markdown(
         """
         <style>
-        .st-key-btn_vip_candidates button { --c:#a855f7; }
-        .st-key-btn_guests_directory button { --c:#14b8a6; }
-        .st-key-btn_pending button { --c:#d4a94f; }
+        .st-key-btn_vip_candidates button { --c:#1e9bff; }
+        .st-key-btn_guests_directory button { --c:#1e9bff; }
+        .st-key-btn_pending button { --c:#1e9bff; }
         </style>
         """,
         unsafe_allow_html=True,
@@ -7702,3 +7702,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
