@@ -2253,7 +2253,7 @@ def render_menu() -> None:
         """
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
-        div[class*="st-key-main_menu_btn"] { margin-top:17px !important; }
+        div[class*="st-key-main_menu_btn"] { margin-top:4px !important; }
         div[class*="st-key-main_menu_btn"] [data-testid="stButton"] { display:flex !important; justify-content:flex-end !important; width:100% !important; }
         div[class*="st-key-main_menu_btn"] button {
             width:fit-content !important; min-width:0 !important; display:flex !important;
@@ -2301,7 +2301,7 @@ def render_app_links() -> None:
     )
     st.markdown(
         '<style>'
-        '.app-links { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin:14px 0 4px; }'
+        '.app-links { display:flex; flex-wrap:wrap; justify-content:flex-start; gap:12px; margin:14px 0 4px; }'
         '.app-link { display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; '
         'box-sizing:border-box; width:fit-content; max-width:100%; justify-self:center; padding:0 22px; border:2px solid var(--c); border-radius:999px; color:#f0faff !important; text-decoration:none !important; '
         "font-family:'Orbitron','Segoe UI',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; text-align:center; white-space:nowrap; overflow:hidden; "
@@ -2311,7 +2311,7 @@ def render_app_links() -> None:
         '.app-link:hover, .app-link:visited, .app-link:active { color:#fff !important; text-decoration:none !important; }'
         '.app-link:hover { box-shadow:0 0 4px var(--c), 0 0 14px color-mix(in srgb, var(--c) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 25%, transparent); }'
         '.app-link span { color:#f0faff !important; text-decoration:none !important; text-shadow:0 0 3px color-mix(in srgb, var(--c) 70%, transparent); }'
-        '@media (max-width:980px){ .app-links { justify-content:center; } }'
+        '@media (max-width:980px){ .app-links { justify-content:flex-start; } }'
         '</style>'
         f'<div class="app-links">{buttons}</div>',
         unsafe_allow_html=True,
@@ -7323,6 +7323,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
     st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
     st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(a.neon-pill) > div[data-testid="stColumn"]:has(a.neon-pill) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
+    st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { justify-content:flex-start !important; gap:12px !important; } div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
     f1, f2, f3, f4 = st.columns([0.8, 0.9, 0.9, 2.4])
 
     with f1:
@@ -7333,10 +7334,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with f2:
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;height:46px;position:relative;top:24px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;height:46px;position:relative;top:11px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
     with f3:
-        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;height:46px;position:relative;top:24px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;height:46px;position:relative;top:11px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with f4:
         render_menu()
@@ -7719,6 +7720,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
