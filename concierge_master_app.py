@@ -2373,6 +2373,15 @@ def occ_detail_dialog(label: str, frame: pd.DataFrame) -> None:
                         _occ_pick_guest(g.to_dict())
 
 
+def _occ_open_edit(reservation: dict) -> None:
+    """Cierra el popup de información y abre EDITAR con esta reserva, igual que al elegirla en la tabla."""
+    st.session_state["selected_reservation"] = reservation
+    st.session_state["selected_reservation_id"] = reservation.get("id")
+    st.query_params["sel_id"] = str(reservation.get("id"))
+    st.session_state["open_editar"] = True
+    _app_rerun()
+
+
 @st.dialog("👤 Información de la Reservación", width="large")
 def occ_guest_dialog(reservation: dict) -> None:
     """Solo lectura: muestra todo lo que aparece en EDITAR, sin formulario."""
@@ -2423,6 +2432,10 @@ def occ_guest_dialog(reservation: dict) -> None:
         f"<div class='occ-g-grid'>{cells}</div>",
         unsafe_allow_html=True,
     )
+    _, edit_col = st.columns([3, 1])
+    with edit_col:
+        if st.button("✏️ EDIT", use_container_width=True, key="occ_guest_edit", help="Editar esta reservación"):
+            _occ_open_edit(reservation)
     if st.button("Cerrar", use_container_width=True, key="close_occ_guest_dialog"):
         st.rerun()
 
@@ -7973,6 +7986,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
