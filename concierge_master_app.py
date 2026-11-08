@@ -7323,10 +7323,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with f2:
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;height:46px;margin-top:28px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;height:46px;position:relative;top:24px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
     with f3:
-        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;height:46px;margin-top:28px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;height:46px;position:relative;top:24px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with f4:
         render_menu()
@@ -7339,7 +7339,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         .st-key-btn_vip_candidates button { --c:#1e9bff; }
         .st-key-btn_guests_directory button { --c:#1e9bff; }
         .st-key-btn_pending button { --c:#1e9bff; }
-        div[data-testid="stHorizontalBlock"]:has(.st-key-btn_pending) { justify-content:center !important; gap:12px !important; }
+        div[data-testid="stHorizontalBlock"]:has(.st-key-btn_pending) { justify-content:flex-start !important; gap:12px !important; }
         div[data-testid="stHorizontalBlock"]:has(.st-key-btn_pending) [data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
         </style>
         """,
@@ -7707,3 +7707,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
