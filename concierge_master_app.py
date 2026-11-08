@@ -2489,24 +2489,15 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
         "Llegan hoy": df[df["check_in"] == today_label],
         "Llegan mañana": df[df["check_in"] == tomorrow_label],
     }
-    # Porcentajes (bases acordadas):
-    #  En casa = en casa / reservas con check-in <= hoy
-    #  Salen hoy / Salen mañana = salidas / En casa de ese mismo día
-    #  Llegan hoy / Llegan mañana = llegadas / reservas activas (check-out > hoy)
-    in_house_tomorrow = df[(parsed_check_in <= tomorrow) & (parsed_check_out > tomorrow)]
-    arrived_to_date = df[parsed_check_in <= today]
-    active = df[parsed_check_out > today]
+    # Porcentajes: base = reservas que AÚN NO han salido (check-out hoy o después,
+    # o sea, sin el icono 🏃). Todas las filas se calculan contra esa misma base.
+    today_midnight = today.replace(hour=0, minute=0, second=0, microsecond=0)
+    base_count = int(df[parsed_check_out.map(lambda d: d is not None and not pd.isna(d) and d >= today_midnight)].shape[0])
 
-    def _pct(part: int, base: int) -> str:
-        return f"{part * 100 / base:.0f}%" if base else "0%"
+    def _pct(part: int) -> str:
+        return f"{part * 100 / base_count:.0f}%" if base_count else "0%"
 
-    pct_text = {
-        "En casa": _pct(len(frames["En casa"]), len(arrived_to_date)),
-        "Salen hoy": _pct(len(frames["Salen hoy"]), len(frames["En casa"])),
-        "Salen mañana": _pct(len(frames["Salen mañana"]), len(in_house_tomorrow)),
-        "Llegan hoy": _pct(len(frames["Llegan hoy"]), len(active)),
-        "Llegan mañana": _pct(len(frames["Llegan mañana"]), len(active)),
-    }
+    pct_text = {label: _pct(len(frame)) for label, frame in frames.items()}
     st.markdown(
         "<style>"
         ".occ-pct { color:#00e5ff; font-family:'Orbitron','Segoe UI',sans-serif; font-size:12px; font-weight:700;"
@@ -8071,6 +8062,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
