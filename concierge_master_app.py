@@ -267,7 +267,7 @@ _vigilar_inactividad()
 import streamlit.components.v1 as _wr_components
 
 # Botón LOGOUT (neón azul). Enlaza a la URL base sin token: vuelve a la pantalla de clave.
-# Se inyecta en el <body> de la página principal (fuera del contenedor con scroll de Streamlit)
+# Se inyecta en el <html> de la página principal (fuera del contenedor con scroll de Streamlit)
 # para que quede fijo en la pantalla y no se desplace con el scroll de la tabla.
 _LOGOUT_JS = """
 <script>
@@ -315,7 +315,7 @@ _LOGOUT_JS = """
     var a = doc.createElement('a'); a.id = 'wr-logout-btn'; a.className = 'logout-btn';
     a.href = window.parent.location.pathname; a.target = '_self'; a.title = 'Cerrar sesión';
     a.innerHTML = '<span class="lo-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px #00d4ff)"><path d="M11 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h6"/><path d="M9 12h11"/><path d="M16 8l4 4-4 4"/></svg></span><span class="lo-sep"></span><span class="lo-txt">LOGOUT</span><span class="lo-arr">&raquo;</span>';
-    doc.body.appendChild(a);
+    doc.documentElement.appendChild(a);  // fuera de <body>: un transform en body no afecta su posición fija
   } catch (e) { console.warn('logout button:', e); }
 })();
 </script>
