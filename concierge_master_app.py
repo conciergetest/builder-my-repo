@@ -2430,7 +2430,8 @@ def occ_guest_dialog(reservation: dict, allow_edit: bool = True) -> None:
         ".occ-g-cell { min-height:62px; }"
         ".occ-g-wide { grid-column:span 2; }"
         ".occ-g-grid { min-height:380px; align-content:start; }"
-        ".occ-g-logo { display:flex; align-items:center; justify-content:center; background:transparent; border:none; grid-row:span 2; }"
+        ".occ-g-logo { display:flex; align-items:center; justify-content:flex-end; padding-right:28px; background:transparent; border:none; grid-column:1 / -1; }"
+        "div[data-testid='stDialog']:has(.occ-g-grid) > div { width:min(94vw,1450px) !important; max-width:94vw !important; }"
         ".occ-g-logo img { max-width:100%; max-height:150px; object-fit:contain; filter:drop-shadow(0 0 8px rgba(212,175,55,.35)); }"
         "</style>"
         f"<div class='occ-g-head'>{safe_text(name)} &nbsp;·&nbsp; Room {safe_text(room)}</div>"
@@ -8004,6 +8005,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
