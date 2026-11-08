@@ -1,4 +1,4 @@
-"""Concierge Master — Streamlit + Supabase.
+""""Concierge Master — Streamlit + Supabase.
 
 Instalación:
     pip install -r requirements_streamlit.txt
@@ -2512,8 +2512,8 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
         ".st-key-occ_wrap [data-testid='stButton'] button:hover, .st-key-occ_wrap [data-testid='stButton'] button:focus { color:#F7E9AE !important;"
         " text-shadow:0 0 8px rgba(212,175,55,.9) !important; background:#D4AF3714 !important; }"
         ".st-key-occ_wrap [data-testid='stMarkdownContainer'] p { margin:0 !important; line-height:1 !important; }"
-        ".occ-value { color:#D4AF37; font-family:'Orbitron','Segoe UI',sans-serif; font-size:16px; font-weight:700; text-align:right;"
-        " padding-right:4px; position:relative; top:-3px; text-shadow:0 0 6px rgba(212,175,55,.55); }"
+        ".occ-value { color:#00e5ff; font-family:'Orbitron','Segoe UI',sans-serif; font-size:16px; font-weight:700; text-align:right;"
+        " padding-right:4px; position:relative; top:-3px; text-shadow:0 0 6px rgba(0,229,255,.6); }"
         "</style>",
         unsafe_allow_html=True,
     )
@@ -8048,6 +8048,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
