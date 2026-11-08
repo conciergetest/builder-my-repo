@@ -1737,7 +1737,7 @@ NEON_PILL_CSS = """
 .st-key-btn_vip_candidates button, .st-key-btn_guests_directory button, .st-key-btn_pending button,
 .neon-pill {
     display:flex !important; align-items:center !important; justify-content:center !important;
-    width:100%; box-sizing:border-box; min-height:46px; padding:0 12px !important;
+    width:fit-content !important; max-width:100%; box-sizing:border-box; min-height:46px; padding:0 22px !important; margin:0 auto !important;
     border-radius:999px !important; border:2px solid var(--c) !important;
     background: linear-gradient(90deg, #02101f 0%, #061d38 55%, #02101f 100%) !important;
     color:#f0faff !important; text-decoration:none !important;
@@ -2293,7 +2293,7 @@ def render_app_links() -> None:
         '<style>'
         '.app-links { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:14px 0 4px; }'
         '.app-link { display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; '
-        'box-sizing:border-box; border:2px solid var(--c); border-radius:999px; color:#f0faff !important; text-decoration:none !important; '
+        'box-sizing:border-box; width:fit-content; max-width:100%; justify-self:center; padding:0 22px; border:2px solid var(--c); border-radius:999px; color:#f0faff !important; text-decoration:none !important; '
         "font-family:'Orbitron','Segoe UI',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; text-align:center; white-space:nowrap; overflow:hidden; "
         'background:linear-gradient(90deg,#02101f 0%,#061d38 55%,#02101f 100%); '
         'box-shadow:0 0 6px var(--c), 0 0 18px color-mix(in srgb, var(--c) 55%, transparent), inset 0 0 14px color-mix(in srgb, var(--c) 35%, transparent); '
@@ -7311,6 +7311,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     # Fila horizontal: filtros + menú
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+    st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
     f1, f2, f3, f4 = st.columns([2.2, 1.3, 1.3, 1])
 
     with f1:
@@ -7319,11 +7320,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with f2:
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
-        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;height:46px;margin-top:28px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;height:46px;margin-top:28px;width:fit-content;margin-left:auto;margin-right:auto;padding:0 22px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
     with f3:
-        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;height:46px;margin-top:28px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;height:46px;margin-top:28px;width:fit-content;margin-left:auto;margin-right:auto;padding:0 22px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with f4:
         render_menu()
@@ -7702,4 +7702,5 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
