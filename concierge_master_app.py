@@ -2383,8 +2383,8 @@ def _occ_open_edit(reservation: dict) -> None:
 
 
 @st.dialog("👤 Información de la Reservación", width="large")
-def occ_guest_dialog(reservation: dict) -> None:
-    """Solo lectura: muestra todo lo que aparece en EDITAR, sin formulario."""
+def occ_guest_dialog(reservation: dict, allow_edit: bool = True) -> None:
+    """Solo lectura: muestra todo lo que aparece en EDITAR, sin formulario. allow_edit agrega el botón EDIT."""
     room = _occ_clean(reservation.get("room")) or "—"
     name = _occ_clean(reservation.get("name")) or "SIN NOMBRE"
     info_cat, info_notes = split_information_category(reservation.get("info", ""))
@@ -2432,10 +2432,11 @@ def occ_guest_dialog(reservation: dict) -> None:
         f"<div class='occ-g-grid'>{cells}</div>",
         unsafe_allow_html=True,
     )
-    _, edit_col = st.columns([3, 1])
-    with edit_col:
-        if st.button("✏️ EDIT", use_container_width=True, key="occ_guest_edit", help="Editar esta reservación"):
-            _occ_open_edit(reservation)
+    if allow_edit:
+        _, edit_col = st.columns([3, 1])
+        with edit_col:
+            if st.button("✏️ EDIT", use_container_width=True, key="occ_guest_edit", help="Editar esta reservación"):
+                _occ_open_edit(reservation)
     if st.button("Cerrar", use_container_width=True, key="close_occ_guest_dialog"):
         st.rerun()
 
@@ -7737,6 +7738,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 box-shadow: 0 0 4px var(--c), 0 0 14px color-mix(in srgb, var(--c) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 25%, transparent) !important;
             }
             .st-key-btn_sel_editar { --c:#D97706; --ico:"✎"; }
+            .st-key-btn_sel_info { --c:#1e9bff; --ico:"ℹ"; }
             .st-key-btn_sel_carta { --c:#7C3AED; --ico:"✉"; }
             .st-key-btn_sel_borrar { --c:#E11D48; --ico:"🗑"; }
             .st-key-btn_sel_deselect { --c:#3a3a3a; --ico:"✖"; }
@@ -7745,11 +7747,16 @@ def render_dashboard(df: pd.DataFrame) -> None:
             unsafe_allow_html=True,
         )
         with st.container(key="selection_actions"):
-            act1, act2, act3, act4 = st.columns(4)
+            act1, act_info, act2, act3, act4 = st.columns(5)
             with act1:
                 with st.container(key="btn_sel_editar"):
                     if st.button("EDITAR", use_container_width=True, key="do_sel_editar"):
                         st.session_state["open_editar"] = True
+                        st.rerun()
+            with act_info:
+                with st.container(key="btn_sel_info"):
+                    if st.button("VER INFO", use_container_width=True, key="do_sel_info"):
+                        st.session_state["open_ver_info"] = True
                         st.rerun()
             with act2:
                 with st.container(key="btn_sel_carta"):
@@ -7941,6 +7948,12 @@ if _occ_guest is not None:
     st.session_state.pop("open_editar", None)
     occ_guest_dialog(_occ_guest)
 
+# Popup VER INFO (solo lectura) desde los botones de la reserva seleccionada.
+if st.session_state.pop("open_ver_info", False):
+    _ver_info_res = st.session_state.get("selected_reservation")
+    if _ver_info_res:
+        occ_guest_dialog(_ver_info_res, allow_edit=False)
+
 
 def _redirect_to_dialog(flag: str) -> None:
     """Quita `action` de la URL, conserva filtros y abre el popup en el dashboard."""
@@ -7986,6 +7999,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
