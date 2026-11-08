@@ -2301,11 +2301,11 @@ def render_app_links() -> None:
         'box-sizing:border-box; width:fit-content; max-width:100%; justify-self:center; padding:0 22px; border:2px solid var(--c); border-radius:999px; color:#f0faff !important; text-decoration:none !important; '
         "font-family:'Orbitron','Segoe UI',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; text-align:center; white-space:nowrap; overflow:hidden; "
         'background:linear-gradient(90deg,#02101f 0%,#061d38 55%,#02101f 100%); '
-        'box-shadow:0 0 6px var(--c), 0 0 18px color-mix(in srgb, var(--c) 55%, transparent), inset 0 0 14px color-mix(in srgb, var(--c) 35%, transparent); '
+        'box-shadow:0 0 3px var(--c), 0 0 9px color-mix(in srgb, var(--c) 30%, transparent), inset 0 0 8px color-mix(in srgb, var(--c) 18%, transparent); '
         'transition:box-shadow .2s ease; min-height:46px; }'
         '.app-link:hover, .app-link:visited, .app-link:active { color:#fff !important; text-decoration:none !important; }'
-        '.app-link:hover { box-shadow:0 0 10px var(--c), 0 0 28px color-mix(in srgb, var(--c) 85%, transparent), inset 0 0 18px color-mix(in srgb, var(--c) 55%, transparent); }'
-        '.app-link span { color:#f0faff !important; text-decoration:none !important; text-shadow:0 0 6px var(--c); }'
+        '.app-link:hover { box-shadow:0 0 4px var(--c), 0 0 14px color-mix(in srgb, var(--c) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 25%, transparent); }'
+        '.app-link span { color:#f0faff !important; text-decoration:none !important; text-shadow:0 0 3px color-mix(in srgb, var(--c) 70%, transparent); }'
         '@media (max-width:980px){ .app-links { justify-content:center; } }'
         '</style>'
         f'<div class="app-links">{buttons}</div>',
@@ -7712,3 +7712,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
