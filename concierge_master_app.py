@@ -2374,22 +2374,27 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
         "<style>"
         ".st-key-occ_outer { position:relative !important; height:0 !important; min-height:0 !important; overflow:visible !important; }"
         ".st-key-occ_outer > div, .st-key-occ_outer [data-testid='stVerticalBlock'] { overflow:visible !important; }"
-        ".st-key-occ_wrap { position:absolute !important; top:0; left:0; right:0; z-index:5; height:282px; box-sizing:border-box;"
-        " margin-top:14px; padding:16px 22px 14px; border:1px solid #1e9bff55; border-radius:12px;"
+        ".st-key-occ_wrap { position:absolute !important; top:0; left:auto; right:0; width:318px; z-index:5; height:282px; box-sizing:border-box;"
+        " margin-top:14px; padding:16px 20px 14px; border:1px solid #1e9bff55; border-radius:12px;"
         " background:linear-gradient(135deg,#1e9bff14 0%,#05080f 85%); box-shadow:0 0 10px rgba(30,155,255,.15);"
         " display:flex; flex-direction:column; justify-content:space-between; overflow:visible !important; }"
         ".st-key-occ_wrap [data-testid='stVerticalBlock'] { gap:0 !important; }"
-        ".occ-title { text-align:center; color:#1e9bff; font-family:'Orbitron','Segoe UI',sans-serif; font-size:15px; font-weight:700;"
-        " letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; text-shadow:0 0 4px rgba(30,155,255,.5); }"
-        ".st-key-occ_wrap [data-testid='stHorizontalBlock'] { align-items:center !important; border-top:1px solid #1e9bff22; }"
+        ".occ-title { text-align:center; color:#D4AF37; font-family:'Orbitron','Segoe UI',sans-serif; font-size:15px; font-weight:700;"
+        " letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; text-shadow:0 0 6px rgba(212,175,55,.55), 0 0 14px rgba(212,175,55,.25); }"
+        ".st-key-occ_wrap [data-testid='stHorizontalBlock'] { align-items:center !important; border-top:1px solid #D4AF3733; gap:6px !important; }"
+        ".st-key-occ_wrap [data-testid='stHorizontalBlock'] > [data-testid='stColumn']:last-child { flex:0 0 58px !important; width:58px !important; min-width:58px !important; }"
+        ".st-key-occ_wrap [data-testid='stHorizontalBlock'] > [data-testid='stColumn']:first-child { flex:1 1 auto !important; min-width:0 !important; }"
         ".st-key-occ_wrap [data-testid='stButton'] button { background:transparent !important; border:none !important; box-shadow:none !important;"
-        " color:#1e9bff !important; font-size:15px !important; font-weight:600 !important; justify-content:flex-start !important;"
-        " padding:6px 8px !important; min-height:0 !important; width:100%; text-align:left !important; }"
-        ".st-key-occ_wrap [data-testid='stButton'] button > div, .st-key-occ_wrap [data-testid='stButton'] button p { justify-content:flex-start !important; text-align:left !important; width:100%; margin:0 !important; }"
-        ".st-key-occ_wrap [data-testid='stButton'] button:hover, .st-key-occ_wrap [data-testid='stButton'] button:focus { color:#7fd3ff !important;"
-        " text-shadow:0 0 6px rgba(30,155,255,.7); background:#1e9bff14 !important; }"
+        " color:#D4AF37 !important; font-family:'Orbitron','Segoe UI',sans-serif !important; font-size:13px !important; font-weight:700 !important;"
+        " letter-spacing:1.5px !important; text-transform:uppercase !important; justify-content:flex-start !important;"
+        " padding:6px 6px !important; min-height:0 !important; width:100%; text-align:left !important;"
+        " text-shadow:0 0 6px rgba(212,175,55,.55) !important; }"
+        ".st-key-occ_wrap [data-testid='stButton'] button > div, .st-key-occ_wrap [data-testid='stButton'] button p { justify-content:flex-start !important; text-align:left !important; width:100%; margin:0 !important; font-family:'Orbitron','Segoe UI',sans-serif !important; color:#D4AF37 !important; }"
+        ".st-key-occ_wrap [data-testid='stButton'] button:hover, .st-key-occ_wrap [data-testid='stButton'] button:focus { color:#F7E9AE !important;"
+        " text-shadow:0 0 8px rgba(212,175,55,.9) !important; background:#D4AF3714 !important; }"
         ".st-key-occ_wrap [data-testid='stMarkdownContainer'] p { margin:0 !important; line-height:1 !important; }"
-        ".occ-value { color:#1e9bff; font-family:Georgia,'Times New Roman',serif; font-size:19px; font-weight:600; text-align:right; padding-right:8px; position:relative; top:-4px; }"
+        ".occ-value { color:#D4AF37; font-family:'Orbitron','Segoe UI',sans-serif; font-size:16px; font-weight:700; text-align:right;"
+        " padding-right:4px; position:relative; top:-3px; text-shadow:0 0 6px rgba(212,175,55,.55); }"
         "</style>",
         unsafe_allow_html=True,
     )
@@ -2397,7 +2402,7 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
     if mini_logo:
         st.markdown(
             "<style>.st-key-occ_wrap::before { content:''; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);"
-            " width:200px; height:200px; background:url('data:image/png;base64," + mini_logo + "') center / contain no-repeat;"
+            " width:150px; height:150px; background:url('data:image/png;base64," + mini_logo + "') center / contain no-repeat;"
             " pointer-events:none; z-index:-1; }</style>",
             unsafe_allow_html=True,
         )
@@ -7891,6 +7896,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
