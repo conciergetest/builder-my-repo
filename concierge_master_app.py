@@ -2253,11 +2253,12 @@ def render_menu() -> None:
         """
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
-        div[class*="st-key-main_menu_btn"] { margin-top:4px !important; }
+        div[class*="st-key-main_menu_btn"] { margin-top:18px !important; }
         div[class*="st-key-main_menu_btn"] [data-testid="stButton"] { display:flex !important; justify-content:flex-end !important; width:100% !important; }
         div[class*="st-key-main_menu_btn"] button {
+            position:relative !important; overflow:visible !important;
             width:fit-content !important; min-width:0 !important; display:flex !important;
-            height:46px !important; min-height:46px !important; padding:0 26px !important;
+            height:46px !important; min-height:46px !important; padding:0 26px 0 68px !important;
             background: linear-gradient(90deg, #0d0a02 0%, #1f1705 55%, #0d0a02 100%) !important;
             border: 2px solid #d4af37 !important;
             border-radius: 999px !important;
@@ -2268,6 +2269,18 @@ def render_menu() -> None:
             text-shadow: 0 0 4px rgba(212,175,55,.7) !important;
             box-shadow: 0 0 3px #d4af37, 0 0 9px rgba(212,175,55,.3), inset 0 0 8px rgba(212,175,55,.18) !important;
             transition: box-shadow .2s ease !important;
+        }
+        div[class*="st-key-main_menu_btn"] button::before {
+            content:"☰"; position:absolute; left:4px; top:50%; transform:translateY(-50%);
+            width:36px; height:36px; box-sizing:border-box; border-radius:50%;
+            border:2px solid #d4af37; display:flex; align-items:center; justify-content:center;
+            background: radial-gradient(circle, #2a2008 0%, #0d0a02 85%);
+            box-shadow: 0 0 6px #d4af37, inset 0 0 8px rgba(212,175,55,.45);
+            color:#fff7d6; font-size:18px; line-height:1; text-shadow:0 0 6px #d4af37;
+        }
+        div[class*="st-key-main_menu_btn"] button::after {
+            content:""; position:absolute; left:50px; top:50%; transform:translateY(-50%);
+            width:2px; height:28px; background:linear-gradient(#f3e3a1,#d4af37); box-shadow:0 0 6px #d4af37;
         }
         div[class*="st-key-main_menu_btn"] button p {
             color:inherit !important; font-family:inherit !important; font-weight:inherit !important;
@@ -2282,7 +2295,7 @@ def render_menu() -> None:
         unsafe_allow_html=True,
     )
 
-    if st.button("☰ MENÚ »", key=f"main_menu_btn_{menu_nonce}"):
+    if st.button("MENÚ »", key=f"main_menu_btn_{menu_nonce}"):
         menu_dialog()
 
 
@@ -7334,10 +7347,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with f2:
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;height:46px;position:relative;top:11px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;height:46px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
     with f3:
-        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;height:46px;position:relative;top:11px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;height:46px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with f4:
         render_menu()
@@ -7720,6 +7733,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
