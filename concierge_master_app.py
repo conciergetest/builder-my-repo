@@ -2489,19 +2489,8 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
         "Llegan hoy": df[df["check_in"] == today_label],
         "Llegan mañana": df[df["check_in"] == tomorrow_label],
     }
-    # Porcentajes: base = reservas que AÚN NO han salido (check-out hoy o después,
-    # o sea, sin el icono 🏃). Todas las filas se calculan contra esa misma base.
-    today_midnight = today.replace(hour=0, minute=0, second=0, microsecond=0)
-    base_count = int(df[parsed_check_out.map(lambda d: d is not None and not pd.isna(d) and d >= today_midnight)].shape[0])
-
-    def _pct(part: int) -> str:
-        return f"{part * 100 / base_count:.0f}%" if base_count else "0%"
-
-    pct_text = {label: _pct(len(frame)) for label, frame in frames.items()}
     st.markdown(
         "<style>"
-        ".occ-pct { color:#00e5ff; font-family:'Orbitron','Segoe UI',sans-serif; font-size:12px; font-weight:700;"
-        " margin-left:6px; text-shadow:0 0 6px rgba(0,229,255,.6); }"
         ".st-key-occ_outer { position:relative !important; height:0 !important; min-height:0 !important; overflow:visible !important; }"
         ".st-key-occ_outer > div, .st-key-occ_outer [data-testid='stVerticalBlock'] { overflow:visible !important; }"
         ".st-key-occ_wrap { position:absolute !important; top:0; left:auto; right:0; width:480px; z-index:5; height:282px; box-sizing:border-box;"
@@ -2511,8 +2500,8 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
         ".st-key-occ_wrap [data-testid='stVerticalBlock'] { gap:0 !important; }"
         ".occ-title { text-align:center; color:#D4AF37; font-family:'Orbitron','Segoe UI',sans-serif; font-size:15px; font-weight:700;"
         " letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; text-shadow:0 0 6px rgba(212,175,55,.55), 0 0 14px rgba(212,175,55,.25); }"
-        ".st-key-occ_wrap [data-testid='stHorizontalBlock'] { align-items:center !important; border-top:1px solid #D4AF3733; gap:6px !important; flex-wrap:nowrap !important; }"
-        ".st-key-occ_wrap [data-testid='stHorizontalBlock'] > [data-testid='stColumn']:last-child { flex:0 0 96px !important; width:96px !important; min-width:96px !important; }"
+        ".st-key-occ_wrap [data-testid='stHorizontalBlock'] { align-items:center !important; border-top:1px solid #D4AF3733; gap:6px !important; }"
+        ".st-key-occ_wrap [data-testid='stHorizontalBlock'] > [data-testid='stColumn']:last-child { flex:0 0 58px !important; width:58px !important; min-width:58px !important; }"
         ".st-key-occ_wrap [data-testid='stHorizontalBlock'] > [data-testid='stColumn']:first-child { flex:1 1 auto !important; min-width:0 !important; }"
         ".st-key-occ_wrap [data-testid='stButton'] button { background:transparent !important; border:none !important; box-shadow:none !important;"
         " color:#D4AF37 !important; font-family:'Orbitron','Segoe UI',sans-serif !important; font-size:12px !important; font-weight:700 !important;"
@@ -2545,10 +2534,7 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
                     if st.button(label, key=f"occ_btn_{i}", use_container_width=True):
                         occ_detail_dialog(label, frame)
                 with c_val:
-                    st.markdown(
-                        f"<div class='occ-value'>{len(frame)}<span class='occ-pct'>{pct_text[label]}</span></div>",
-                        unsafe_allow_html=True,
-                    )
+                    st.markdown(f"<div class='occ-value'>{len(frame)}</div>", unsafe_allow_html=True)
 
 
 def render_app_links() -> None:
@@ -8062,6 +8048,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
