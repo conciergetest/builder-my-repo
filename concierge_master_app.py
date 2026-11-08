@@ -7412,11 +7412,26 @@ def category_detail_dialog() -> None:
     df = cargar_reservaciones()
     filtered, filters = apply_filters(df)
 
-    st.markdown(
-        f"<div style='color:{color};font-size:16px;font-weight:900;letter-spacing:.6px;"
-        f"text-transform:uppercase;margin-bottom:2px;'>{safe_text(category)}</div>",
-        unsafe_allow_html=True,
-    )
+    _cat_logo = _waldorf_mini_logo_b64()
+    if _cat_logo:
+        _cat_title_col, _cat_logo_col = st.columns([3, 1])
+    else:
+        _cat_title_col, _cat_logo_col = st.container(), None
+    with _cat_title_col:
+        st.markdown(
+            f"<div style='color:{color};font-size:16px;font-weight:900;letter-spacing:.6px;"
+            f"text-transform:uppercase;margin-bottom:2px;'>{safe_text(category)}</div>",
+            unsafe_allow_html=True,
+        )
+    if _cat_logo_col is not None:
+        with _cat_logo_col:
+            st.markdown(
+                "<div style='text-align:right;'>"
+                f"<img src='data:image/png;base64,{_cat_logo}' alt='Waldorf' "
+                "style='max-height:110px;max-width:100%;object-fit:contain;"
+                "filter:drop-shadow(0 0 8px rgba(212,175,55,.35));'></div>",
+                unsafe_allow_html=True,
+            )
 
     if filters:
         captions = []
@@ -8005,6 +8020,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
