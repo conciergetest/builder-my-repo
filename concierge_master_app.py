@@ -2320,9 +2320,18 @@ def _occ_clean(value: object) -> str:
     return "" if value is None or pd.isna(value) else str(value).strip()
 
 
+_OCC_GUEST_FLAG = "occ_guest_detail"
+
+
+def _occ_pick_guest(record: dict) -> None:
+    """Guarda la reserva elegida y reabre la app: el popup de info se abre desde el nivel principal."""
+    st.session_state[_OCC_GUEST_FLAG] = record
+    _app_rerun()
+
+
 @st.dialog("📊 Reporte de Ocupación", width="large")
 def occ_detail_dialog(label: str, frame: pd.DataFrame) -> None:
-    """Popup con habitación, huésped, entrada y salida de la categoría elegida."""
+    """Popup con habitación, huésped, entrada y salida. Cada fila abre la información completa."""
     st.markdown(
         f"<div class='occ-detail-title'>{safe_text(label)} · {len(frame)}</div>",
         unsafe_allow_html=True,
@@ -2330,30 +2339,89 @@ def occ_detail_dialog(label: str, frame: pd.DataFrame) -> None:
     if frame.empty:
         st.info("No hay huéspedes en esta categoría.")
         return
-    body = "".join(
-        "<tr>"
-        f"<td>{safe_text(_occ_clean(g.get('room')) or 'SIN ROOM')}</td>"
-        f"<td>{safe_text(_occ_clean(g.get('name')) or 'SIN NOMBRE')}</td>"
-        f"<td>{safe_text(_occ_clean(g.get('check_in')))}</td>"
-        f"<td>{safe_text(_occ_clean(g.get('check_out')))}</td>"
-        "</tr>"
-        for _, g in frame.iterrows()
-    )
     st.markdown(
         "<style>"
         ".occ-detail-title { text-align:center; color:#1e9bff; font-family:'Orbitron','Segoe UI',sans-serif; font-size:16px;"
         " font-weight:700; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; text-shadow:0 0 5px rgba(30,155,255,.5); }"
-        ".occ-detail-table { width:100%; border-collapse:collapse; font-size:14px; }"
-        ".occ-detail-table th { color:#FFD700; font-family:'Orbitron','Segoe UI',sans-serif; font-size:11px; letter-spacing:1px;"
-        " text-transform:uppercase; text-align:left; padding:8px 10px; border-bottom:1px solid #1e9bff55; }"
-        ".occ-detail-table td { color:#e8f6ff; padding:7px 10px; border-bottom:1px solid #1e9bff22; }"
-        ".occ-detail-table tr:hover td { background:#1e9bff14; }"
-        "</style>"
-        "<table class='occ-detail-table'><thead><tr>"
-        "<th>Habitación</th><th>Huésped</th><th>Entrada</th><th>Salida</th>"
-        f"</tr></thead><tbody>{body}</tbody></table>",
+        ".occ-detail-head { color:#FFD700; font-family:'Orbitron','Segoe UI',sans-serif; font-size:11px; letter-spacing:1px;"
+        " text-transform:uppercase; border-bottom:1px solid #1e9bff55; padding:8px 10px; }"
+        ".st-key-occ_detail_list [data-testid='stHorizontalBlock'] { gap:0 !important; }"
+        ".st-key-occ_detail_list [data-testid='stButton'] button { background:transparent !important; border:none !important;"
+        " border-bottom:1px solid #1e9bff22 !important; border-radius:0 !important; box-shadow:none !important;"
+        " color:#e8f6ff !important; justify-content:flex-start !important; text-align:left !important;"
+        " padding:7px 10px !important; min-height:0 !important; width:100%; font-size:14px !important; }"
+        ".st-key-occ_detail_list [data-testid='stButton'] button > div, .st-key-occ_detail_list [data-testid='stButton'] button p"" { justify-content:flex-start !important; text-align:left !important; width:100%; margin:0 !important; color:#e8f6ff !important; }"
+        ".st-key-occ_detail_list [data-testid='stButton'] button:hover { background:#1e9bff14 !important; color:#ffffff !important; }"
+        "</style>",
         unsafe_allow_html=True,
     )
+    heads = st.columns([1.2, 2.5, 1.6, 1.6])
+    for col, title in zip(heads, ["Habitación", "Huésped", "Entrada", "Salida"]):
+        col.markdown(f"<div class='occ-detail-head'>{title}</div>", unsafe_allow_html=True)
+    with st.container(key="occ_detail_list"):
+        for i, (_, g) in enumerate(frame.iterrows()):
+            values = [
+                _occ_clean(g.get("room")) or "SIN ROOM",
+                _occ_clean(g.get("name")) or "SIN NOMBRE",
+                _occ_clean(g.get("check_in")),
+                _occ_clean(g.get("check_out")),
+            ]
+            cols = st.columns([1.2, 2.5, 1.6, 1.6])
+            for c, (col, value) in enumerate(zip(cols, values)):
+                with col:
+                    if st.button(value, key=f"occ_pick_{i}_{c}", use_container_width=True, help="Ver información completa"):
+                        _occ_pick_guest(g.to_dict())
+
+
+@st.dialog("👤 Información de la Reservación", width="large")
+def occ_guest_dialog(reservation: dict) -> None:
+    """Solo lectura: muestra todo lo que aparece en EDITAR, sin formulario."""
+    room = _occ_clean(reservation.get("room")) or "—"
+    name = _occ_clean(reservation.get("name")) or "SIN NOMBRE"
+    info_cat, info_notes = split_information_category(reservation.get("info", ""))
+    qty = pd.to_numeric(reservation.get("qty", 0), errors="coerce")
+    qty_txt = "" if pd.isna(qty) else f"{float(qty):.1f}"
+    recognized = is_recognition_marked(reservation.get(RECOGNITION_COLUMN, False))
+    fields = [
+        ("ETA", _occ_clean(reservation.get("eta"))),
+        ("Huéspedes", qty_txt),
+        ("Habitación", room),
+        ("Nombre", name),
+        ("Email", _occ_clean(reservation.get("email"))),
+        ("Check-in", _occ_clean(reservation.get("check_in"))),
+        ("Check-out", _occ_clean(reservation.get("check_out"))),
+        ("Reservation #", _occ_clean(reservation.get("res_number"))),
+        ("Teléfono", _occ_clean(reservation.get("phone"))),
+        ("Categoría", "" if info_cat == INFORMATION_CATEGORY_NONE else info_cat),
+        ("Information", info_notes),
+        ("IRD", _occ_clean(reservation.get("ird"))),
+        ("HSK", _occ_clean(reservation.get("hsk"))),
+        ("Rate", _occ_clean(reservation.get("rate"))),
+        ("Transportation", _occ_clean(reservation.get("trans"))),
+        ("Recognition", "Sí" if recognized else "No"),
+    ]
+    cells = "".join(
+        "<div class='occ-g-cell'>"
+        f"<div class='occ-g-label'>{safe_text(k)}</div>"
+        f"<div class='occ-g-value'>{safe_text(v) or '—'}</div>"
+        "</div>"
+        for k, v in fields
+    )
+    st.markdown(
+        "<style>"
+        ".occ-g-head { color:#D4AF37; font:800 15px/1.3 'Orbitron','Segoe UI',sans-serif; letter-spacing:1.4px;"
+        " text-transform:uppercase; margin-bottom:12px; text-shadow:0 0 6px rgba(212,175,55,.5); }"
+        ".occ-g-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }"
+        ".occ-g-cell { background:#0b1220; border:1px solid #D4AF3744; border-radius:8px; padding:8px 10px; min-width:0; }"
+        ".occ-g-label { color:#D4AF37; font:700 10px/1.2 'Orbitron','Segoe UI',sans-serif; letter-spacing:1px; text-transform:uppercase; }"
+        ".occ-g-value { color:#f0faff; font:500 14px/1.35 'Segoe UI',sans-serif; margin-top:4px; word-break:break-word; }"
+        "</style>"
+        f"<div class='occ-g-head'>{safe_text(name)} &nbsp;·&nbsp; Room {safe_text(room)}</div>"
+        f"<div class='occ-g-grid'>{cells}</div>",
+        unsafe_allow_html=True,
+    )
+    if st.button("Cerrar", use_container_width=True, key="close_occ_guest_dialog"):
+        st.rerun()
 
 
 def render_occupancy_panel(df: pd.DataFrame) -> None:
@@ -7851,6 +7919,12 @@ if st.session_state.pop("open_vip_alert", False):
     st.session_state.pop("open_editar", None)
     vip_alert_dialog()
 
+# Popup de información completa de la reserva elegida en el Reporte de Ocupación.
+_occ_guest = st.session_state.pop("occ_guest_detail", None)
+if _occ_guest is not None:
+    st.session_state.pop("open_editar", None)
+    occ_guest_dialog(_occ_guest)
+
 
 def _redirect_to_dialog(flag: str) -> None:
     """Quita `action` de la URL, conserva filtros y abre el popup en el dashboard."""
@@ -7896,6 +7970,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
