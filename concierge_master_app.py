@@ -1764,14 +1764,14 @@ NEON_PILL_CSS = """
     color:#f0faff !important; text-decoration:none !important;
     font-family:'Orbitron','Segoe UI',sans-serif !important; font-weight:700 !important; font-size:11px !important;
     letter-spacing:1px !important; text-transform:uppercase !important; white-space:nowrap !important; overflow:hidden !important;
-    text-shadow: 0 0 6px var(--c) !important;
-    box-shadow: 0 0 6px var(--c), 0 0 18px color-mix(in srgb, var(--c) 55%, transparent), inset 0 0 14px color-mix(in srgb, var(--c) 35%, transparent) !important;
+    text-shadow: 0 0 3px color-mix(in srgb, var(--c) 70%, transparent) !important;
+    box-shadow: 0 0 3px var(--c), 0 0 9px color-mix(in srgb, var(--c) 30%, transparent), inset 0 0 8px color-mix(in srgb, var(--c) 18%, transparent) !important;
     transition: box-shadow .2s ease !important;
 }
 .st-key-header_arrivals_btn button:hover, .st-key-header_reminders_btn button:hover, .st-key-header_qrcode_btn button:hover,
 .st-key-btn_vip_candidates button:hover, .st-key-btn_guests_directory button:hover, .st-key-btn_pending button:hover,
 .neon-pill:hover {
-    box-shadow: 0 0 10px var(--c), 0 0 28px color-mix(in srgb, var(--c) 85%, transparent), inset 0 0 18px color-mix(in srgb, var(--c) 55%, transparent) !important;
+    box-shadow: 0 0 4px var(--c), 0 0 14px color-mix(in srgb, var(--c) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 25%, transparent) !important;
     transform:none !important; filter:none !important; color:#ffffff !important;
 }
 </style>
