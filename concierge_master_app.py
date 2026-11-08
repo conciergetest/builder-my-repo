@@ -2320,7 +2320,7 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
     )
     st.markdown(
         "<style>"
-        ".occ-panel { box-sizing:border-box; margin-top:14px; padding:10px 18px 10px; border:1px solid #1e9bff55; border-radius:12px;"
+        ".st-key-occ_wrap { position:relative !important; height:0 !important; min-height:0 !important; overflow:visible !important; }.st-key-occ_wrap [data-testid='stVerticalBlock'], .st-key-occ_wrap [data-testid='stElementContainer'], .st-key-occ_wrap [data-testid='stMarkdownContainer'] { overflow:visible !important; }.st-key-occ_wrap .occ-panel { position:absolute !important; top:0; left:0; right:0; z-index:5; }.occ-panel { box-sizing:border-box; margin-top:14px; padding:10px 18px 10px; border:1px solid #1e9bff55; border-radius:12px;"
         " background:linear-gradient(135deg,#1e9bff14 0%,#05080f 85%); box-shadow:0 0 10px rgba(30,155,255,.15); }"
         ".occ-title { text-align:center; color:#1e9bff; font-family:'Orbitron','Segoe UI',sans-serif; font-size:13px; font-weight:700;"
         " letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; text-shadow:0 0 4px rgba(30,155,255,.5); }"
@@ -7380,7 +7380,8 @@ def render_dashboard(df: pd.DataFrame) -> None:
         with apps_col:
             render_app_links()
         with occ_col:
-            render_occupancy_panel(df)
+            with st.container(key="occ_wrap"):
+                render_occupancy_panel(df)
 
 
     # Fila horizontal: filtros + menú
@@ -7811,4 +7812,6 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
+
 
