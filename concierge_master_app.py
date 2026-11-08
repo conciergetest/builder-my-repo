@@ -2299,38 +2299,93 @@ def render_menu() -> None:
         menu_dialog()
 
 
+def _occ_clean(value: object) -> str:
+    return "" if value is None or pd.isna(value) else str(value).strip()
+
+
+@st.dialog("📊 Reporte de Ocupación", width="large")
+def occ_detail_dialog(label: str, frame: pd.DataFrame) -> None:
+    """Popup con habitación, huésped, entrada y salida de la categoría elegida."""
+    st.markdown(
+        f"<div class='occ-detail-title'>{safe_text(label)} · {len(frame)}</div>",
+        unsafe_allow_html=True,
+    )
+    if frame.empty:
+        st.info("No hay huéspedes en esta categoría.")
+        return
+    body = "".join(
+        "<tr>"
+        f"<td>{safe_text(_occ_clean(g.get('room')) or 'SIN ROOM')}</td>"
+        f"<td>{safe_text(_occ_clean(g.get('name')) or 'SIN NOMBRE')}</td>"
+        f"<td>{safe_text(_occ_clean(g.get('check_in')))}</td>"
+        f"<td>{safe_text(_occ_clean(g.get('check_out')))}</td>"
+        "</tr>"
+        for _, g in frame.iterrows()
+    )
+    st.markdown(
+        "<style>"
+        ".occ-detail-title { text-align:center; color:#1e9bff; font-family:'Orbitron','Segoe UI',sans-serif; font-size:16px;"
+        " font-weight:700; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; text-shadow:0 0 5px rgba(30,155,255,.5); }"
+        ".occ-detail-table { width:100%; border-collapse:collapse; font-size:14px; }"
+        ".occ-detail-table th { color:#FFD700; font-family:'Orbitron','Segoe UI',sans-serif; font-size:11px; letter-spacing:1px;"
+        " text-transform:uppercase; text-align:left; padding:8px 10px; border-bottom:1px solid #1e9bff55; }"
+        ".occ-detail-table td { color:#e8f6ff; padding:7px 10px; border-bottom:1px solid #1e9bff22; }"
+        ".occ-detail-table tr:hover td { background:#1e9bff14; }"
+        "</style>"
+        "<table class='occ-detail-table'><thead><tr>"
+        "<th>Habitación</th><th>Huésped</th><th>Entrada</th><th>Salida</th>"
+        f"</tr></thead><tbody>{body}</tbody></table>",
+        unsafe_allow_html=True,
+    )
+
+
 def render_occupancy_panel(df: pd.DataFrame) -> None:
-    """Resumen de ocupación: mismos conteos que el Reporte de Ocupación del menú."""
+    """Resumen de ocupación: mismos conteos que el Reporte de Ocupación del menú. Cada fila abre un popup."""
     today = ahora_cr()
     tomorrow = today + timedelta(days=1)
     today_label, tomorrow_label = today.strftime("%B %d, %Y"), tomorrow.strftime("%B %d, %Y")
     parsed_check_in = df["check_in"].map(parse_fecha)
     parsed_check_out = df["check_out"].map(parse_fecha)
-    counts = [
-        ("En casa", int(((parsed_check_in <= today) & (parsed_check_out > today)).sum())),
-        ("Salen hoy", int((df["check_out"] == today_label).sum())),
-        ("Salen mañana", int((df["check_out"] == tomorrow_label).sum())),
-        ("Llegan hoy", int((df["check_in"] == today_label).sum())),
-        ("Llegan mañana", int((df["check_in"] == tomorrow_label).sum())),
-    ]
-    rows = "".join(
-        f"<div class='occ-row'><span class='occ-label'>{safe_text(label)}</span>"
-        f"<span class='occ-value'>{value}</span></div>"
-        for label, value in counts
-    )
+    frames = {
+        "En casa": df[(parsed_check_in <= today) & (parsed_check_out > today)],
+        "Salen hoy": df[df["check_out"] == today_label],
+        "Salen mañana": df[df["check_out"] == tomorrow_label],
+        "Llegan hoy": df[df["check_in"] == today_label],
+        "Llegan mañana": df[df["check_in"] == tomorrow_label],
+    }
     st.markdown(
         "<style>"
-        ".st-key-occ_wrap { position:relative !important; height:0 !important; min-height:0 !important; overflow:visible !important; }.st-key-occ_wrap [data-testid='stVerticalBlock'], .st-key-occ_wrap [data-testid='stElementContainer'], .st-key-occ_wrap [data-testid='stMarkdownContainer'] { overflow:visible !important; }.st-key-occ_wrap .occ-panel { position:absolute !important; top:0; left:0; right:0; z-index:5; height:282px; display:flex; flex-direction:column; justify-content:space-between; }.occ-panel { box-sizing:border-box; margin-top:14px; padding:16px 22px 14px; border:1px solid #1e9bff55; border-radius:12px;"
-        " background:linear-gradient(135deg,#1e9bff14 0%,#05080f 85%); box-shadow:0 0 10px rgba(30,155,255,.15); }"
+        ".st-key-occ_outer { position:relative !important; height:0 !important; min-height:0 !important; overflow:visible !important; }"
+        ".st-key-occ_outer > div, .st-key-occ_outer [data-testid='stVerticalBlock'] { overflow:visible !important; }"
+        ".st-key-occ_wrap { position:absolute !important; top:0; left:0; right:0; z-index:5; height:282px; box-sizing:border-box;"
+        " margin-top:14px; padding:16px 22px 14px; border:1px solid #1e9bff55; border-radius:12px;"
+        " background:linear-gradient(135deg,#1e9bff14 0%,#05080f 85%); box-shadow:0 0 10px rgba(30,155,255,.15);"
+        " display:flex; flex-direction:column; justify-content:space-between; overflow:visible !important; }"
+        ".st-key-occ_wrap [data-testid='stVerticalBlock'] { gap:0 !important; }"
         ".occ-title { text-align:center; color:#1e9bff; font-family:'Orbitron','Segoe UI',sans-serif; font-size:15px; font-weight:700;"
         " letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; text-shadow:0 0 4px rgba(30,155,255,.5); }"
-        ".occ-row { display:flex; flex:1; justify-content:space-between; align-items:center; padding:6px 8px; border-top:1px solid #1e9bff22; }"
-        ".occ-label { color:#1e9bff; font-size:15px; font-weight:600; }"
-        ".occ-value { color:#1e9bff; font-family:Georgia,'Times New Roman',serif; font-size:19px; font-weight:600; }"
-        "</style>"
-        f"<div class='occ-panel'><div class='occ-title'>Reporte de Ocupación</div>{rows}</div>",
+        ".st-key-occ_wrap [data-testid='stHorizontalBlock'] { align-items:center !important; border-top:1px solid #1e9bff22; }"
+        ".st-key-occ_wrap [data-testid='stButton'] button { background:transparent !important; border:none !important; box-shadow:none !important;"
+        " color:#1e9bff !important; font-size:15px !important; font-weight:600 !important; justify-content:flex-start !important;"
+        " padding:6px 8px !important; min-height:0 !important; width:100%; text-align:left !important; }"
+        ".st-key-occ_wrap [data-testid='stButton'] button > div, .st-key-occ_wrap [data-testid='stButton'] button p { justify-content:flex-start !important; text-align:left !important; width:100%; margin:0 !important; }"
+        ".st-key-occ_wrap [data-testid='stButton'] button:hover, .st-key-occ_wrap [data-testid='stButton'] button:focus { color:#7fd3ff !important;"
+        " text-shadow:0 0 6px rgba(30,155,255,.7); background:#1e9bff14 !important; }"
+        ".st-key-occ_wrap [data-testid='stMarkdownContainer'] p { margin:0 !important; line-height:1 !important; }"
+        ".occ-value { color:#1e9bff; font-family:Georgia,'Times New Roman',serif; font-size:19px; font-weight:600; text-align:right; padding-right:8px; position:relative; top:-4px; }"
+        "</style>",
         unsafe_allow_html=True,
     )
+    with st.container(key="occ_outer"):
+        with st.container(key="occ_wrap"):
+            st.markdown("<div class='occ-title'>Reporte de Ocupación</div>", unsafe_allow_html=True)
+            for i, (label, frame) in enumerate(frames.items()):
+                c_btn, c_val = st.columns([3, 1], gap="small")
+                with c_btn:
+                    if st.button(label, key=f"occ_btn_{i}", use_container_width=True):
+                        occ_detail_dialog(label, frame)
+                with c_val:
+                    st.markdown(f"<div class='occ-value'>{len(frame)}</div>", unsafe_allow_html=True)
 
 
 def render_app_links() -> None:
@@ -7380,8 +7435,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         with apps_col:
             render_app_links()
         with occ_col:
-            with st.container(key="occ_wrap"):
-                render_occupancy_panel(df)
+            render_occupancy_panel(df)
 
 
     # Fila horizontal: filtros + menú
@@ -7812,6 +7866,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
