@@ -1505,6 +1505,27 @@ def eliminar_pending_todo() -> None:
     st.cache_data.clear()
 
 
+def _reminders_red_css() -> str:
+    """CSS del botón REMINDERS en rojo. Se emite también después de NEON_PILL_CSS
+    (que se repite en el dashboard) para que no la sobrescriba."""
+    return """
+    <style>
+    .st-key-header_reminders_btn button {
+        --c:#FF1744;
+        background: linear-gradient(135deg,#B91C1C,#FF1744) !important;
+        color:#ffffff !important;
+        border:1px solid rgba(255,23,68,.7) !important;
+        box-shadow:0 0 14px rgba(255,23,68,.55) !important;
+        animation: reminderPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes reminderPulse {
+        0%, 100% { box-shadow:0 0 10px rgba(255,23,68,.45); }
+        50% { box-shadow:0 0 20px rgba(255,23,68,.85); }
+    }
+    </style>
+    """
+
+
 def pending_tiene_contenido() -> bool:
     """True si alguna de las 15 líneas del Pending tiene texto."""
     data = cargar_pending()
@@ -1827,25 +1848,7 @@ def show_header() -> None:
             unsafe_allow_html=True,
         )
         if reminders_tiene_contenido():
-            st.markdown(
-                """
-                <style>
-                .st-key-header_reminders_btn button {
-                    --c:#FF1744;
-                    background: linear-gradient(135deg,#B91C1C,#FF1744) !important;
-                    color:#ffffff !important;
-                    border:1px solid rgba(255,23,68,.7) !important;
-                    box-shadow:0 0 14px rgba(255,23,68,.55) !important;
-                    animation: reminderPulse 1.6s ease-in-out infinite;
-                }
-                @keyframes reminderPulse {
-                    0%, 100% { box-shadow:0 0 10px rgba(255,23,68,.45); }
-                    50% { box-shadow:0 0 20px rgba(255,23,68,.85); }
-                }
-                </style>
-                """,
-                unsafe_allow_html=True,
-            )
+            st.markdown(_reminders_red_css(), unsafe_allow_html=True)
         with st.container(key="header_center_btns"):
             btn_col1, btn_col2, btn_col3 = st.columns(3)
             with btn_col1:
@@ -7345,6 +7348,8 @@ def render_dashboard(df: pd.DataFrame) -> None:
         """,
         unsafe_allow_html=True,
     )
+    if reminders_tiene_contenido():
+        st.markdown(_reminders_red_css(), unsafe_allow_html=True)
     if pending_tiene_contenido():
         st.markdown(
             """
@@ -7707,4 +7712,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
