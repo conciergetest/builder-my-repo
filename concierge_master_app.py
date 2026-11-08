@@ -2299,6 +2299,40 @@ def render_menu() -> None:
         menu_dialog()
 
 
+def render_occupancy_panel(df: pd.DataFrame) -> None:
+    """Resumen de ocupación: mismos conteos que el Reporte de Ocupación del menú."""
+    today = ahora_cr()
+    tomorrow = today + timedelta(days=1)
+    today_label, tomorrow_label = today.strftime("%B %d, %Y"), tomorrow.strftime("%B %d, %Y")
+    parsed_check_in = df["check_in"].map(parse_fecha)
+    parsed_check_out = df["check_out"].map(parse_fecha)
+    counts = [
+        ("En casa", int(((parsed_check_in <= today) & (parsed_check_out > today)).sum())),
+        ("Salen hoy", int((df["check_out"] == today_label).sum())),
+        ("Salen mañana", int((df["check_out"] == tomorrow_label).sum())),
+        ("Llegan hoy", int((df["check_in"] == today_label).sum())),
+        ("Llegan mañana", int((df["check_in"] == tomorrow_label).sum())),
+    ]
+    rows = "".join(
+        f"<div class='occ-row'><span class='occ-label'>{safe_text(label)}</span>"
+        f"<span class='occ-value'>{value}</span></div>"
+        for label, value in counts
+    )
+    st.markdown(
+        "<style>"
+        ".occ-panel { box-sizing:border-box; margin-top:14px; padding:10px 18px 10px; border:1px solid #1e9bff55; border-radius:12px;"
+        " background:linear-gradient(135deg,#1e9bff14 0%,#05080f 85%); box-shadow:0 0 10px rgba(30,155,255,.15); }"
+        ".occ-title { text-align:center; color:#1e9bff; font-family:'Orbitron','Segoe UI',sans-serif; font-size:13px; font-weight:700;"
+        " letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; text-shadow:0 0 4px rgba(30,155,255,.5); }"
+        ".occ-row { display:flex; justify-content:space-between; align-items:center; padding:4px 6px; border-top:1px solid #1e9bff22; }"
+        ".occ-label { color:#1e9bff; font-size:13px; font-weight:600; }"
+        ".occ-value { color:#1e9bff; font-family:Georgia,'Times New Roman',serif; font-size:16px; font-weight:600; }"
+        "</style>"
+        f"<div class='occ-panel'><div class='occ-title'>Reporte de Ocupación</div>{rows}</div>",
+        unsafe_allow_html=True,
+    )
+
+
 def render_app_links() -> None:
     """Muestra los 4 botones de acceso rápido a otras apps en el centro del dashboard."""
     apps = [
@@ -7342,7 +7376,11 @@ def render_dashboard(df: pd.DataFrame) -> None:
         relaxury = int(category_match_mask(filtered, "RELAXURY").sum())
         max_cat = max([int(category_match_mask(filtered, c).sum()) for c in CATEGORY_CHART_COLORS] + [1])
         render_relaxury_card(relaxury, max_cat)
-        render_app_links()
+        apps_col, occ_col = st.columns([1.7, 1], gap="small")
+        with apps_col:
+            render_app_links()
+        with occ_col:
+            render_occupancy_panel(df)
 
 
     # Fila horizontal: filtros + menú
@@ -7773,3 +7811,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
