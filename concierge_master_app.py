@@ -645,6 +645,20 @@ st.markdown(
         .action-links { grid-template-columns: repeat(2, 1fr); }
         .clock { display:none; }
     }
+    /* Celular: todo en una sola columna, sin cortes ni superposiciones (tablet y PC no cambian) */
+    @media (max-width: 768px) {
+        .block-container { padding-left: .6rem !important; padding-right: .6rem !important; }
+        [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; gap: .5rem !important; }
+        [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { width: 100% !important; flex: 1 1 100% !important; min-width: 0 !important; }
+        .wa-brand { flex-wrap: wrap !important; justify-content: center !important; gap: 10px !important; }
+        .wa-prod { white-space: normal !important; font-size: 19px !important; text-align: center; }
+        .wa-div { height: 40px !important; }
+        div.st-key-occ_outer { height: auto !important; min-height: 0 !important; }
+        div.st-key-occ_wrap { position: relative !important; top: auto !important; right: auto !important; width: 100% !important;
+            height: auto !important; min-height: 282px; margin: 10px 0 !important; }
+        div[data-testid="stDialog"] > div { width: 96vw !important; max-width: 96vw !important; }
+        div[data-testid="stDialog"] > div:first-child { width: 96vw !important; max-width: 96vw !important; }
+    }
     /* Borde cyan intenso alrededor de TODOS los popups (st.dialog) */
     div[data-testid="stDialog"] > div:first-child {
         border: 2px solid #00e5ff !important;
@@ -8020,6 +8034,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
