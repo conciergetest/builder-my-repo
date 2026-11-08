@@ -2401,7 +2401,7 @@ def occ_guest_dialog(reservation: dict) -> None:
         ("Recognition", "Sí" if recognized else "No"),
     ]
     cells = "".join(
-        "<div class='occ-g-cell'>"
+        f"<div class='occ-g-cell{' occ-g-wide' if k in ('Information', 'Transportation') else ''}'>"
         f"<div class='occ-g-label'>{safe_text(k)}</div>"
         f"<div class='occ-g-value'>{safe_text(v) or '—'}</div>"
         "</div>"
@@ -2414,7 +2414,10 @@ def occ_guest_dialog(reservation: dict) -> None:
         ".occ-g-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }"
         ".occ-g-cell { background:#0b1220; border:1px solid #D4AF3744; border-radius:8px; padding:8px 10px; min-width:0; }"
         ".occ-g-label { color:#D4AF37; font:700 10px/1.2 'Orbitron','Segoe UI',sans-serif; letter-spacing:1px; text-transform:uppercase; }"
-        ".occ-g-value { color:#f0faff; font:500 14px/1.35 'Segoe UI',sans-serif; margin-top:4px; word-break:break-word; }"
+        ".occ-g-value { color:#f0faff; font:500 14px/1.35 'Segoe UI',sans-serif; margin-top:4px; word-break:break-word; white-space:pre-wrap; }"
+        ".occ-g-cell { min-height:62px; }"
+        ".occ-g-wide { grid-column:span 2; }"
+        ".occ-g-grid { min-height:380px; align-content:start; }"
         "</style>"
         f"<div class='occ-g-head'>{safe_text(name)} &nbsp;·&nbsp; Room {safe_text(room)}</div>"
         f"<div class='occ-g-grid'>{cells}</div>",
@@ -7970,6 +7973,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
