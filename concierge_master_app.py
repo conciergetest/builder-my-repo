@@ -1,4 +1,4 @@
-""""Concierge Master — Streamlit + Supabase.
+"""Concierge Master — Streamlit + Supabase.
 
 Instalación:
     pip install -r requirements_streamlit.txt
@@ -645,8 +645,8 @@ st.markdown(
         .action-links { grid-template-columns: repeat(2, 1fr); }
         .clock { display:none; }
     }
-    /* Celular: todo en una sola columna, sin cortes ni superposiciones (tablet y PC no cambian) */
-    @media (max-width: 768px) {
+    /* Celular y tablet (hasta 1024 px): todo en una sola columna, sin cortes ni superposiciones (PC no cambia) */
+    @media (max-width: 1024px) {
         .block-container { padding-left: .6rem !important; padding-right: .6rem !important; }
         [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; gap: .5rem !important; }
         [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { width: 100% !important; flex: 1 1 100% !important; min-width: 0 !important; }
@@ -665,6 +665,10 @@ st.markdown(
         div[data-testid="stDialog"]:has(.occ-detail-title) .occ-h-short { display: inline !important; }
         /* En celular el logo del Reporte de Ocupación estorbaba los números: se oculta */
         div.st-key-occ_wrap::before { display: none !important; }
+        /* Reporte de Ocupación en tablet: cada fila (nombre + número) se queda en una línea */
+        div.st-key-occ_wrap [data-testid="stHorizontalBlock"] { flex-wrap: nowrap !important; }
+        div.st-key-occ_wrap [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child { flex: 1 1 auto !important; width: auto !important; min-width: 0 !important; }
+        div.st-key-occ_wrap [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child { flex: 0 0 58px !important; width: 58px !important; min-width: 58px !important; }
         div[data-testid="stDialog"] > div { width: 96vw !important; max-width: 96vw !important; }
         div[data-testid="stDialog"] > div:first-child { width: 96vw !important; max-width: 96vw !important; }
     }
@@ -8048,6 +8052,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
