@@ -2639,18 +2639,15 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
 
 
 def render_app_links() -> None:
-    """Muestra los 4 botones de acceso rápido a otras apps en el centro del dashboard."""
+    """Botón TOOLS: al tocarlo se ocultan y aparecen las 4 apps; OCULTAR regresa al botón TOOLS."""
     apps = [
         ("🏊", "Aquatic Reservations", "https://activities-avhsghtxc4ewcdvhqjejrp.streamlit.app/", "#1e9bff"),
         ("📋", "Operator's Log", "https://hotel-logbook-zu2ywlashxhykapkbxawfc.streamlit.app/", "#1e9bff"),
         ("✏️", "VT Creator", "https://activity-certificate-waldorf-jwxquxl93r5ntvye4w3ftu.streamlit.app/", "#1e9bff"),
         ("🗄️", "VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/", "#1e9bff"),
     ]
-    buttons = "".join(
-        f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="--c:{bg};--ico:\'{ico}\'">'
-        f'<span>{label}</span></a>'
-        for ico, label, url, bg in apps
-    )
+    if "tools_open" not in st.session_state:
+        st.session_state.tools_open = False
     st.markdown(
         '<style>'
         '.app-links { display:flex; flex-wrap:wrap; justify-content:flex-start; gap:12px; margin:14px 0 4px; }'
@@ -2664,10 +2661,42 @@ def render_app_links() -> None:
         '.app-link:hover { box-shadow:0 0 4px var(--c), 0 0 14px color-mix(in srgb, var(--c) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 25%, transparent); }'
         '.app-link span { color:#f0faff !important; text-decoration:none !important; text-shadow:0 0 3px color-mix(in srgb, var(--c) 70%, transparent); }'
         '@media (max-width:980px){ .app-links { justify-content:flex-start; } }'
-        '</style>'
-        f'<div class="app-links">{buttons}</div>',
+        "html body .st-key-tools_show button, html body .st-key-tools_hide button {"
+        " position:relative !important; overflow:visible !important; display:flex !important; align-items:center !important; justify-content:flex-start !important;"
+        " width:fit-content !important; min-width:0 !important; height:46px !important; min-height:46px !important; padding:0 26px 0 58px !important; margin:14px 0 4px !important;"
+        " background:linear-gradient(90deg,#02101f 0%,#061d38 55%,#02101f 100%) !important; border:2px solid #1e9bff !important; border-radius:999px !important;"
+        " color:#f0faff !important; font-family:'Orbitron','Segoe UI',sans-serif !important; font-weight:700 !important; font-size:11px !important;"
+        " letter-spacing:1.5px !important; text-transform:uppercase !important; text-align:left !important; white-space:nowrap !important;"
+        " box-shadow:0 0 3px #1e9bff, 0 0 9px rgba(30,155,255,.3), inset 0 0 8px rgba(30,155,255,.18) !important; }"
+        "html body .st-key-tools_show button > div, html body .st-key-tools_show button p,"
+        " html body .st-key-tools_hide button > div, html body .st-key-tools_hide button p { margin:0 !important; width:auto !important; justify-content:flex-start !important; text-align:left !important; color:inherit !important; font:inherit !important; letter-spacing:inherit !important; }"
+        "html body .st-key-tools_show button::before, html body .st-key-tools_hide button::before {"
+        " content:'🛠'; position:absolute; left:4px; top:50%; transform:translateY(-50%); width:36px; height:36px; box-sizing:border-box; border-radius:50%;"
+        " border:2px solid #1e9bff; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle, #0a2a4a 0%, #05080f 85%);"
+        " box-shadow:0 0 6px #1e9bff, inset 0 0 8px rgba(30,155,255,.45); font-size:15px; line-height:1; font-family:'Segoe UI Emoji','Noto Color Emoji',sans-serif; }"
+        "html body .st-key-tools_hide button::before { content:'✖'; color:#fff; font-size:13px; }"
+        "html body .st-key-tools_show button::after, html body .st-key-tools_hide button::after {"
+        " content:''; position:absolute; left:46px; top:50%; transform:translateY(-50%); width:2px; height:28px; background:linear-gradient(#1e9bff,#8fd3ff); box-shadow:0 0 6px #1e9bff; }"
+        "html body .st-key-tools_show button:hover, html body .st-key-tools_hide button:hover { filter:brightness(1.2) !important; }"
+        "</style>",
         unsafe_allow_html=True,
     )
+    if not st.session_state.tools_open:
+        with st.container(key="tools_show"):
+            if st.button("TOOLS", key="tools_show_btn", use_container_width=True):
+                st.session_state.tools_open = True
+                st.rerun()
+        return
+    buttons = "".join(
+        f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="--c:{bg};--ico:\'{ico}\'">'
+        f'<span>{label}</span></a>'
+        for ico, label, url, bg in apps
+    )
+    st.markdown(f'<div class="app-links">{buttons}</div>', unsafe_allow_html=True)
+    with st.container(key="tools_hide"):
+        if st.button("OCULTAR TOOLS", key="tools_hide_btn", use_container_width=True):
+            st.session_state.tools_open = False
+            st.rerun()
 
 
 def apply_filters(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
