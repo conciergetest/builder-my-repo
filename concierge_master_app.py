@@ -1894,7 +1894,7 @@ html body a.neon-pill:hover, html body a.app-link:hover {
 
 TOP_NAV_ITEMS = [
     ("Home", "home", "#d4af37", True),
-    ("Reservas", "calendar", "#00e5ff", False),
+    ("OPERACIONES", "gear", "#00e5ff", False),
     ("Huéspedes", "users", "#7cf7c4", False),
     ("Reportes", "chart", "#b388ff", False),
     ("Configuración", "gear", "#00e5ff", False),
@@ -1914,6 +1914,8 @@ TOP_NAV_CSS = """
   border:1.5px solid var(--tn-c); flex:0 0 32px; }
 .tn-ic svg { width:18px; height:18px; stroke:var(--tn-c); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .tn-div { width:1.5px; height:24px; background:var(--tn-c); opacity:.7; }
+.tn-pill { text-decoration:none !important; cursor:pointer; }
+a.tn-pill:hover { filter:brightness(1.25); }
 .tn-pill.tn-on { background:var(--tn-c); color:#000; }
 .tn-pill.tn-on .tn-ic { border-color:#000; background:rgba(0,0,0,.12); }
 .tn-pill.tn-on .tn-ic svg { stroke:#000; }
@@ -1936,14 +1938,26 @@ _TN_ICONS = {
 
 
 def render_top_nav() -> None:
-    """Barra de navegación superior (solo visual, sin funcionalidad todavía)."""
+    """Barra superior. HOME limpia filtros (igual que LIMPIAR FILTROS); OPERACIONES abre su popup."""
+    links = {
+        "Home": url_with(fecha_date="", checkout_filtro="", skip_splash="1"),
+        "OPERACIONES": url_with(top="operaciones", skip_splash="1"),
+    }
     parts = [TOP_NAV_CSS, '<div class="tn-wrap">']
     for label, icon, color, active in TOP_NAV_ITEMS:
         cls = "tn-pill tn-on" if active else "tn-pill"
+        href = links.get(label)
+        if href:
+            open_tag = f'<a class="{cls}" style="--tn-c:{color}" href="{html.escape(href, quote=True)}" target="_self">'
+            close_tag = "</a>"
+        else:
+            open_tag = f'<div class="{cls}" style="--tn-c:{color}">'
+            close_tag = "</div>"
         parts.append(
-            f'<div class="{cls}" style="--tn-c:{color}">'
-            f'<span class="tn-ic"><svg viewBox="0 0 24 24">{_TN_ICONS[icon]}</svg></span>'
-            f'<span class="tn-div"></span><span>{label}</span></div>'
+            open_tag
+            + f'<span class="tn-ic"><svg viewBox="0 0 24 24">{_TN_ICONS[icon]}</svg></span>'
+            + f'<span class="tn-div"></span><span>{label}</span>'
+            + close_tag
         )
     parts.append("</div>")
     st.markdown("".join(parts), unsafe_allow_html=True)
@@ -2489,6 +2503,35 @@ def render_menu() -> None:
 
     if st.button("MENÚ »", key=f"main_menu_btn_{menu_nonce}"):
         menu_dialog()
+
+
+@st.dialog("⚙ OPERACIONES", width="large")
+def operaciones_dialog() -> None:
+    """Popup OPERACIONES: mismos botones, formato y funciones que la sección del MENÚ."""
+    st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
+    st.markdown(MENU_DIALOG_CSS, unsafe_allow_html=True)
+    with st.container(key="mn_ops"):
+        _mn_sec("Operaciones", "⚙")
+        c1, c2, c3, c4, c5, c6 = st.columns(6)
+        if c1.button("NUEVA", use_container_width=True, key="mn_nueva"):
+            # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_nueva=True)
+        if c2.button("IMPORTAR", use_container_width=True, key="mn_importar"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_importar=True)
+        if c3.button("EXPORTAR", use_container_width=True, key="mn_exportar"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_exportar=True)
+        if c4.button("REPORTE", use_container_width=True, key="mn_reporte"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_reporte=True)
+        if c5.button("AGENDA", use_container_width=True, key="mn_agenda"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_agenda=True)
+        if c6.button("BONUS", use_container_width=True, key="mn_bonus"):
+            st.query_params["action"] = "bonus"
+            _menu_go()
 
 
 def _occ_clean(value: object) -> str:
@@ -8198,6 +8241,12 @@ if st.session_state.pop("open_ver_info", False):
     _ver_info_res = st.session_state.get("selected_reservation")
     if _ver_info_res:
         occ_guest_dialog(_ver_info_res, allow_edit=False)
+
+
+if st.query_params.get("top") == "operaciones":
+    del st.query_params["top"]
+    st.query_params["skip_splash"] = "1"
+    operaciones_dialog()
 
 
 def _redirect_to_dialog(flag: str) -> None:
