@@ -2231,6 +2231,15 @@ div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-menu_open_notas butto
 div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-menu_open_recognition button { --ico:'🏅'; }
 div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_box a { --ico:'📁'; }
 div[data-testid="stDialog"]:has(.main-menu-marker) a.mn-pill { --ico:'🔗'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_box a, div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_box a p { font-family:'Orbitron','Segoe UI',sans-serif !important; font-weight:700 !important; font-size:11px !important; letter-spacing:1.5px !important; color:#eafaff !important; }
+@media (min-width: 640px) {
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick [data-testid="stHorizontalBlock"] { flex-wrap:nowrap !important; align-items:flex-start !important; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick [data-testid="stColumn"] { width:auto !important; flex:0 1 auto !important; min-width:0 !important; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick [data-testid="stColumn"]:nth-child(n+2) { padding-left:14px !important; }
+}
+@media (max-width: 639px) {
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick [data-testid="stColumn"] { width:100% !important; flex:1 1 100% !important; }
+}
 div[data-testid="stDialog"]:has(.main-menu-marker) .mn-foot {
     margin-top: 12px;
     padding-top: 10px;
@@ -2349,25 +2358,22 @@ def menu_dialog() -> None:
     # ── Quick Access (enlaces rápidos) ──
     with st.container(key="mn_quick"):
         _mn_sec("Quick Access", "⚡")
-        q1, q2, q3 = st.columns(3)
-        q1.markdown(_mn_link("ALICE", QUICK_LINKS[1][1]), unsafe_allow_html=True)
-        q2.markdown(_mn_link("LA CERNIA", QUICK_LINKS[3][1]), unsafe_allow_html=True)
-        q3.markdown(_mn_link("NO LIMIT", QUICK_LINKS[4][1]), unsafe_allow_html=True)
-
-        q4, q5, q6 = st.columns(3)
-        q4.markdown(_mn_link("OPEN TABLE", QUICK_LINKS[5][1]), unsafe_allow_html=True)
-        q5.markdown(_mn_link("OUTLOOK-FW", QUICK_LINKS[6][1]), unsafe_allow_html=True)
-        q6.markdown(_mn_link("OUTLOOK-PC", QUICK_LINKS[7][1]), unsafe_allow_html=True)
-
-        q7, q8, q9 = st.columns(3)
-        q7.markdown(_mn_link("OUTLOOK-RES", QUICK_LINKS[8][1]), unsafe_allow_html=True)
-        q8.markdown(_mn_link("RELAXURY", QUICK_LINKS[9][1]), unsafe_allow_html=True)
-        if q9.button("Recognition", use_container_width=True, key="menu_open_recognition"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_recognition=True)
-
-        q10 = st.columns(3)[0]
-        q10.link_button("BOX FILES", BOX_FOLDER_URL, use_container_width=True, key="mn_box")
+        qa, qb, qc = st.columns(3)
+        with qa:
+            st.markdown(_mn_link("ALICE", QUICK_LINKS[1][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("OPEN TABLE", QUICK_LINKS[5][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("OUTLOOK-RES", QUICK_LINKS[8][1]), unsafe_allow_html=True)
+            st.link_button("BOX FILES", BOX_FOLDER_URL, use_container_width=True, key="mn_box")
+        with qb:
+            st.markdown(_mn_link("LA CERNIA", QUICK_LINKS[3][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("OUTLOOK-FW", QUICK_LINKS[6][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("RELAXURY", QUICK_LINKS[9][1]), unsafe_allow_html=True)
+        with qc:
+            st.markdown(_mn_link("NO LIMIT", QUICK_LINKS[4][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("OUTLOOK-PC", QUICK_LINKS[7][1]), unsafe_allow_html=True)
+            if st.button("Recognition", use_container_width=True, key="menu_open_recognition"):
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_recognition=True)
 
     st.markdown(
         "<div class='mn-foot'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v6.0</div>",
