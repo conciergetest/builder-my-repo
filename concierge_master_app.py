@@ -2678,6 +2678,7 @@ def render_app_links() -> None:
         "html body .st-key-tools_row { flex-wrap:wrap !important; align-items:center !important; gap:8px !important; margin:14px 0 4px !important; }"
         "html body .st-key-tools_row > div { width:auto !important; flex:0 0 auto !important; min-width:0 !important; }"
         "html body .st-key-tools_row [data-testid='stMarkdownContainer'] p { margin:0 !important; }"
+        "@media (max-width:768px){ html body .st-key-tools_row { flex-direction:column !important; align-items:flex-start !important; } html body .st-key-tools_row > div { width:100% !important; } html body .st-key-tools_row [data-testid=\"stMarkdownContainer\"], html body .st-key-tools_row [data-testid=\"stElementContainer\"] { width:100% !important; text-align:left !important; display:block !important; } html body .st-key-tools_row a.app-link { justify-self:flex-start !important; margin:0 0 10px !important; } html body .st-key-tools_row .st-key-tools_hide button { margin:0 0 10px !important; } }"
         "html body .st-key-tools_row a.app-link { padding:0 12px 0 62px !important; font-size:9.5px !important; letter-spacing:.4px !important; }"
         "html body .st-key-tools_hide button { margin:0 !important; }"
         "html body .st-key-tools_show button::after, html body .st-key-tools_hide button::after {"
