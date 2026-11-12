@@ -1822,8 +1822,78 @@ NEON_PILL_CSS = """
 """
 
 
+MENU_FMT_CSS = """
+<style>
+html body .st-key-btn_header_arrivals button, html body .st-key-btn_header_reminders button, html body .st-key-btn_header_qrcode button,
+html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button,
+html body .st-key-bulk_all button, html body .st-key-bulk_none button,
+html body a.neon-pill, html body a.app-link {
+    position:relative !important; overflow:visible !important;
+    display:flex !important; align-items:center !important; justify-content:flex-start !important;
+    width:fit-content !important; max-width:100% !important; min-width:0 !important; box-sizing:border-box !important;
+    height:46px !important; min-height:46px !important; padding:0 26px 0 66px !important; margin:0 !important;
+    border:2px solid var(--c, #1e9bff) !important; border-radius:999px !important;
+    font-family:'Orbitron','Segoe UI',sans-serif !important; font-weight:700 !important; font-size:12px !important;
+    letter-spacing:1.5px !important; text-transform:uppercase !important; text-decoration:none !important;
+    white-space:nowrap !important; text-align:left !important;
+}
+html body .st-key-btn_header_arrivals button { --c:#1e9bff; --ico:'📅'; }
+html body .st-key-btn_header_reminders button { --ico:'🔔'; }
+html body .st-key-btn_header_qrcode button { --c:#1e9bff; --ico:'🔗'; }
+html body .st-key-btn_vip_candidates button { --c:#1e9bff; --ico:'🌟'; }
+html body .st-key-btn_guests_directory button { --c:#1e9bff; --ico:'👥'; }
+html body .st-key-btn_pending button { --ico:'📌'; }
+html body .st-key-bulk_all button { --c:#3b82f6; --ico:'✔'; }
+html body .st-key-bulk_none button { --c:#3b82f6; --ico:'✖'; }
+html body .st-key-bulk_all button, html body .st-key-bulk_none button { width:100% !important; }
+html body .st-key-btn_header_arrivals button > div, html body .st-key-btn_header_arrivals button p,
+html body .st-key-btn_header_reminders button > div, html body .st-key-btn_header_reminders button p,
+html body .st-key-btn_header_qrcode button > div, html body .st-key-btn_header_qrcode button p,
+html body .st-key-btn_vip_candidates button > div, html body .st-key-btn_vip_candidates button p,
+html body .st-key-btn_guests_directory button > div, html body .st-key-btn_guests_directory button p,
+html body .st-key-btn_pending button > div, html body .st-key-btn_pending button p,
+html body .st-key-bulk_all button > div, html body .st-key-bulk_all button p,
+html body .st-key-bulk_none button > div, html body .st-key-bulk_none button p {
+    justify-content:flex-start !important; text-align:left !important; width:auto !important; margin:0 !important;
+    color:inherit !important; font-family:inherit !important; font-weight:inherit !important; letter-spacing:inherit !important;
+}
+html body .st-key-btn_header_arrivals button::before, html body .st-key-btn_header_reminders button::before,
+html body .st-key-btn_header_qrcode button::before, html body .st-key-btn_vip_candidates button::before,
+html body .st-key-btn_guests_directory button::before, html body .st-key-btn_pending button::before,
+html body .st-key-bulk_all button::before, html body .st-key-bulk_none button::before,
+html body a.neon-pill::before, html body a.app-link::before {
+    content:var(--ico,'•') !important; position:absolute !important; left:4px !important; top:50% !important; transform:translateY(-50%) !important;
+    width:36px !important; height:36px !important; box-sizing:border-box !important; border-radius:50% !important;
+    border:2px solid var(--c) !important; display:flex !important; align-items:center !important; justify-content:center !important;
+    background:radial-gradient(circle, color-mix(in srgb, var(--c) 30%, #000) 0%, #05080f 85%) !important;
+    box-shadow:0 0 6px var(--c), inset 0 0 8px color-mix(in srgb, var(--c) 45%, transparent) !important;
+    color:#ffffff !important; font-size:15px !important; line-height:1 !important; text-shadow:0 0 6px var(--c) !important;
+    font-family:'Segoe UI Emoji','Noto Color Emoji',sans-serif !important; letter-spacing:0 !important; text-transform:none !important;
+}
+html body .st-key-btn_header_arrivals button::after, html body .st-key-btn_header_reminders button::after,
+html body .st-key-btn_header_qrcode button::after, html body .st-key-btn_vip_candidates button::after,
+html body .st-key-btn_guests_directory button::after, html body .st-key-btn_pending button::after,
+html body .st-key-bulk_all button::after, html body .st-key-bulk_none button::after,
+html body a.neon-pill::after, html body a.app-link::after {
+    content:'' !important; position:absolute !important; left:50px !important; top:50% !important; transform:translateY(-50%) !important;
+    width:2px !important; height:28px !important; background:linear-gradient(var(--c), color-mix(in srgb, var(--c) 50%, #fff)) !important;
+    box-shadow:0 0 6px var(--c) !important;
+}
+html body .st-key-btn_header_arrivals button:hover, html body .st-key-btn_header_reminders button:hover,
+html body .st-key-btn_header_qrcode button:hover, html body .st-key-btn_vip_candidates button:hover,
+html body .st-key-btn_guests_directory button:hover, html body .st-key-btn_pending button:hover,
+html body .st-key-bulk_all button:hover, html body .st-key-bulk_none button:hover,
+html body a.neon-pill:hover, html body a.app-link:hover {
+    filter:brightness(1.15) !important; color:#ffffff !important;
+}
+</style>
+"""
+
+
 def show_header() -> None:
     import streamlit.components.v1 as components
+
+    st.markdown(MENU_FMT_CSS, unsafe_allow_html=True)
 
     header_left, header_center, header_right = st.columns([1.15, 1.35, 0.85])
     with header_left:
@@ -1898,7 +1968,7 @@ def show_header() -> None:
             with btn_col1:
                 with st.container(key="header_arrivals_btn"):
                     if st.button(
-                        "📅 Arrivals By Date",
+                        "Arrivals By Date",
                         key="btn_header_arrivals",
                         use_container_width=True,
                     ):
@@ -1908,7 +1978,7 @@ def show_header() -> None:
                 with st.container(key="header_reminders_btn"):
                     _reminders_count = reminders_contar_activos()
                     _reminders_label = (
-                        f"🔔 Reminders  {_reminders_count}" if _reminders_count > 0 else "🔔 Reminders"
+                        f"Reminders  {_reminders_count}" if _reminders_count > 0 else "Reminders"
                     )
                     if st.button(
                         _reminders_label,
@@ -1920,7 +1990,7 @@ def show_header() -> None:
             with btn_col3:
                 with st.container(key="header_qrcode_btn"):
                     if st.button(
-                        "🔗 QR Code",
+                        "QR Code",
                         key="btn_header_qrcode",
                         use_container_width=True,
                     ):
@@ -2544,15 +2614,15 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
 def render_app_links() -> None:
     """Muestra los 4 botones de acceso rápido a otras apps en el centro del dashboard."""
     apps = [
-        ("🏊 Aquatic Reservations", "https://activities-avhsghtxc4ewcdvhqjejrp.streamlit.app/", "#1e9bff"),
-        ("📋 Operator's Log", "https://hotel-logbook-zu2ywlashxhykapkbxawfc.streamlit.app/", "#1e9bff"),
-        ("✏️ VT Creator", "https://activity-certificate-waldorf-jwxquxl93r5ntvye4w3ftu.streamlit.app/", "#1e9bff"),
-        ("🗄️ VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/", "#1e9bff"),
+        ("🏊", "Aquatic Reservations", "https://activities-avhsghtxc4ewcdvhqjejrp.streamlit.app/", "#1e9bff"),
+        ("📋", "Operator's Log", "https://hotel-logbook-zu2ywlashxhykapkbxawfc.streamlit.app/", "#1e9bff"),
+        ("✏️", "VT Creator", "https://activity-certificate-waldorf-jwxquxl93r5ntvye4w3ftu.streamlit.app/", "#1e9bff"),
+        ("🗄️", "VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/", "#1e9bff"),
     ]
     buttons = "".join(
-        f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="--c:{bg}">'
+        f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="--c:{bg};--ico:\'{ico}\'">'
         f'<span>{label}</span></a>'
-        for label, url, bg in apps
+        for ico, label, url, bg in apps
     )
     st.markdown(
         '<style>'
@@ -7577,13 +7647,12 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown('<div class="panel" style="margin-top:10px"><div class="bulk-head"><svg width="26" height="20" viewBox="0 0 26 20"><g fill="#e8c170"><circle cx="7" cy="6" r="3.2"/><circle cx="19" cy="6" r="3.2"/><circle cx="13" cy="7" r="3.8"/><path d="M1 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M13 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M7 18c0-4 3-6 6-6s6 2 6 6z" opacity=".9"/></g></svg><span>SELECCION MASIVA</span></div>', unsafe_allow_html=True)
         if not filtered.empty:
             all_ids_current = filtered["id"].dropna().astype(str).tolist()
-            c1, c2 = st.columns(2)
-            if c1.button("SELECC. TODO", use_container_width=True, key="bulk_all"):
+            if st.button("SELECC. TODO", use_container_width=True, key="bulk_all"):
                 st.session_state.bulk_selected_ids = all_ids_current
                 st.session_state.pop("selected_reservation", None)
                 st.session_state.pop("selected_reservation_id", None)
                 st.rerun()
-            if c2.button("DESMARCAR", use_container_width=True, key="bulk_none"):
+            if st.button("DESMARCAR", use_container_width=True, key="bulk_none"):
                 st.session_state.bulk_selected_ids = []
                 st.rerun()
             count_sel = len(st.session_state.get("bulk_selected_ids", []))
@@ -7621,10 +7690,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with f2:
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;height:46px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;--ico:&quot;↻&quot;;height:46px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
     with f3:
-        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;height:46px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;--ico:&quot;✖&quot;;height:46px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 22px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with f4:
         render_menu()
@@ -7668,20 +7737,20 @@ def render_dashboard(df: pd.DataFrame) -> None:
     vip_col, guests_col, pending_col = st.columns(3)
     with vip_col:
         with st.container(key="btn_vip_candidates"):
-            if st.button("🌟 POSIBLES VIP", use_container_width=True, key="do_open_vip_candidates"):
+            if st.button("POSIBLES VIP", use_container_width=True, key="do_open_vip_candidates"):
                 st.session_state["open_vip_candidates"] = True
                 st.query_params["skip_splash"] = "1"
                 st.rerun()
     with guests_col:
         with st.container(key="btn_guests_directory"):
-            if st.button("👥 HUÉSPEDES", use_container_width=True, key="do_open_guests_directory"):
+            if st.button("HUÉSPEDES", use_container_width=True, key="do_open_guests_directory"):
                 st.session_state["open_guests"] = True
                 st.query_params["skip_splash"] = "1"
                 st.rerun()
     with pending_col:
         with st.container(key="btn_pending"):
             _pending_count = pending_contar_lineas()
-            _pending_label = f"📌 PENDING  {_pending_count}" if _pending_count > 0 else "📌 PENDING"
+            _pending_label = f"PENDING  {_pending_count}" if _pending_count > 0 else "PENDING"
             if st.button(_pending_label, use_container_width=True, key="do_open_pending"):
                 st.session_state["open_pending"] = True
                 st.query_params["skip_splash"] = "1"
