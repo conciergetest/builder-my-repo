@@ -2158,14 +2158,14 @@ div[data-testid="stDialog"]:has(.main-menu-marker) .mn-fecha {
     letter-spacing: .6px;
     text-shadow: 0 0 8px rgba(0,229,255,.7);
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) [class*="st-key-mn_"] {
+div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) {
     margin-bottom: 14px;
     animation: menu_rise .4s ease-out both;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_ops { --sc: #00e5ff; animation-delay: 0s; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_tools { --sc: #a78bfa; animation-delay: .08s; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_services { --sc: #4ade80; animation-delay: .16s; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick { --sc: #fbbf24; animation-delay: .24s; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_ops { --sc: #00e5ff; --c: #00e5ff; animation-delay: 0s; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_tools { --sc: #a78bfa; --c: #a78bfa; animation-delay: .08s; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_services { --sc: #4ade80; --c: #4ade80; animation-delay: .16s; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick { --sc: #fbbf24; --c: #fbbf24; animation-delay: .24s; }
 @keyframes menu_rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 div[data-testid="stDialog"]:has(.main-menu-marker) .mn-sec {
     display: inline-block;
@@ -2180,44 +2180,57 @@ div[data-testid="stDialog"]:has(.main-menu-marker) .mn-sec {
     width: 100%;
 }
 div[data-testid="stDialog"]:has(.main-menu-marker) .mn-ico { color: var(--sc); margin-right: 8px; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_ops button,
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_tools button,
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_services button,
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick button,
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick a {
-    background: linear-gradient(180deg, rgba(10,22,38,.95), rgba(4,9,18,.95)) !important;
-    border: 1px solid var(--sc) !important;
-    color: #eafaff !important;
-    border-radius: 12px !important;
-    font: 800 12px "Segoe UI", sans-serif !important;
-    letter-spacing: 1px !important;
-    text-transform: uppercase !important;
-    text-decoration: none !important;
-    box-shadow: 0 0 10px color-mix(in srgb, var(--sc) 45%, transparent), inset 0 0 12px color-mix(in srgb, var(--sc) 18%, transparent) !important;
-    transition: all .15s ease !important;
+div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) [data-testid="stHorizontalBlock"] { flex-wrap:wrap !important; gap:8px !important; align-items:center !important; }
+div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) [data-testid="stColumn"] { width:auto !important; flex:0 0 auto !important; min-width:0 !important; }
+div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button, div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) a {
+    position:relative !important; overflow:visible !important;
+    display:flex !important; align-items:center !important; justify-content:flex-start !important;
+    width:fit-content !important; max-width:100% !important; min-width:0 !important; box-sizing:border-box !important;
+    height:44px !important; min-height:44px !important; padding:0 22px 0 58px !important; margin:0 !important;
+    background:linear-gradient(90deg, #05080f 0%, color-mix(in srgb, var(--c) 14%, #05080f) 55%, #05080f 100%) !important;
+    border:2px solid var(--c) !important; border-radius:999px !important;
+    color:#eafaff !important; font-family:'Orbitron','Segoe UI',sans-serif !important; font-weight:700 !important;
+    font-size:11px !important; letter-spacing:1.5px !important; text-transform:uppercase !important; text-decoration:none !important;
+    text-align:left !important; white-space:nowrap !important;
+    box-shadow:0 0 8px color-mix(in srgb, var(--c) 55%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 18%, transparent) !important;
+    transition:filter .15s ease !important;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_ops button,
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_tools button,
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_services button {
-    min-height: 60px !important;
+div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button > div, div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button p, div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button [data-testid="stMarkdownContainer"] {
+    justify-content:flex-start !important; text-align:left !important; width:auto !important; margin:0 !important;
+    color:inherit !important; font-family:inherit !important; font-weight:inherit !important; letter-spacing:inherit !important;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick button,
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick a {
-    min-height: 38px !important;
-    font-size: 11px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button::before, div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) a::before {
+    content:var(--ico,'•') !important; position:absolute !important; left:4px !important; top:50% !important; transform:translateY(-50%) !important;
+    width:34px !important; height:34px !important; box-sizing:border-box !important; border-radius:50% !important;
+    border:2px solid var(--c) !important; display:flex !important; align-items:center !important; justify-content:center !important;
+    background:radial-gradient(circle, color-mix(in srgb, var(--c) 30%, #000) 0%, #05080f 85%) !important;
+    box-shadow:0 0 6px var(--c), inset 0 0 8px color-mix(in srgb, var(--c) 45%, transparent) !important;
+    color:#ffffff !important; font-size:14px !important; line-height:1 !important; text-shadow:0 0 6px var(--c) !important;
+    font-family:'Segoe UI Emoji','Noto Color Emoji',sans-serif !important; letter-spacing:0 !important; text-transform:none !important;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_ops button:hover,
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_tools button:hover,
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_services button:hover,
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick button:hover,
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick a:hover {
-    filter: brightness(1.25) !important;
-    transform: translateY(-2px) !important;
-    border-color: #ffffff !important;
+div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button::after, div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) a::after {
+    content:'' !important; position:absolute !important; left:46px !important; top:50% !important; transform:translateY(-50%) !important;
+    width:2px !important; height:26px !important; background:linear-gradient(var(--c), color-mix(in srgb, var(--c) 50%, #fff)) !important;
+    box-shadow:0 0 6px var(--c) !important;
 }
+div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button:hover, div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) a:hover { filter:brightness(1.2) !important; color:#ffffff !important; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_nueva button { --ico:'➕'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_importar button { --ico:'⬆'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_exportar button { --ico:'⬇'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_reporte button { --ico:'📊'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_agenda button { --ico:'📅'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_bonus button { --ico:'💰'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_calculadora button { --ico:'🧮'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_almanaque button { --ico:'📆'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_fred button { --ico:'🏷️'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_directorio button { --ico:'📇'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-menu_open_pdinning button { --ico:'🍽️'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-menu_open_shared_counter button { --ico:'🔢'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-menu_open_checkin_dia button { --ico:'✅'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-menu_open_notas button { --ico:'📝'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-menu_open_recognition button { --ico:'🏅'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_box a { --ico:'📁'; }
+div[data-testid="stDialog"]:has(.main-menu-marker) a.mn-pill { --ico:'🔗'; }
 div[data-testid="stDialog"]:has(.main-menu-marker) .mn-foot {
     margin-top: 12px;
     padding-top: 10px;
@@ -2239,7 +2252,7 @@ def _mn_sec(title: str, icon: str) -> None:
 
 
 def _mn_link(label: str, url: str) -> str:
-    return f'<a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">{html.escape(label)}</a>'
+    return f'<a class="mn-pill" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">{html.escape(label)}</a>'
 
 
 _MN_DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
@@ -2280,23 +2293,23 @@ def menu_dialog() -> None:
     with st.container(key="mn_ops"):
         _mn_sec("Operaciones", "⚙")
         c1, c2, c3, c4, c5, c6 = st.columns(6)
-        if c1.button("➕ NUEVA", use_container_width=True):
+        if c1.button("NUEVA", use_container_width=True, key="mn_nueva"):
             # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
             st.query_params["skip_splash"] = "1"
             _menu_go(open_nueva=True)
-        if c2.button("⬆ IMPORTAR", use_container_width=True):
+        if c2.button("IMPORTAR", use_container_width=True, key="mn_importar"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_importar=True)
-        if c3.button("⬇ EXPORTAR", use_container_width=True):
+        if c3.button("EXPORTAR", use_container_width=True, key="mn_exportar"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_exportar=True)
-        if c4.button("📊 REPORTE", use_container_width=True):
+        if c4.button("REPORTE", use_container_width=True, key="mn_reporte"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_reporte=True)
-        if c5.button("📅 AGENDA", use_container_width=True):
+        if c5.button("AGENDA", use_container_width=True, key="mn_agenda"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_agenda=True)
-        if c6.button("💰 BONUS", use_container_width=True):
+        if c6.button("BONUS", use_container_width=True, key="mn_bonus"):
             st.query_params["action"] = "bonus"
             _menu_go()
 
@@ -2304,15 +2317,15 @@ def menu_dialog() -> None:
     with st.container(key="mn_tools"):
         _mn_sec("Herramientas", "🛠")
         h1, h2, h3, h4 = st.columns(4)
-        if h1.button("🧮 CALCULADORA", use_container_width=True):
+        if h1.button("CALCULADORA", use_container_width=True, key="mn_calculadora"):
             st.query_params["action"] = "calculadora"
             _menu_go()
-        if h2.button("📆 ALMANAQUE", use_container_width=True):
+        if h2.button("ALMANAQUE", use_container_width=True, key="mn_almanaque"):
             st.query_params["action"] = "almanaque"
             _menu_go()
-        if h3.button("🏷️ FRED WAYNE", use_container_width=True):
+        if h3.button("FRED WAYNE", use_container_width=True, key="mn_fred"):
             _menu_go(open_logo=True)
-        if h4.button("📇 DIRECTORIO", use_container_width=True):
+        if h4.button("DIRECTORIO", use_container_width=True, key="mn_directorio"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_directorio=True)
 
@@ -2320,16 +2333,16 @@ def menu_dialog() -> None:
     with st.container(key="mn_services"):
         _mn_sec("Concierge Services", "🛎")
         s1, s2, s3, s4 = st.columns(4)
-        if s1.button("🍽️ P. DINNING", use_container_width=True, key="menu_open_pdinning"):
+        if s1.button("P. DINNING", use_container_width=True, key="menu_open_pdinning"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_pdinning=True)
-        if s2.button("🔢 CONTADOR", use_container_width=True, key="menu_open_shared_counter"):
+        if s2.button("CONTADOR", use_container_width=True, key="menu_open_shared_counter"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_shared_counter=True)
-        if s3.button("✅ CHECK-IN DEL DÍA", use_container_width=True, key="menu_open_checkin_dia"):
+        if s3.button("CHECK-IN DEL DÍA", use_container_width=True, key="menu_open_checkin_dia"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_checkin_dia=True)
-        if s4.button("📝 NOTAS", use_container_width=True, key="menu_open_notas"):
+        if s4.button("NOTAS", use_container_width=True, key="menu_open_notas"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_notas=True)
 
@@ -2354,7 +2367,7 @@ def menu_dialog() -> None:
             _menu_go(open_recognition=True)
 
         q10 = st.columns(3)[0]
-        q10.link_button("📁 BOX FILES", BOX_FOLDER_URL, use_container_width=True)
+        q10.link_button("BOX FILES", BOX_FOLDER_URL, use_container_width=True, key="mn_box")
 
     st.markdown(
         "<div class='mn-foot'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v6.0</div>",
