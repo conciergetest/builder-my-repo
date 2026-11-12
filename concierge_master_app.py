@@ -1901,12 +1901,11 @@ TOP_NAV_ITEMS = [
     ("Agenda", "clock", "#ffb74d", False),
     ("Utilidades", "tool", "#b388ff", False),
     ("Ayuda", "help", "#7cf7c4", False),
-    ("Salir", "power", "#ff4d4d", False),
 ]
 
 TOP_NAV_CSS = """
 <style>
-.tn-wrap { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:6px 0 14px 0; }
+.tn-wrap { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center; width:100%; margin:6px 0 14px 0; }
 .tn-pill { display:flex; align-items:center; gap:8px; height:42px; padding:0 14px 0 5px;
   border-radius:999px; border:1.5px solid var(--tn-c); background:rgba(0,0,0,.85);
   color:var(--tn-c); font:700 10.5px 'Orbitron','Segoe UI',Arial,sans-serif; letter-spacing:.6px;
