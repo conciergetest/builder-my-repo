@@ -2430,6 +2430,12 @@ def _occ_pick_guest(record: dict) -> None:
 def occ_detail_dialog(label: str, frame: pd.DataFrame) -> None:
     """Popup con habitación, huésped, entrada y salida. Cada fila abre la información completa."""
     st.markdown(
+        "<style>"
+        "div[data-testid='stDialog'] .occ-detail-title { margin:22px 0 20px !important; padding-top:6px; }"
+        "div[data-testid='stDialog'] .occ-detail-head { margin-top:6px; }"
+        "div[data-testid='stDialog'] .st-key-occ_detail_list { margin-top:8px; }"
+        "div[data-testid='stDialog'] [data-testid='stAlert'] { margin-top:14px !important; }"
+        "</style>"
         f"<div class='occ-detail-title'>{safe_text(label)} · {len(frame)}</div>",
         unsafe_allow_html=True,
     )
@@ -8121,25 +8127,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
