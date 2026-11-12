@@ -2675,6 +2675,11 @@ def render_app_links() -> None:
         " border:2px solid #1e9bff; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle, #0a2a4a 0%, #05080f 85%);"
         " box-shadow:0 0 6px #1e9bff, inset 0 0 8px rgba(30,155,255,.45); font-size:15px; line-height:1; font-family:'Segoe UI Emoji','Noto Color Emoji',sans-serif; }"
         "html body .st-key-tools_hide button::before { content:'✖'; color:#fff; font-size:13px; }"
+        "html body .st-key-tools_row { flex-wrap:wrap !important; align-items:center !important; gap:8px !important; margin:14px 0 4px !important; }"
+        "html body .st-key-tools_row > div { width:auto !important; flex:0 0 auto !important; min-width:0 !important; }"
+        "html body .st-key-tools_row [data-testid='stMarkdownContainer'] p { margin:0 !important; }"
+        "html body .st-key-tools_row a.app-link { padding:0 12px 0 62px !important; font-size:9.5px !important; letter-spacing:.4px !important; }"
+        "html body .st-key-tools_hide button { margin:0 !important; }"
         "html body .st-key-tools_show button::after, html body .st-key-tools_hide button::after {"
         " content:''; position:absolute; left:46px; top:50%; transform:translateY(-50%); width:2px; height:28px; background:linear-gradient(#1e9bff,#8fd3ff); box-shadow:0 0 6px #1e9bff; }"
         "html body .st-key-tools_show button:hover, html body .st-key-tools_hide button:hover { filter:brightness(1.2) !important; }"
@@ -2687,16 +2692,17 @@ def render_app_links() -> None:
                 st.session_state.tools_open = True
                 st.rerun()
         return
-    buttons = "".join(
-        f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="--c:{bg};--ico:\'{ico}\'">'
-        f'<span>{label}</span></a>'
-        for ico, label, url, bg in apps
-    )
-    st.markdown(f'<div class="app-links">{buttons}</div>', unsafe_allow_html=True)
-    with st.container(key="tools_hide"):
-        if st.button("OCULTAR TOOLS", key="tools_hide_btn", use_container_width=True):
-            st.session_state.tools_open = False
-            st.rerun()
+    with st.container(key="tools_row", horizontal=True):
+        for ico, label, url, bg in apps:
+            st.markdown(
+                f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="--c:{bg};--ico:\'{ico}\'">'
+                f'<span>{label}</span></a>',
+                unsafe_allow_html=True,
+            )
+        with st.container(key="tools_hide"):
+            if st.button("OCULTAR", key="tools_hide_btn", use_container_width=True):
+                st.session_state.tools_open = False
+                st.rerun()
 
 
 def apply_filters(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
