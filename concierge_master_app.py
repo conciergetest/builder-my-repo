@@ -1892,6 +1892,64 @@ html body a.neon-pill:hover, html body a.app-link:hover {
 """
 
 
+TOP_NAV_ITEMS = [
+    ("Home", "home", "#d4af37", True),
+    ("Reservas", "calendar", "#00e5ff", False),
+    ("Huéspedes", "users", "#7cf7c4", False),
+    ("Reportes", "chart", "#b388ff", False),
+    ("Configuración", "gear", "#00e5ff", False),
+    ("Agenda", "clock", "#ffb74d", False),
+    ("Utilidades", "tool", "#b388ff", False),
+    ("Ayuda", "help", "#7cf7c4", False),
+    ("Salir", "power", "#ff4d4d", False),
+]
+
+TOP_NAV_CSS = """
+<style>
+.tn-wrap { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:6px 0 14px 0; }
+.tn-pill { display:flex; align-items:center; gap:8px; height:42px; padding:0 14px 0 5px;
+  border-radius:999px; border:1.5px solid var(--tn-c); background:rgba(0,0,0,.85);
+  color:var(--tn-c); font:700 10.5px 'Orbitron','Segoe UI',Arial,sans-serif; letter-spacing:.6px;
+  text-transform:uppercase; white-space:nowrap; box-shadow:0 0 10px color-mix(in srgb,var(--tn-c) 35%,transparent); }
+.tn-ic { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  border:1.5px solid var(--tn-c); flex:0 0 32px; }
+.tn-ic svg { width:18px; height:18px; stroke:var(--tn-c); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.tn-div { width:1.5px; height:24px; background:var(--tn-c); opacity:.7; }
+.tn-pill.tn-on { background:var(--tn-c); color:#000; }
+.tn-pill.tn-on .tn-ic { border-color:#000; background:rgba(0,0,0,.12); }
+.tn-pill.tn-on .tn-ic svg { stroke:#000; }
+.tn-pill.tn-on .tn-div { background:#000; }
+@media (max-width:768px){ .tn-wrap{ gap:8px; } .tn-pill{ height:40px; font-size:10px; padding:0 12px 0 5px; } .tn-ic{ width:30px; height:30px; flex-basis:30px; } }
+</style>
+"""
+
+_TN_ICONS = {
+    "home": '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+    "calendar": '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    "users": '<circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6"/><path d="M16 4a4 4 0 010 8"/>',
+    "chart": '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    "gear": '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+    "clock": '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    "tool": '<path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/>',
+    "help": '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 2-2.5 3.5M12 17h.01"/>',
+    "power": '<path d="M12 2v10"/><path d="M6.4 6.4a8 8 0 1011.2 0"/>',
+}
+
+
+def render_top_nav() -> None:
+    """Barra de navegación superior (solo visual, sin funcionalidad todavía)."""
+    parts = [TOP_NAV_CSS, '<div class="tn-wrap">']
+    for label, icon, color, active in TOP_NAV_ITEMS:
+        cls = "tn-pill tn-on" if active else "tn-pill"
+        parts.append(
+            f'<div class="{cls}" style="--tn-c:{color}">'
+            f'<span class="tn-ic"><svg viewBox="0 0 24 24">{_TN_ICONS[icon]}</svg></span>'
+            f'<span class="tn-div"></span><span>{label}</span></div>'
+        )
+    parts.append("</div>")
+    st.markdown("".join(parts), unsafe_allow_html=True)
+
+
 def show_header() -> None:
     import streamlit.components.v1 as components
 
@@ -8012,6 +8070,7 @@ button, a, [role="button"], select, summary, label[for] {
 </style>""",
     unsafe_allow_html=True,
 )
+render_top_nav()
 show_header()
 reservations = cargar_reservaciones()
 action = get_action()
