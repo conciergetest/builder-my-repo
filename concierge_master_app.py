@@ -181,7 +181,7 @@ def check_password() -> bool:
           <div class="login-logo">FW</div>
           <div>
             <p class="login-name">FRED WAYNE</p>
-            <p class="login-sub">CONCIERGE MASTER SOFTWARE</p>
+            <p class="login-sub">CONCIERGE MASTER SOFTWARE 6.0</p>
           </div>
         </div>
         """,
