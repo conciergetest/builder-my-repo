@@ -135,6 +135,13 @@ def check_password() -> bool:
 .login-corners .lc-bl { left:18vw; bottom:15vh; }
 .login-corners .lc-br { right:18vw; bottom:15vh; }
 @media (max-width:768px) { .login-corners { display:none !important; } }
+@media (min-width:769px) and (max-width:1100px) {
+  .login-corners img { width:clamp(70px,12vw,110px); }
+  .login-corners .lc-tl { left:3vw; top:3vh; }
+  .login-corners .lc-tr { right:3vw; top:3vh; }
+  .login-corners .lc-bl { left:3vw; bottom:3vh; }
+  .login-corners .lc-br { right:3vw; bottom:3vh; }
+}
 </style>
 <div class="login-corners">
   <img class="lc-tl" alt="" src="__SRC__" />
