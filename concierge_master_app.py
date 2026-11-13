@@ -2074,15 +2074,22 @@ def render_main_spin_logo() -> None:
         """
         <style>
         @keyframes mainLogoSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .main-spin-logo {
-            position: fixed; right: 22px; bottom: 22px; width: clamp(70px, 6.5vw, 105px);
-            aspect-ratio: 584 / 427; z-index: 1; pointer-events: none; opacity: .9;
-            background: url("data:image/png;base64,__B64__") center / contain no-repeat;
-            animation: mainLogoSpin 40s linear infinite; will-change: transform;
+        @keyframes mainLogoPath { 0%, 100% { transform: translateY(calc(100vh - 120px)); } 40%, 60% { transform: translateY(0); } }
+        .main-spin-track {
+            position: fixed; right: 20px; top: 70px; width: 56px; height: 0;
+            z-index: 1; pointer-events: none;
+            animation: mainLogoPath 20s ease-in-out infinite; will-change: transform;
         }
-        @media (max-width: 768px) { .main-spin-logo { display: none !important; } }
+        .main-spin-logo {
+            width: 100%; aspect-ratio: 584 / 427; opacity: .9;
+            background: url("data:image/png;base64,__B64__") center / contain no-repeat;
+            animation: mainLogoSpin 8s linear infinite; will-change: transform;
+        }
+        @media (max-width: 768px) { .main-spin-track { display: none !important; } }
+        @media (min-width: 769px) and (max-width: 1200px) { .main-spin-track { top: 150px; } }
+        @media (min-width: 1201px) { .main-spin-track { top: 96px; right: 2px; width: 40px; } }
         </style>
-        <div class="main-spin-logo"></div>
+        <div class="main-spin-track"><div class="main-spin-logo"></div></div>
         """.replace("__B64__", _b64),
         unsafe_allow_html=True,
     )
@@ -8496,5 +8503,6 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
