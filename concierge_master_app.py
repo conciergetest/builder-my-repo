@@ -116,6 +116,36 @@ def check_password() -> bool:
             _guardar_token_auth(expected)
             return True
 
+    _mini_b64 = None
+    for _nm in ("Waldorf Logo Mini.png", "Waldorf_Logo_Mini.png", "waldorf logo mini.png", "WaldorfLogoMini.png"):
+        _pth = os.path.join(os.path.dirname(os.path.abspath(__file__)), _nm)
+        if os.path.isfile(_pth):
+            with open(_pth, "rb") as _fh:
+                _mini_b64 = base64.b64encode(_fh.read()).decode("utf-8")
+            break
+    if _mini_b64:
+        _src = "data:image/png;base64," + _mini_b64
+        st.markdown(
+            """
+<style>
+.login-corners img { position:fixed; width:clamp(90px,10vw,150px); height:auto; z-index:0; pointer-events:none;
+  filter:drop-shadow(0 0 10px rgba(212,175,55,.35)); opacity:.95; }
+.login-corners .lc-tl { left:18vw; top:15vh; }
+.login-corners .lc-tr { right:18vw; top:15vh; }
+.login-corners .lc-bl { left:18vw; bottom:15vh; }
+.login-corners .lc-br { right:18vw; bottom:15vh; }
+@media (max-width:768px) { .login-corners { display:none !important; } }
+</style>
+<div class="login-corners">
+  <img class="lc-tl" alt="" src="__SRC__" />
+  <img class="lc-tr" alt="" src="__SRC__" />
+  <img class="lc-bl" alt="" src="__SRC__" />
+  <img class="lc-br" alt="" src="__SRC__" />
+</div>
+""".replace("__SRC__", _src),
+            unsafe_allow_html=True,
+        )
+
     with st.container(key="login_card"):
         st.markdown(
         """
