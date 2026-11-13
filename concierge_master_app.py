@@ -134,7 +134,7 @@ def check_password() -> bool:
 .login-corners .lc-tr { right:18vw; top:15vh; }
 .login-corners .lc-bl { left:18vw; bottom:15vh; }
 .login-corners .lc-br { right:18vw; bottom:15vh; }
-@media (max-width:768px) { .login-corners { display:none !important; } }
+@media (max-width:768px) { .login-corners, .login-orbit { display:none !important; } }
 @media (min-width:769px) and (max-width:1100px) {
   .login-corners img { width:clamp(70px,12vw,110px); }
   .login-corners .lc-tl { left:3vw; top:3vh; }
@@ -149,6 +149,23 @@ def check_password() -> bool:
   <img class="lc-bl" alt="" src="__SRC__" />
   <img class="lc-br" alt="" src="__SRC__" />
 </div>
+<div class="login-orbit">
+  <div class="orb o1"><img alt="" src="__SRC__" /></div>
+  <div class="orb o2"><img alt="" src="__SRC__" /></div>
+</div>
+<style>
+.login-orbit { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+.login-orbit .orb { position:absolute; left:50%; top:50%; width:0; height:0; }
+.login-orbit .orb img { position:absolute; left:0; top:0; height:auto; max-width:none; opacity:.55;
+  filter:drop-shadow(0 0 12px rgba(212,175,55,.45)); transform:translate(-50%,-50%) translateX(var(--r)); }
+.login-orbit .o1 img { width:clamp(70px,8vw,100px); }
+.login-orbit .o2 img { width:clamp(50px,5.5vw,70px); opacity:.4; }
+.login-orbit .o1 { --r:min(34vw,38vh); animation:orbitA 70s linear infinite; }
+.login-orbit .o2 { --r:min(44vw,48vh); animation:orbitB 95s linear infinite; }
+@keyframes orbitA { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+@keyframes orbitB { from { transform:rotate(360deg); } to { transform:rotate(0deg); } }
+@media (max-width:768px) { .login-orbit { display:none !important; } }
+</style>
 """.replace("__SRC__", _src),
             unsafe_allow_html=True,
         )
