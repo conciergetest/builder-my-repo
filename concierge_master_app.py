@@ -49,6 +49,28 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# Scrollbar personalizado: delgado, track negro, thumb cian neón (página y tablas)
+st.markdown(
+    """
+    <style>
+    * { scrollbar-width: thin; scrollbar-color: #22d3ee #000000; }
+    *::-webkit-scrollbar { width: 8px; height: 8px; }
+    *::-webkit-scrollbar-track { background: #000000; border-radius: 8px; }
+    *::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #22d3ee, #0e7490);
+        border-radius: 8px;
+        box-shadow: 0 0 6px rgba(34, 211, 238, 0.6);
+    }
+    *::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #67e8f9, #22d3ee);
+        box-shadow: 0 0 12px rgba(103, 232, 249, 0.9);
+    }
+    *::-webkit-scrollbar-corner { background: #000000; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # -----------------------------------------------------------------------------
 # Login por contraseña (va antes del splash)
 # -----------------------------------------------------------------------------
