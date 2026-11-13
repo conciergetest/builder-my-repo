@@ -128,61 +128,20 @@ def check_password() -> bool:
         st.markdown(
             """
 <style>
-.login-corners img { position:fixed; width:clamp(90px,10vw,150px); height:auto; z-index:0; pointer-events:none;
-  filter:drop-shadow(0 0 10px rgba(212,175,55,.35)); opacity:.95; }
-.login-corners .lc-tl { left:18vw; top:15vh; }
-.login-corners .lc-tr { right:18vw; top:15vh; }
-.login-corners .lc-bl { left:18vw; bottom:15vh; }
-.login-corners .lc-br { right:18vw; bottom:15vh; }
-@media (max-width:768px) { .login-corners, .login-orbit { display:none !important; } }
+.lside { position:fixed; top:50%; transform:translateY(-50%); width:clamp(160px,18vw,260px); aspect-ratio:584/427;
+  background:url("__SRC__") center/contain no-repeat; z-index:0; pointer-events:none;
+  filter:drop-shadow(0 0 14px rgba(212,175,55,.35)); opacity:.95; }
+.lside-l { left:3vw; }
+.lside-r { right:3vw; }
 @media (min-width:769px) and (max-width:1100px) {
-  .login-corners img { width:clamp(70px,12vw,110px); }
-  .login-corners .lc-tl { left:3vw; top:3vh; }
-  .login-corners .lc-tr { right:3vw; top:3vh; }
-  .login-corners .lc-bl { left:3vw; bottom:3vh; }
-  .login-corners .lc-br { right:3vw; bottom:3vh; }
+  .lside { width:clamp(110px,14vw,150px); }
+  .lside-l { left:1.5vw; }
+  .lside-r { right:1.5vw; }
 }
+@media (max-width:768px) { .lside { display:none !important; } }
 </style>
-<div class="login-corners">
-  <img class="lc-tl" alt="" src="__SRC__" />
-  <img class="lc-tr" alt="" src="__SRC__" />
-  <img class="lc-bl" alt="" src="__SRC__" />
-  <img class="lc-br" alt="" src="__SRC__" />
-</div>
-<div class="login-orbit">
-  <div class="orb o1"><img alt="" src="__SRC__" /></div>
-  <div class="orb o2"><img alt="" src="__SRC__" /></div>
-  <div class="orb o3"><img alt="" src="__SRC__" /></div>
-  <div class="orb o4"><img alt="" src="__SRC__" /></div>
-  <div class="orb o5"><img alt="" src="__SRC__" /></div>
-  <div class="orb o6"><img alt="" src="__SRC__" /></div>
-  <div class="orb o7"><img alt="" src="__SRC__" /></div>
-  <div class="orb o8"><img alt="" src="__SRC__" /></div>
-</div>
-<style>
-.login-orbit { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
-.login-orbit .orb { position:absolute; left:50%; top:50%; width:0; height:0; }
-.login-orbit .orb img { position:absolute; left:0; top:0; height:auto; max-width:none;
-  filter:drop-shadow(0 0 12px rgba(212,175,55,.45)); transform:translate(-50%,-50%) translateX(var(--r)); }
-.login-orbit .o1 { --r:min(34vw,38vh); animation:orbitSpin 70s linear 0s infinite; }
-.login-orbit .o1 img { width:clamp(70px,8vw,100px); opacity:0.55; }
-.login-orbit .o2 { --r:min(44vw,48vh); animation:orbitSpin 95s linear 0s infinite reverse; }
-.login-orbit .o2 img { width:clamp(50px,5.5vw,70px); opacity:0.4; }
-.login-orbit .o3 { --r:min(30vw,34vh); animation:orbitSpin 80s linear -20s infinite; }
-.login-orbit .o3 img { width:clamp(40px,4.5vw,60px); opacity:0.35; }
-.login-orbit .o4 { --r:min(40vw,44vh); animation:orbitSpin 110s linear -40s infinite reverse; }
-.login-orbit .o4 img { width:clamp(60px,6.5vw,85px); opacity:0.5; }
-.login-orbit .o5 { --r:min(37vw,41vh); animation:orbitSpin 65s linear -10s infinite; }
-.login-orbit .o5 img { width:clamp(35px,4vw,52px); opacity:0.3; }
-.login-orbit .o6 { --r:min(47vw,51vh); animation:orbitSpin 120s linear -60s infinite; }
-.login-orbit .o6 img { width:clamp(55px,6vw,78px); opacity:0.45; }
-.login-orbit .o7 { --r:min(32vw,36vh); animation:orbitSpin 88s linear -35s infinite reverse; }
-.login-orbit .o7 img { width:clamp(45px,5vw,66px); opacity:0.38; }
-.login-orbit .o8 { --r:min(42vw,46vh); animation:orbitSpin 75s linear -50s infinite; }
-.login-orbit .o8 img { width:clamp(30px,3.5vw,46px); opacity:0.28; }
-@keyframes orbitSpin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
-@media (max-width:768px) { .login-orbit { display:none !important; } }
-</style>
+<div class="lside lside-l"></div>
+<div class="lside lside-r"></div>
 """.replace("__SRC__", _src),
             unsafe_allow_html=True,
         )
