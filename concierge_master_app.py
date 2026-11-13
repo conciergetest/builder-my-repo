@@ -1922,7 +1922,8 @@ a.tn-pill:hover { filter:brightness(1.25); }
 .tn-pill.tn-on .tn-div { background:#000; }
 @media (max-width:768px){ .tn-wrap{ gap:8px; } .tn-pill{ height:40px; font-size:10px; padding:0 12px 0 5px; } .tn-ic{ width:30px; height:30px; flex-basis:30px; } }
 @media (min-width:769px){
-  div[data-testid="stElementContainer"]:has(.tn-wrap) { position:sticky; top:0; z-index:1000; background:#000; padding-top:4px; }
+  div[data-testid="stElementContainer"]:has(.tn-wrap) { position:sticky; top:0; z-index:1000; background:#000; padding:0 0 14px 0; height:auto !important; min-height:0 !important; overflow:visible !important; }
+  div[data-testid="stElementContainer"]:has(.tn-wrap) .tn-wrap { margin:0; padding-bottom:30px; background:#000; }
 }
 </style>
 """
@@ -8392,4 +8393,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
