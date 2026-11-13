@@ -1924,6 +1924,14 @@ a.tn-pill:hover { filter:brightness(1.25); }
 </style>
 """
 
+# Popups de la barra superior: el overlay empieza justo debajo de la barra para no tapar los iconos.
+TOP_POPUP_OFFSET_CSS = """
+<style>
+div[data-testid="stDialog"] { top:80px !important; height:calc(100vh - 80px) !important; padding-top:0 !important; }
+@media (max-width:768px){ div[data-testid="stDialog"] { top:276px !important; height:calc(100vh - 276px) !important; } }
+</style>
+"""
+
 _TN_ICONS = {
     "home": '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
     "calendar": '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
@@ -8333,6 +8341,7 @@ if st.query_params.get("top") in _TOP_POPUPS:
     _top_fn = _TOP_POPUPS[st.query_params["top"]]
     del st.query_params["top"]
     st.query_params["skip_splash"] = "1"
+    st.markdown(TOP_POPUP_OFFSET_CSS, unsafe_allow_html=True)
     _top_fn()
 
 
