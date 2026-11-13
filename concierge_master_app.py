@@ -1898,8 +1898,8 @@ TOP_NAV_ITEMS = [
     ("HERRAMIENTAS", "tool", "#b388ff", False),
     ("CONCIERGE SERVICES", "bell", "#7cf7c4", False),
     ("QUICK ACCESS", "bolt", "#d4af37", False),
-    ("Agenda", "clock", "#ffb74d", False),
-    ("Utilidades", "tool", "#b388ff", False),
+    ("BOX FILES", "folder", "#ffb74d", False),
+    ("DIRECTORIO", "contact", "#b388ff", False),
     ("Ayuda", "help", "#7cf7c4", False),
 ]
 
@@ -1935,6 +1935,8 @@ _TN_ICONS = {
     "help": '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 2-2.5 3.5M12 17h.01"/>',
     "bell": '<path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 21a1.9 1.9 0 003.4 0"/>',
     "bolt": '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>',
+    "folder": '<path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>',
+    "contact": '<rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="9" cy="10" r="2.5"/><path d="M5 17c.5-2 2-3 4-3s3.5 1 4 3M15 9h4M15 13h4"/>',
     "power": '<path d="M12 2v10"/><path d="M6.4 6.4a8 8 0 1011.2 0"/>',
 }
 
@@ -1947,13 +1949,17 @@ def render_top_nav() -> None:
         "HERRAMIENTAS": url_with(top="herramientas", skip_splash="1"),
         "CONCIERGE SERVICES": url_with(top="concierge", skip_splash="1"),
         "QUICK ACCESS": url_with(top="quick", skip_splash="1"),
+        "DIRECTORIO": url_with(top="directorio", skip_splash="1"),
+        "BOX FILES": BOX_FOLDER_URL,
     }
     parts = [TOP_NAV_CSS, '<div class="tn-wrap">']
     for label, icon, color, active in TOP_NAV_ITEMS:
         cls = "tn-pill tn-on" if active else "tn-pill"
         href = links.get(label)
         if href:
-            open_tag = f'<a class="{cls}" style="--tn-c:{color}" href="{html.escape(href, quote=True)}" target="_self">'
+            tgt = "_blank" if label == "BOX FILES" else "_self"
+            rel = ' rel="noopener noreferrer"' if tgt == "_blank" else ""
+            open_tag = f'<a class="{cls}" style="--tn-c:{color}" href="{html.escape(href, quote=True)}" target="{tgt}"{rel}>'
             close_tag = "</a>"
         else:
             open_tag = f'<div class="{cls}" style="--tn-c:{color}">'
@@ -8321,6 +8327,7 @@ _TOP_POPUPS = {
     "herramientas": herramientas_dialog,
     "concierge": concierge_services_dialog,
     "quick": quick_access_dialog,
+    "directorio": directorio_dialog,
 }
 if st.query_params.get("top") in _TOP_POPUPS:
     _top_fn = _TOP_POPUPS[st.query_params["top"]]
