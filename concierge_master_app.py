@@ -2076,7 +2076,7 @@ def render_main_spin_logo() -> None:
         @keyframes mainLogoSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes mainLogoPath { 0%, 100% { transform: translateY(calc(100vh - 120px)); } 40%, 60% { transform: translateY(0); } }
         .main-spin-track {
-            position: fixed; right: 20px; top: 70px; width: 56px; height: 0;
+            position: fixed; left: 0; right: 0; margin: 0 auto; top: 70px; width: 56px; height: 0;
             z-index: 1; pointer-events: none;
             animation: mainLogoPath 20s ease-in-out infinite; will-change: transform;
         }
@@ -2087,7 +2087,7 @@ def render_main_spin_logo() -> None:
         }
         @media (max-width: 768px) { .main-spin-track { display: none !important; } }
         @media (min-width: 769px) and (max-width: 1200px) { .main-spin-track { top: 150px; } }
-        @media (min-width: 1201px) { .main-spin-track { top: 96px; right: 2px; width: 40px; } }
+        @media (min-width: 1201px) { .main-spin-track { top: 96px; width: 40px; } }
         </style>
         <div class="main-spin-track"><div class="main-spin-logo"></div></div>
         """.replace("__B64__", _b64),
@@ -8503,6 +8503,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
-
-
