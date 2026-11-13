@@ -1895,9 +1895,9 @@ html body a.neon-pill:hover, html body a.app-link:hover {
 TOP_NAV_ITEMS = [
     ("Home", "home", "#d4af37", True),
     ("OPERACIONES", "gear", "#00e5ff", False),
-    ("Huéspedes", "users", "#7cf7c4", False),
-    ("Reportes", "chart", "#b388ff", False),
-    ("Configuración", "gear", "#00e5ff", False),
+    ("HERRAMIENTAS", "tool", "#b388ff", False),
+    ("CONCIERGE SERVICES", "bell", "#7cf7c4", False),
+    ("QUICK ACCESS", "bolt", "#d4af37", False),
     ("Agenda", "clock", "#ffb74d", False),
     ("Utilidades", "tool", "#b388ff", False),
     ("Ayuda", "help", "#7cf7c4", False),
@@ -1933,6 +1933,8 @@ _TN_ICONS = {
     "clock": '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     "tool": '<path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/>',
     "help": '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 2-2.5 3.5M12 17h.01"/>',
+    "bell": '<path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 21a1.9 1.9 0 003.4 0"/>',
+    "bolt": '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>',
     "power": '<path d="M12 2v10"/><path d="M6.4 6.4a8 8 0 1011.2 0"/>',
 }
 
@@ -1942,6 +1944,9 @@ def render_top_nav() -> None:
     links = {
         "Home": url_with(fecha_date="", checkout_filtro="", skip_splash="1"),
         "OPERACIONES": url_with(top="operaciones", skip_splash="1"),
+        "HERRAMIENTAS": url_with(top="herramientas", skip_splash="1"),
+        "CONCIERGE SERVICES": url_with(top="concierge", skip_splash="1"),
+        "QUICK ACCESS": url_with(top="quick", skip_splash="1"),
     }
     parts = [TOP_NAV_CSS, '<div class="tn-wrap">']
     for label, icon, color, active in TOP_NAV_ITEMS:
@@ -2532,6 +2537,74 @@ def operaciones_dialog() -> None:
         if c6.button("BONUS", use_container_width=True, key="mn_bonus"):
             st.query_params["action"] = "bonus"
             _menu_go()
+
+
+@st.dialog("🛠 HERRAMIENTAS", width="large")
+def herramientas_dialog() -> None:
+    """Popup HERRAMIENTAS: mismos botones y funciones que el MENÚ."""
+    st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
+    st.markdown(MENU_DIALOG_CSS, unsafe_allow_html=True)
+    with st.container(key="mn_tools"):
+        _mn_sec("Herramientas", "🛠")
+        h1, h2, h3, h4 = st.columns(4)
+        if h1.button("CALCULADORA", use_container_width=True, key="mn_calculadora"):
+            st.query_params["action"] = "calculadora"
+            _menu_go()
+        if h2.button("ALMANAQUE", use_container_width=True, key="mn_almanaque"):
+            st.query_params["action"] = "almanaque"
+            _menu_go()
+        if h3.button("FRED WAYNE", use_container_width=True, key="mn_fred"):
+            _menu_go(open_logo=True)
+        if h4.button("DIRECTORIO", use_container_width=True, key="mn_directorio"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_directorio=True)
+
+
+@st.dialog("🛎 CONCIERGE SERVICES", width="large")
+def concierge_services_dialog() -> None:
+    """Popup CONCIERGE SERVICES: mismos botones y funciones que el MENÚ."""
+    st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
+    st.markdown(MENU_DIALOG_CSS, unsafe_allow_html=True)
+    with st.container(key="mn_services"):
+        _mn_sec("Concierge Services", "🛎")
+        s1, s2, s3, s4 = st.columns(4)
+        if s1.button("P. DINNING", use_container_width=True, key="menu_open_pdinning"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_pdinning=True)
+        if s2.button("CONTADOR", use_container_width=True, key="menu_open_shared_counter"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_shared_counter=True)
+        if s3.button("CHECK-IN DEL DÍA", use_container_width=True, key="menu_open_checkin_dia"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_checkin_dia=True)
+        if s4.button("NOTAS", use_container_width=True, key="menu_open_notas"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_notas=True)
+
+
+@st.dialog("⚡ QUICK ACCESS", width="large")
+def quick_access_dialog() -> None:
+    """Popup QUICK ACCESS: mismos enlaces y formato que el MENÚ."""
+    st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
+    st.markdown(MENU_DIALOG_CSS, unsafe_allow_html=True)
+    with st.container(key="mn_quick"):
+        _mn_sec("Quick Access", "⚡")
+        qa, qb, qc = st.columns(3)
+        with qa:
+            st.markdown(_mn_link("ALICE", QUICK_LINKS[1][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("OPEN TABLE", QUICK_LINKS[5][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("OUTLOOK-RES", QUICK_LINKS[8][1]), unsafe_allow_html=True)
+            st.link_button("BOX FILES", BOX_FOLDER_URL, use_container_width=True, key="mn_box")
+        with qb:
+            st.markdown(_mn_link("LA CERNIA", QUICK_LINKS[3][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("OUTLOOK-FW", QUICK_LINKS[6][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("RELAXURY", QUICK_LINKS[9][1]), unsafe_allow_html=True)
+        with qc:
+            st.markdown(_mn_link("NO LIMIT", QUICK_LINKS[4][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("OUTLOOK-PC", QUICK_LINKS[7][1]), unsafe_allow_html=True)
+            if st.button("Recognition", use_container_width=True, key="menu_open_recognition"):
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_recognition=True)
 
 
 def _occ_clean(value: object) -> str:
@@ -8243,10 +8316,17 @@ if st.session_state.pop("open_ver_info", False):
         occ_guest_dialog(_ver_info_res, allow_edit=False)
 
 
-if st.query_params.get("top") == "operaciones":
+_TOP_POPUPS = {
+    "operaciones": operaciones_dialog,
+    "herramientas": herramientas_dialog,
+    "concierge": concierge_services_dialog,
+    "quick": quick_access_dialog,
+}
+if st.query_params.get("top") in _TOP_POPUPS:
+    _top_fn = _TOP_POPUPS[st.query_params["top"]]
     del st.query_params["top"]
     st.query_params["skip_splash"] = "1"
-    operaciones_dialog()
+    _top_fn()
 
 
 def _redirect_to_dialog(flag: str) -> None:
