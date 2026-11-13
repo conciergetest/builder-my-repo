@@ -2048,6 +2048,46 @@ def render_top_nav() -> None:
     st.markdown("".join(parts), unsafe_allow_html=True)
 
 
+@st.cache_data(show_spinner=False)
+def _main_spin_logo_b64() -> str | None:
+    """Logo Waldorf Mini reducido (base64) para el giro en la pantalla principal."""
+    import io
+    from PIL import Image
+    base = os.path.dirname(os.path.abspath(__file__))
+    for name in WALDORF_MINI_LOGO_FILENAMES:
+        path = os.path.join(base, name)
+        if os.path.isfile(path):
+            im = Image.open(path).convert("RGBA")
+            im.thumbnail((220, 220))
+            buf = io.BytesIO()
+            im.save(buf, "PNG", optimize=True)
+            return base64.b64encode(buf.getvalue()).decode("utf-8")
+    return None
+
+
+def render_main_spin_logo() -> None:
+    """Un solo logo Waldorf Mini dando vueltas (fijo, sin interactuar). Oculto en celular."""
+    _b64 = _main_spin_logo_b64()
+    if not _b64:
+        return
+    st.markdown(
+        """
+        <style>
+        @keyframes mainLogoSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .main-spin-logo {
+            position: fixed; right: 22px; bottom: 22px; width: clamp(70px, 6.5vw, 105px);
+            aspect-ratio: 584 / 427; z-index: 1; pointer-events: none; opacity: .9;
+            background: url("data:image/png;base64,__B64__") center / contain no-repeat;
+            animation: mainLogoSpin 40s linear infinite; will-change: transform;
+        }
+        @media (max-width: 768px) { .main-spin-logo { display: none !important; } }
+        </style>
+        <div class="main-spin-logo"></div>
+        """.replace("__B64__", _b64),
+        unsafe_allow_html=True,
+    )
+
+
 def show_header() -> None:
     import streamlit.components.v1 as components
 
@@ -8267,6 +8307,7 @@ button, a, [role="button"], select, summary, label[for] {
 )
 render_top_nav()
 show_header()
+render_main_spin_logo()
 reservations = cargar_reservaciones()
 action = get_action()
 
@@ -8455,4 +8496,5 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
