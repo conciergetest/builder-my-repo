@@ -213,6 +213,7 @@ def check_password() -> bool:
         }
         .login-name { font-family:'Cinzel',Georgia,serif; color:#ece3c8; font-size:26px; letter-spacing:2px; line-height:1.1; margin:0; }
         .login-sub { font-family:'Cinzel',Georgia,serif; color:#c9a84c; font-size:11.5px; letter-spacing:.6px; margin:6px 0 0 0; white-space:nowrap; }
+        @media (max-width:480px) { .login-sub { white-space:normal !important; font-size:10px !important; letter-spacing:.2px !important; line-height:1.35; } }
         .st-key-login_card [data-testid="stForm"] { border:none !important; padding:0 34px !important; }
         .st-key-login_card [data-testid="stTextInput"] label p { color:#e8dcc0 !important; font-size:15px !important; font-family:'Cinzel',Georgia,serif; letter-spacing:.5px; }
         .st-key-login_card [data-testid="stTextInput"] [data-baseweb="input"],
@@ -8454,3 +8455,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
