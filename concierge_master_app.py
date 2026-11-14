@@ -1120,6 +1120,50 @@ def url_with(**params: str) -> str:
     return "?" + urlencode(current) if current else "?"
 
 
+def _toggle_card_flip(flag: str) -> None:
+    """Voltea una tarjeta del header (arrivals / reminders / QR). El estado vive en session_state."""
+    st.session_state[flag] = not st.session_state.get(flag, False)
+
+
+def _close_card(flag: str) -> None:
+    """Regresa la tarjeta volteada al boton del header."""
+    st.session_state[flag] = False
+
+
+_HEADER_CARD_FLIPS = (
+    # (flag de estado, contenedor del boton frente, contenedor de la tarjeta, ancho px)
+    ("arrivals_flipped", "header_arrivals_btn", "card_arrivals_back", 440),
+    ("reminders_flipped", "header_reminders_btn", "card_reminders_back", 980),
+    ("qrcode_flipped", "header_qrcode_btn", "card_qrcode_back", 760),
+)
+
+
+def _header_card_flip_css() -> str:
+    """CSS del giro 3D de los botones del header y del panel fijo de cada tarjeta."""
+    parts = [
+        "<style>",
+        "@keyframes cardFlipIn { from { transform:translateX(-50%) perspective(1400px) rotateY(90deg); opacity:0; }"
+        " to { transform:translateX(-50%) perspective(1400px) rotateY(0deg); opacity:1; } }",
+    ]
+    for flag, front, back, width in _HEADER_CARD_FLIPS:
+        flipped = bool(st.session_state.get(flag, False))
+        rot = "-180" if flipped else "0"
+        parts.append(
+            f".st-key-{front} {{ backface-visibility:hidden !important; -webkit-backface-visibility:hidden !important;"
+            " transition:transform .7s cubic-bezier(.4,.2,.2,1);"
+            f" transform:perspective(1000px) rotateY({rot}deg) !important; }}"
+        )
+        parts.append(
+            f".st-key-{back} {{ position:fixed !important; top:3vh; left:50%; width:min({width}px,94vw) !important;"
+            " max-height:94vh; overflow-y:auto; box-sizing:border-box; padding:18px 22px;"
+            " border:1px solid #1e9bff66; border-radius:14px; background:#05080f;"
+            " box-shadow:0 0 18px rgba(30,155,255,.25); z-index:1000;"
+            " transform:translateX(-50%); animation:cardFlipIn .7s cubic-bezier(.4,.2,.2,1) both; }}"
+        )
+    parts.append("</style>")
+    return "".join(parts)
+
+
 def clear_selection() -> None:
     for key in ("selected_reservation", "selected_reservation_id"):
         st.session_state.pop(key, None)
@@ -2200,35 +2244,35 @@ def show_header() -> None:
             btn_col1, btn_col2, btn_col3 = st.columns(3)
             with btn_col1:
                 with st.container(key="header_arrivals_btn"):
-                    if st.button(
+                    st.button(
                         "Arrivals By Date",
                         key="btn_header_arrivals",
                         use_container_width=True,
-                    ):
-                        st.session_state["open_arrivals"] = True
-                        st.rerun()
+                        on_click=_toggle_card_flip,
+                        args=("arrivals_flipped",),
+                    )
             with btn_col2:
                 with st.container(key="header_reminders_btn"):
                     _reminders_count = reminders_contar_activos()
                     _reminders_label = (
                         f"Reminders  {_reminders_count}" if _reminders_count > 0 else "Reminders"
                     )
-                    if st.button(
+                    st.button(
                         _reminders_label,
                         key="btn_header_reminders",
                         use_container_width=True,
-                    ):
-                        st.session_state["open_reminders"] = True
-                        st.rerun()
+                        on_click=_toggle_card_flip,
+                        args=("reminders_flipped",),
+                    )
             with btn_col3:
                 with st.container(key="header_qrcode_btn"):
-                    if st.button(
+                    st.button(
                         "QR Code",
                         key="btn_header_qrcode",
                         use_container_width=True,
-                    ):
-                        st.session_state["open_qrcode"] = True
-                        st.rerun()
+                        on_click=_toggle_card_flip,
+                        args=("qrcode_flipped",),
+                    )
     with header_right:
         st.markdown(
             """
@@ -5587,8 +5631,7 @@ def _find_qrcode_path() -> str | None:
     return None
 
 
-@st.dialog("🔗 QR Code", width="large")
-def qrcode_dialog() -> None:
+def _qrcode_card_body() -> None:
     """Muestra QRCODE.png como un modal flotante, igual que el popup de Fred Wayne."""
     qr_path = _find_qrcode_path()
     if qr_path:
@@ -5610,8 +5653,8 @@ def qrcode_dialog() -> None:
             "`qr_code.png`)."
         )
 
-    if st.button("Cerrar", use_container_width=True, key="close_qrcode_dialog"):
-        st.rerun()
+    st.button("Cerrar", use_container_width=True, key="close_qrcode_dialog",
+              on_click=_close_card, args=("qrcode_flipped",))
 
 
 def _arrival_dates_summary() -> list[tuple[datetime, str, int]]:
@@ -5646,6 +5689,7 @@ def _apply_arrival_date(day: datetime) -> None:
     if "action" in st.query_params:
         del st.query_params["action"]
     clear_selection()
+    st.session_state["arrivals_flipped"] = False
     st.rerun()
 
 
@@ -5838,8 +5882,7 @@ def _render_arrivals_calendar(dates: list, active: datetime | None) -> None:
         st.warning(mensaje)
 
 
-@st.dialog("📅 Arrivals By Date", width="small")
-def arrivals_dates_dialog() -> None:
+def _arrivals_card_body() -> None:
     """Popup con todas las fechas de check-in; al hacer clic filtra la tabla."""
     # ── Total de reservas en la esquina superior derecha del popup ──
     # Es el mismo dato que el badge "TOTAL RESERVAS" del tablero: si hay un
@@ -5856,11 +5899,12 @@ def arrivals_dates_dialog() -> None:
         /* El popup ya es position:relative, asi que el badge se ancla a su
            esquina superior derecha, a la izquierda de la X de cerrar. */
         .st-key-arrivals_total_badge {
-            position: absolute !important;
-            top: 25px;
-            right: 52px;
+            position: relative !important;
+            top: auto; right: auto;
+            align-self: flex-end;
             width: auto !important;
-            max-width: 60% !important;
+            max-width: none !important;
+            margin: 0 0 6px 0;
             z-index: 5;
         }
         .arrivals-total-pill {
@@ -5890,8 +5934,8 @@ def arrivals_dates_dialog() -> None:
 
     if not dates:
         st.info("No hay fechas de check-in registradas todavia.")
-        if st.button("Cerrar", use_container_width=True, key="close_arrivals_empty"):
-            st.rerun()
+        st.button("Cerrar", use_container_width=True, key="close_arrivals_empty",
+                  on_click=_close_card, args=("arrivals_flipped",))
         return
 
     active = date_from_filter(str(st.query_params.get("fecha_date", "")))
@@ -5996,9 +6040,10 @@ def arrivals_dates_dialog() -> None:
             del st.query_params["fecha_date"]
         st.query_params["skip_splash"] = "1"
         st.session_state.pop("arrivals_cal_msg", None)
+        st.session_state["arrivals_flipped"] = False
         st.rerun()
-    if right.button("Cerrar", use_container_width=True, key="close_arrivals_dialog"):
-        st.rerun()
+    right.button("Cerrar", use_container_width=True, key="close_arrivals_dialog",
+                 on_click=_close_card, args=("arrivals_flipped",))
 
 
 REMINDER_SLOTS = 10
@@ -6017,8 +6062,7 @@ def _reminder_input_date(value: object) -> date:
     return ahora_cr().date()
 
 
-@st.dialog("🔔 Reminders", width="large")
-def reminders_dialog() -> None:
+def _reminders_card_body() -> None:
     """Popup con la lista de recordatorios (Activity / Active Date / Due Date).
 
     Un clic sobre la actividad la pone en modo edicion en la misma fila (sin
@@ -6104,7 +6148,7 @@ def reminders_dialog() -> None:
                         use_container_width=True,
                     ):
                         st.session_state["reminder_inline_edit_id"] = row_id
-                        st.session_state["open_reminders"] = True
+                        st.session_state["reminders_flipped"] = True
                         st.rerun()
                 c2.markdown(f"<div class='date-cell'>{active_date}</div>", unsafe_allow_html=True)
                 c3.markdown(f"<div class='date-cell'>{due_date}</div>", unsafe_allow_html=True)
@@ -6112,10 +6156,12 @@ def reminders_dialog() -> None:
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     left, right = st.columns(2)
     if left.button("✏️ EDIT", use_container_width=True, key="open_reminders_edit_btn"):
+        st.session_state["reminders_flipped"] = False
         st.session_state["open_reminders_edit"] = True
         st.rerun()
     if right.button("Cerrar", use_container_width=True, key="close_reminders_dialog"):
         st.session_state.pop("reminder_inline_edit_id", None)
+        st.session_state["reminders_flipped"] = False
         st.rerun()
 
 
@@ -6143,16 +6189,16 @@ def _reminder_inline_edit_row(row: dict) -> None:
         else:
             eliminar_reminder(row_id)
         st.session_state.pop("reminder_inline_edit_id", None)
-        st.session_state["open_reminders"] = True
+        st.session_state["reminders_flipped"] = True
         st.rerun()
     if s2.button("🗑️ Borrar", key=f"reminder_inline_delete_{row_id}", use_container_width=True):
         eliminar_reminder(row_id)
         st.session_state.pop("reminder_inline_edit_id", None)
-        st.session_state["open_reminders"] = True
+        st.session_state["reminders_flipped"] = True
         st.rerun()
     if s3.button("Cancelar", key=f"reminder_inline_cancel_{row_id}", use_container_width=True):
         st.session_state.pop("reminder_inline_edit_id", None)
-        st.session_state["open_reminders"] = True
+        st.session_state["reminders_flipped"] = True
         st.rerun()
     st.markdown("<hr style='border-color:#2a2205;margin:8px 0;'>", unsafe_allow_html=True)
 
@@ -6204,11 +6250,11 @@ def reminder_edit_dialog() -> None:
                     insertar_reminder(activity, active_date, due_date)
             elif row_id is not None:
                 eliminar_reminder(row_id)
-        st.session_state["open_reminders"] = True
+        st.session_state["reminders_flipped"] = True
         st.rerun()
 
     if st.button("Cerrar sin guardar", use_container_width=True, key="close_reminder_edit_dialog"):
-        st.session_state["open_reminders"] = True
+        st.session_state["reminders_flipped"] = True
         st.rerun()
 
 
@@ -8564,12 +8610,19 @@ if st.session_state.pop("open_logo", False):
 if st.session_state.pop("open_pdinning", False):
     pdinning_dialog()
 
-# Auto-abrir los popups del header (arrivals / QR code)
-if st.session_state.pop("open_arrivals", False):
-    arrivals_dates_dialog()
+# Tarjetas volteadas del header (arrivals / reminders / QR code): el cuerpo solo existe mientras la tarjeta esta volteada
+st.markdown(_header_card_flip_css(), unsafe_allow_html=True)
+if st.session_state.get("arrivals_flipped", False):
+    with st.container(key="card_arrivals_back"):
+        _arrivals_card_body()
 
-if st.session_state.pop("open_qrcode", False):
-    qrcode_dialog()
+if st.session_state.get("qrcode_flipped", False):
+    with st.container(key="card_qrcode_back"):
+        _qrcode_card_body()
+
+if st.session_state.get("reminders_flipped", False):
+    with st.container(key="card_reminders_back"):
+        _reminders_card_body()
 
 # Auto-abrir los popups de reservas (nueva / editar / carta / borrar)
 if st.session_state.pop("open_nueva", False):
@@ -8597,10 +8650,7 @@ if st.session_state.pop("open_reporte", False):
 if st.session_state.pop("open_agenda", False):
     agenda_dialog()
 
-# Auto-abrir los popups de reminders (ver / editar)
-if st.session_state.pop("open_reminders", False):
-    reminders_dialog()
-
+# Auto-abrir el popup de edicion de reminders
 if st.session_state.pop("open_reminders_edit", False):
     reminder_edit_dialog()
 
