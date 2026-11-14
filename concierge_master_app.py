@@ -2904,6 +2904,11 @@ def occ_guest_dialog(reservation: dict, allow_edit: bool = True) -> None:
         st.rerun()
 
 
+def _toggle_occ_flip() -> None:
+    """Voltea la tarjeta del Reporte de Ocupación. El estado vive en session_state para sobrevivir a los reruns."""
+    st.session_state["occ_flipped"] = not st.session_state.get("occ_flipped", False)
+
+
 def render_occupancy_panel(df: pd.DataFrame) -> None:
     """Resumen de ocupación: mismos conteos que el Reporte de Ocupación del menú. Cada fila abre un popup."""
     today = ahora_cr()
@@ -2954,9 +2959,45 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
             " pointer-events:none; z-index:-1; }</style>",
             unsafe_allow_html=True,
         )
+    flipped = bool(st.session_state.get("occ_flipped", False))
+    rot_front = "-180" if flipped else "0"
+    rot_back = "0" if flipped else "180"
+    flip_css = (
+        "<style>"
+        ".st-key-occ_wrap, .st-key-occ_back { backface-visibility:hidden !important; -webkit-backface-visibility:hidden !important;"
+        " transition:transform .7s cubic-bezier(.4,.2,.2,1); }"
+        ".st-key-occ_wrap { transform:perspective(1000px) rotateY(" + rot_front + "deg) !important; }"
+        ".st-key-occ_back { position:absolute !important; top:0; right:0; width:480px; height:282px; box-sizing:border-box;"
+        " margin-top:14px; padding:16px 20px 14px; border:1px solid #1e9bff55; border-radius:12px;"
+        " background:linear-gradient(135deg,#1e9bff14 0%,#05080f 85%); box-shadow:0 0 10px rgba(30,155,255,.15);"
+        " transform:perspective(1000px) rotateY(" + rot_back + "deg) !important; z-index:5; }"
+        ".st-key-occ_back [data-testid='stVerticalBlock'] { gap:0 !important; }"
+        ".st-key-occ_flip_btn button, .st-key-occ_flip_back_btn button { background:transparent !important; border:none !important; box-shadow:none !important;"
+        " color:#D4AF37 !important; font-family:'Orbitron','Segoe UI',sans-serif !important; font-size:15px !important; font-weight:700 !important;"
+        " letter-spacing:2px !important; text-transform:uppercase !important; justify-content:center !important; text-align:center !important;"
+        " padding:6px 6px !important; min-height:0 !important; text-shadow:0 0 6px rgba(212,175,55,.55) !important; }"
+        ".st-key-occ_wrap .st-key-occ_flip_btn button > div, .st-key-occ_wrap .st-key-occ_flip_btn button p,"
+        " .st-key-occ_back .st-key-occ_flip_back_btn button > div, .st-key-occ_back .st-key-occ_flip_back_btn button p"
+        " { justify-content:center !important; text-align:center !important; width:100%; margin:0 !important; color:#D4AF37 !important;"
+        " font-family:'Orbitron','Segoe UI',sans-serif !important; }"
+        ".occ-row { display:flex; justify-content:space-between; align-items:center; border-top:1px solid #D4AF3733;"
+        " padding:3px 4px; font-family:'Orbitron','Segoe UI',sans-serif; color:#D4AF37; font-size:11px; font-weight:700;"
+        " letter-spacing:1px; text-transform:uppercase; }"
+        ".occ-row b { color:#00e5ff; font-size:14px; text-shadow:0 0 6px rgba(0,229,255,.6); }"
+        ".occ-hint { text-align:center; color:#9fb4c8; font-size:9px; letter-spacing:1px; margin-top:2px; font-family:'Orbitron','Segoe UI',sans-serif; }"
+        "</style>"
+    )
+    st.markdown(flip_css, unsafe_allow_html=True)
+    counts = {label: len(frame) for label, frame in frames.items()}
+    back_rows = "".join(
+        f"<div class='occ-row'><span>{label}</span><b>{counts[label]}</b></div>"
+        for label in ["En casa", "Llegan hoy", "Llegan mañana", "Salen hoy", "Salen mañana"]
+    )
+    back_rows += f"<div class='occ-row'><span>Total reservas</span><b>{len(df)}</b></div>"
+
     with st.container(key="occ_outer"):
         with st.container(key="occ_wrap"):
-            st.markdown("<div class='occ-title'>Reporte de Ocupación</div>", unsafe_allow_html=True)
+            st.button("Reporte de Ocupación", key="occ_flip_btn", on_click=_toggle_occ_flip, use_container_width=True)
             for i, (label, frame) in enumerate(frames.items()):
                 c_btn, c_val = st.columns([3, 1], gap="small")
                 with c_btn:
@@ -2964,6 +3005,9 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
                         occ_detail_dialog(label, frame)
                 with c_val:
                     st.markdown(f"<div class='occ-value'>{len(frame)}</div>", unsafe_allow_html=True)
+        with st.container(key="occ_back"):
+            st.button("Resumen", key="occ_flip_back_btn", on_click=_toggle_occ_flip, use_container_width=True)
+            st.markdown(back_rows + "<div class='occ-hint'>TOCA EL TÍTULO PARA VOLVER</div>", unsafe_allow_html=True)
 
 
 def render_app_links() -> None:
