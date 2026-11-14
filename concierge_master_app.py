@@ -8905,23 +8905,46 @@ WAYNE_PHOTO_FILENAMES = ("Wayne Foto.png", "Wayne_Foto.png", "wayne_foto.png", "
 
 ABOUT_HTML = """
 <style>
-html, body { margin:0; height:100%; background:#05080f; font-family:'Orbitron','Segoe UI',sans-serif; }
-.stage { perspective:1000px; display:flex; justify-content:center; align-items:center; height:400px; }
-.spin { width:250px; height:380px; transform-style:preserve-3d; transition:transform 1.2s cubic-bezier(.4,.2,.2,1); }
-.spin img { width:100%; height:100%; object-fit:contain; }
-.ctrls { display:flex; gap:12px; justify-content:center; margin-top:8px; }
+html, body { margin:0; height:100%; background:#05080f; font-family:'Orbitron','Segoe UI',sans-serif; overflow:hidden; }
+.stage { perspective:1100px; perspective-origin:50% 40%; display:flex; justify-content:center; align-items:center; height:400px; }
+.scene { position:relative; width:250px; height:380px; transform-style:preserve-3d; transform:rotateX(-6deg) rotateY(0deg);
+  transition:transform 2.4s cubic-bezier(.45,.05,.25,1); }
+.fig { position:absolute; left:0; top:0; width:250px; height:380px; transform-style:preserve-3d; }
+.fig img { position:absolute; left:0; top:0; width:100%; height:100%; object-fit:contain; }
+.disc { pointer-events:none; position:absolute; left:-30px; top:225px; width:310px; height:310px; border-radius:50%; transform:rotateX(80deg);
+  background:radial-gradient(circle, rgba(30,155,255,.35) 0%, rgba(30,155,255,.12) 55%, rgba(5,8,15,0) 72%);
+  border:2px solid #1e9bff; box-shadow:0 0 14px #1e9bff, inset 0 0 22px rgba(30,155,255,.45); }
+.disc2 { pointer-events:none; position:absolute; left:10px; top:245px; width:230px; height:230px; border-radius:50%; transform:rotateX(80deg);
+  border:1.5px solid rgba(143,211,255,.7); box-shadow:0 0 8px #8fd3ff; }
+.ctrls { position:relative; z-index:10; display:flex; gap:12px; justify-content:center; margin-top:8px; }
 .ctrls button { min-width:150px; height:42px; padding:0 18px; border:2px solid #1e9bff; border-radius:999px; cursor:pointer;
   background:linear-gradient(90deg,#02101f 0%,#061d38 55%,#02101f 100%); color:#f0faff; font:700 11px 'Orbitron','Segoe UI',sans-serif;
   letter-spacing:1.5px; text-transform:uppercase;
   box-shadow:0 0 3px #1e9bff, 0 0 9px rgba(30,155,255,.3), inset 0 0 8px rgba(30,155,255,.18); }
 .ctrls button:hover { filter:brightness(1.2); }
 </style>
-<div class="stage"><div class="spin" id="spin"><img src="data:image/png;base64,__WAYNE_IMG__" alt="Wayne Foto"></div></div>
+<div class="stage"><div class="scene" id="scene">
+  <div class="disc2"></div><div class="disc"></div>
+  <div class="fig" id="fig"><img id="base" src="data:image/png;base64,__WAYNE_IMG__" alt="Wayne Foto"></div>
+</div></div>
 <div class="ctrls"><button id="rot">ROTATE</button><button id="rst">RESET</button></div>
 <script>
-var ang = 0, el = document.getElementById('spin');
-document.getElementById('rot').onclick = function () { ang += 360; el.style.transform = 'rotateY(' + ang + 'deg)'; };
-document.getElementById('rst').onclick = function () { ang = 0; el.style.transform = 'rotateY(0deg)'; };
+(function () {
+  var N = 26, STEP = 1.4, fig = document.getElementById('fig'), base = document.getElementById('base');
+  // Capas apiladas en Z: la foto gana volumen y se ve 3D al girar.
+  for (var i = 0; i < N; i++) {
+    var layer = (i === 0) ? base : base.cloneNode();
+    if (i > 0) { layer.removeAttribute('id'); fig.appendChild(layer); }
+    var z = (i - (N - 1) / 2) * STEP;
+    var shade = 0.55 + 0.45 * (i / (N - 1));
+    layer.style.transform = 'translateZ(' + z.toFixed(2) + 'px)';
+    layer.style.filter = i === N - 1 ? 'none' : 'brightness(' + shade.toFixed(2) + ')';
+  }
+  var ang = 0, scene = document.getElementById('scene');
+  function apply() { scene.style.transform = 'rotateX(-6deg) rotateY(' + ang + 'deg)'; }
+  document.getElementById('rot').onclick = function () { ang += 360; apply(); };
+  document.getElementById('rst').onclick = function () { ang = 0; apply(); };
+})();
 </script>
 """
 
