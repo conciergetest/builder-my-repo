@@ -2339,6 +2339,7 @@ def show_header() -> None:
 def _menu_go(**flags) -> None:
     """Guarda la acción elegida en el menú y hace un rerun completo de la app."""
     st.session_state["main_menu_nonce"] = st.session_state.get("main_menu_nonce", 0) + 1
+    st.session_state["menu_flipped"] = False
     for key, value in flags.items():
         st.session_state[key] = value
     _app_rerun()
@@ -2346,14 +2347,14 @@ def _menu_go(**flags) -> None:
 
 MENU_DIALOG_CSS = """
 <style>
-div[data-testid="stDialog"]:has(.main-menu-marker) > div {
+.st-key-menu_back > div {
     background: radial-gradient(circle at 50% 0%, #0b1a2e 0%, #050812 55%, #03050a 100%) !important;
     border: 2px solid #00e5ff !important;
     border-radius: 16px !important;
     box-shadow: 0 0 8px rgba(0,229,255,.35), 0 0 20px rgba(0,229,255,.10) !important;
     padding: 18px !important;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) .mn-title {
+.st-key-menu_back .mn-title {
     text-align: center;
     display: block;
     font: 800 20px/1.1 "Georgia", "Times New Roman", serif;
@@ -2364,14 +2365,14 @@ div[data-testid="stDialog"]:has(.main-menu-marker) .mn-title {
     color: transparent;
     margin: 4px 0 2px;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) .mn-sub {
+.st-key-menu_back .mn-sub {
     text-align: center;
     color: #8ca4ba;
     font: 600 11px "Segoe UI", sans-serif;
     letter-spacing: 1px;
     margin-bottom: 10px;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) .mn-bar {
+.st-key-menu_back .mn-bar {
     display: flex;
     justify-content: space-between;
     gap: 10px;
@@ -2383,22 +2384,22 @@ div[data-testid="stDialog"]:has(.main-menu-marker) .mn-bar {
     font: 600 11px "Segoe UI", sans-serif;
     margin-bottom: 14px;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) .mn-fecha {
+.st-key-menu_back .mn-fecha {
     color: #00e5ff;
     font-weight: 800;
     letter-spacing: .6px;
     text-shadow: 0 0 8px rgba(0,229,255,.7);
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) {
+.st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) {
     margin-bottom: 14px;
     animation: menu_rise .4s ease-out both;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_ops { --sc: #00e5ff; --c: #00e5ff; animation-delay: 0s; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_tools { --sc: #a78bfa; --c: #a78bfa; animation-delay: .08s; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_services { --sc: #4ade80; --c: #4ade80; animation-delay: .16s; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick { --sc: #fbbf24; --c: #fbbf24; animation-delay: .24s; }
+.st-key-menu_back .st-key-card_mn_ops { --sc: #00e5ff; --c: #00e5ff; animation-delay: 0s; }
+.st-key-menu_back .st-key-card_mn_tools { --sc: #a78bfa; --c: #a78bfa; animation-delay: .08s; }
+.st-key-menu_back .st-key-card_mn_services { --sc: #4ade80; --c: #4ade80; animation-delay: .16s; }
+.st-key-menu_back .st-key-card_mn_quick { --sc: #fbbf24; --c: #fbbf24; animation-delay: .24s; }
 @keyframes menu_rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-div[data-testid="stDialog"]:has(.main-menu-marker) .mn-sec {
+.st-key-menu_back .mn-sec {
     display: inline-block;
     color: #eafaff;
     font: 800 13px "Segoe UI", sans-serif;
@@ -2410,10 +2411,10 @@ div[data-testid="stDialog"]:has(.main-menu-marker) .mn-sec {
     text-shadow: 0 0 8px var(--sc);
     width: 100%;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) .mn-ico { color: var(--sc); margin-right: 8px; }
-div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) [data-testid="stHorizontalBlock"] { flex-wrap:wrap !important; gap:8px !important; align-items:center !important; }
-div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) [data-testid="stColumn"] { width:auto !important; flex:0 0 auto !important; min-width:0 !important; }
-div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button, div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) a {
+.st-key-menu_back .mn-ico { color: var(--sc); margin-right: 8px; }
+.st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) [data-testid="stHorizontalBlock"] { flex-wrap:wrap !important; gap:8px !important; align-items:center !important; }
+.st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) [data-testid="stColumn"] { width:auto !important; flex:0 0 auto !important; min-width:0 !important; }
+.st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) button, .st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) a {
     position:relative !important; overflow:visible !important;
     display:flex !important; align-items:center !important; justify-content:flex-start !important;
     width:fit-content !important; max-width:100% !important; min-width:0 !important; box-sizing:border-box !important;
@@ -2426,11 +2427,11 @@ div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn
     box-shadow:0 0 8px color-mix(in srgb, var(--c) 55%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 18%, transparent) !important;
     transition:filter .15s ease !important;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button > div, div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button p, div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button [data-testid="stMarkdownContainer"] {
+.st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) button > div, .st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) button p, .st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) button [data-testid="stMarkdownContainer"] {
     justify-content:flex-start !important; text-align:left !important; width:auto !important; margin:0 !important;
     color:inherit !important; font-family:inherit !important; font-weight:inherit !important; letter-spacing:inherit !important;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button::before, div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) a::before {
+.st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) button::before, .st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) a::before {
     content:var(--ico,'•') !important; position:absolute !important; left:4px !important; top:50% !important; transform:translateY(-50%) !important;
     width:34px !important; height:34px !important; box-sizing:border-box !important; border-radius:50% !important;
     border:2px solid var(--c) !important; display:flex !important; align-items:center !important; justify-content:center !important;
@@ -2439,39 +2440,39 @@ div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn
     color:#ffffff !important; font-size:14px !important; line-height:1 !important; text-shadow:0 0 6px var(--c) !important;
     font-family:'Segoe UI Emoji','Noto Color Emoji',sans-serif !important; letter-spacing:0 !important; text-transform:none !important;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button::after, div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) a::after {
+.st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) button::after, .st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) a::after {
     content:'' !important; position:absolute !important; left:46px !important; top:50% !important; transform:translateY(-50%) !important;
     width:2px !important; height:26px !important; background:linear-gradient(var(--c), color-mix(in srgb, var(--c) 50%, #fff)) !important;
     box-shadow:0 0 6px var(--c) !important;
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) button:hover, div[data-testid="stDialog"]:has(.main-menu-marker) :is(.st-key-mn_ops,.st-key-mn_tools,.st-key-mn_services,.st-key-mn_quick) a:hover { filter:brightness(1.2) !important; color:#ffffff !important; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_nueva button { --ico:'➕'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_importar button { --ico:'⬆'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_exportar button { --ico:'⬇'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_reporte button { --ico:'📊'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_agenda button { --ico:'📅'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_bonus button { --ico:'💰'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_calculadora button { --ico:'🧮'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_almanaque button { --ico:'📆'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_fred button { --ico:'🏷️'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_directorio button { --ico:'📇'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-menu_open_pdinning button { --ico:'🍽️'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-menu_open_shared_counter button { --ico:'🔢'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-menu_open_checkin_dia button { --ico:'✅'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-menu_open_notas button { --ico:'📝'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-menu_open_recognition button { --ico:'🏅'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_box a { --ico:'📁'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) a.mn-pill { --ico:'🔗'; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_box a, div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_box a p { font-family:'Orbitron','Segoe UI',sans-serif !important; font-weight:700 !important; font-size:11px !important; letter-spacing:1.5px !important; color:#eafaff !important; }
+.st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) button:hover, .st-key-menu_back :is(.st-key-card_mn_ops,.st-key-card_mn_tools,.st-key-card_mn_services,.st-key-card_mn_quick) a:hover { filter:brightness(1.2) !important; color:#ffffff !important; }
+.st-key-menu_back .st-key-card_mn_nueva button { --ico:'➕'; }
+.st-key-menu_back .st-key-card_mn_importar button { --ico:'⬆'; }
+.st-key-menu_back .st-key-card_mn_exportar button { --ico:'⬇'; }
+.st-key-menu_back .st-key-card_mn_reporte button { --ico:'📊'; }
+.st-key-menu_back .st-key-card_mn_agenda button { --ico:'📅'; }
+.st-key-menu_back .st-key-card_mn_bonus button { --ico:'💰'; }
+.st-key-menu_back .st-key-card_mn_calculadora button { --ico:'🧮'; }
+.st-key-menu_back .st-key-card_mn_almanaque button { --ico:'📆'; }
+.st-key-menu_back .st-key-card_mn_fred button { --ico:'🏷️'; }
+.st-key-menu_back .st-key-card_mn_directorio button { --ico:'📇'; }
+.st-key-menu_back .st-key-card_open_pdinning button { --ico:'🍽️'; }
+.st-key-menu_back .st-key-card_open_shared_counter button { --ico:'🔢'; }
+.st-key-menu_back .st-key-card_open_checkin_dia button { --ico:'✅'; }
+.st-key-menu_back .st-key-card_open_notas button { --ico:'📝'; }
+.st-key-menu_back .st-key-card_open_recognition button { --ico:'🏅'; }
+.st-key-menu_back .st-key-card_mn_box a { --ico:'📁'; }
+.st-key-menu_back a.mn-pill { --ico:'🔗'; }
+.st-key-menu_back .st-key-card_mn_box a, .st-key-menu_back .st-key-card_mn_box a p { font-family:'Orbitron','Segoe UI',sans-serif !important; font-weight:700 !important; font-size:11px !important; letter-spacing:1.5px !important; color:#eafaff !important; }
 @media (min-width: 640px) {
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick [data-testid="stHorizontalBlock"] { flex-wrap:nowrap !important; align-items:flex-start !important; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick [data-testid="stColumn"] { width:auto !important; flex:0 1 auto !important; min-width:0 !important; }
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick [data-testid="stColumn"]:nth-child(n+2) { padding-left:14px !important; }
+.st-key-menu_back .st-key-card_mn_quick [data-testid="stHorizontalBlock"] { flex-wrap:nowrap !important; align-items:flex-start !important; }
+.st-key-menu_back .st-key-card_mn_quick [data-testid="stColumn"] { width:auto !important; flex:0 1 auto !important; min-width:0 !important; }
+.st-key-menu_back .st-key-card_mn_quick [data-testid="stColumn"]:nth-child(n+2) { padding-left:14px !important; }
 }
 @media (max-width: 639px) {
-div[data-testid="stDialog"]:has(.main-menu-marker) .st-key-mn_quick [data-testid="stColumn"] { width:100% !important; flex:1 1 100% !important; }
+.st-key-menu_back .st-key-card_mn_quick [data-testid="stColumn"] { width:100% !important; flex:1 1 100% !important; }
 }
-div[data-testid="stDialog"]:has(.main-menu-marker) .mn-foot {
+.st-key-menu_back .mn-foot {
     margin-top: 12px;
     padding-top: 10px;
     border-top: 1px solid #1a2a3a;
@@ -2511,8 +2512,7 @@ def _mn_bar() -> None:
     )
 
 
-@st.dialog("☰ MENÚ", width="large")
-def menu_dialog() -> None:
+def _menu_card_body() -> None:
     """Menú principal centrado en la app (diseño neón por secciones)."""
     st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
     st.markdown(MENU_DIALOG_CSS, unsafe_allow_html=True)
@@ -2530,71 +2530,71 @@ def menu_dialog() -> None:
     _mn_bar()
 
     # ── Operaciones ──
-    with st.container(key="mn_ops"):
+    with st.container(key="card_mn_ops"):
         _mn_sec("Operaciones", "⚙")
         c1, c2, c3, c4, c5, c6 = st.columns(6)
-        if c1.button("NUEVA", use_container_width=True, key="mn_nueva"):
+        if c1.button("NUEVA", use_container_width=True, key="card_mn_nueva"):
             # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
             st.query_params["skip_splash"] = "1"
             _menu_go(open_nueva=True)
-        if c2.button("IMPORTAR", use_container_width=True, key="mn_importar"):
+        if c2.button("IMPORTAR", use_container_width=True, key="card_mn_importar"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_importar=True)
-        if c3.button("EXPORTAR", use_container_width=True, key="mn_exportar"):
+        if c3.button("EXPORTAR", use_container_width=True, key="card_mn_exportar"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_exportar=True)
-        if c4.button("REPORTE", use_container_width=True, key="mn_reporte"):
+        if c4.button("REPORTE", use_container_width=True, key="card_mn_reporte"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_reporte=True)
-        if c5.button("AGENDA", use_container_width=True, key="mn_agenda"):
+        if c5.button("AGENDA", use_container_width=True, key="card_mn_agenda"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_agenda=True)
-        if c6.button("BONUS", use_container_width=True, key="mn_bonus"):
+        if c6.button("BONUS", use_container_width=True, key="card_mn_bonus"):
             st.query_params["action"] = "bonus"
             _menu_go()
 
     # ── Herramientas ──
-    with st.container(key="mn_tools"):
+    with st.container(key="card_mn_tools"):
         _mn_sec("Herramientas", "🛠")
         h1, h2, h3, h4 = st.columns(4)
-        if h1.button("CALCULADORA", use_container_width=True, key="mn_calculadora"):
+        if h1.button("CALCULADORA", use_container_width=True, key="card_mn_calculadora"):
             st.query_params["action"] = "calculadora"
             _menu_go()
-        if h2.button("ALMANAQUE", use_container_width=True, key="mn_almanaque"):
+        if h2.button("ALMANAQUE", use_container_width=True, key="card_mn_almanaque"):
             st.query_params["action"] = "almanaque"
             _menu_go()
-        if h3.button("FRED WAYNE", use_container_width=True, key="mn_fred"):
+        if h3.button("FRED WAYNE", use_container_width=True, key="card_mn_fred"):
             _menu_go(open_logo=True)
-        if h4.button("DIRECTORIO", use_container_width=True, key="mn_directorio"):
+        if h4.button("DIRECTORIO", use_container_width=True, key="card_mn_directorio"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_directorio=True)
 
     # ── Concierge Services ──
-    with st.container(key="mn_services"):
+    with st.container(key="card_mn_services"):
         _mn_sec("Concierge Services", "🛎")
         s1, s2, s3, s4 = st.columns(4)
-        if s1.button("P. DINNING", use_container_width=True, key="menu_open_pdinning"):
+        if s1.button("P. DINNING", use_container_width=True, key="card_menu_open_pdinning"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_pdinning=True)
-        if s2.button("CONTADOR", use_container_width=True, key="menu_open_shared_counter"):
+        if s2.button("CONTADOR", use_container_width=True, key="card_menu_open_shared_counter"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_shared_counter=True)
-        if s3.button("CHECK-IN DEL DÍA", use_container_width=True, key="menu_open_checkin_dia"):
+        if s3.button("CHECK-IN DEL DÍA", use_container_width=True, key="card_menu_open_checkin_dia"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_checkin_dia=True)
-        if s4.button("NOTAS", use_container_width=True, key="menu_open_notas"):
+        if s4.button("NOTAS", use_container_width=True, key="card_menu_open_notas"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_notas=True)
 
     # ── Quick Access (enlaces rápidos) ──
-    with st.container(key="mn_quick"):
+    with st.container(key="card_mn_quick"):
         _mn_sec("Quick Access", "⚡")
         qa, qb, qc = st.columns(3)
         with qa:
             st.markdown(_mn_link("ALICE", QUICK_LINKS[1][1]), unsafe_allow_html=True)
             st.markdown(_mn_link("OPEN TABLE", QUICK_LINKS[5][1]), unsafe_allow_html=True)
             st.markdown(_mn_link("OUTLOOK-RES", QUICK_LINKS[8][1]), unsafe_allow_html=True)
-            st.link_button("BOX FILES", BOX_FOLDER_URL, use_container_width=True, key="mn_box")
+            st.link_button("BOX FILES", BOX_FOLDER_URL, use_container_width=True, key="card_mn_box")
         with qb:
             st.markdown(_mn_link("LA CERNIA", QUICK_LINKS[3][1]), unsafe_allow_html=True)
             st.markdown(_mn_link("OUTLOOK-FW", QUICK_LINKS[6][1]), unsafe_allow_html=True)
@@ -2602,19 +2602,127 @@ def menu_dialog() -> None:
         with qc:
             st.markdown(_mn_link("NO LIMIT", QUICK_LINKS[4][1]), unsafe_allow_html=True)
             st.markdown(_mn_link("OUTLOOK-PC", QUICK_LINKS[7][1]), unsafe_allow_html=True)
-            if st.button("Recognition", use_container_width=True, key="menu_open_recognition"):
+            if st.button("Recognition", use_container_width=True, key="card_menu_open_recognition"):
                 st.query_params["skip_splash"] = "1"
                 _menu_go(open_recognition=True)
 
     st.markdown(
-        "<div class='mn-foot'>Haz clic fuera del menú para cerrarlo<br>Waldorf Astoria Costa Rica · Concierge Master v6.0</div>",
+        "<div class='mn-foot'>Waldorf Astoria Costa Rica · Concierge Master v6.0</div>",
         unsafe_allow_html=True,
     )
+    with st.container(key="menu_hide"):
+        st.button("CERRAR", key="menu_hide_btn", on_click=_toggle_menu_flip, use_container_width=True)
+
+
+def _toggle_menu_flip() -> None:
+    """Voltea la tarjeta del MENÚ. El estado vive en session_state para sobrevivir a los reruns."""
+    st.session_state["menu_flipped"] = not st.session_state.get("menu_flipped", False)
+
+
+def _menu_card_body() -> None:
+    """Menú principal centrado en la app (diseño neón por secciones)."""
+    st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
+    st.markdown(MENU_DIALOG_CSS, unsafe_allow_html=True)
+    _menu_logo = _waldorf_logo_b64()
+    _menu_logo_html = (
+        "<img alt='Waldorf Astoria' src='data:image/png;base64," + _menu_logo + "' "
+        "style='display:block;margin:-24px auto 0 auto;height:72px;width:auto;"
+        "filter:drop-shadow(0 0 6px rgba(212,175,55,.25));' />"
+    ) if _menu_logo else ""
+    st.markdown(
+        _menu_logo_html
+        + "<div class='mn-title'>CONCIERGE MASTER</div><div class='mn-sub'>Waldorf Astoria Costa Rica · Luxury Services at Your Fingertips</div>",
+        unsafe_allow_html=True,
+    )
+    _mn_bar()
+
+    # ── Operaciones ──
+    with st.container(key="card_mn_ops"):
+        _mn_sec("Operaciones", "⚙")
+        c1, c2, c3, c4, c5, c6 = st.columns(6)
+        if c1.button("NUEVA", use_container_width=True, key="card_mn_nueva"):
+            # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_nueva=True)
+        if c2.button("IMPORTAR", use_container_width=True, key="card_mn_importar"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_importar=True)
+        if c3.button("EXPORTAR", use_container_width=True, key="card_mn_exportar"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_exportar=True)
+        if c4.button("REPORTE", use_container_width=True, key="card_mn_reporte"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_reporte=True)
+        if c5.button("AGENDA", use_container_width=True, key="card_mn_agenda"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_agenda=True)
+        if c6.button("BONUS", use_container_width=True, key="card_mn_bonus"):
+            st.query_params["action"] = "bonus"
+            _menu_go()
+
+    # ── Herramientas ──
+    with st.container(key="card_mn_tools"):
+        _mn_sec("Herramientas", "🛠")
+        h1, h2, h3, h4 = st.columns(4)
+        if h1.button("CALCULADORA", use_container_width=True, key="card_mn_calculadora"):
+            st.query_params["action"] = "calculadora"
+            _menu_go()
+        if h2.button("ALMANAQUE", use_container_width=True, key="card_mn_almanaque"):
+            st.query_params["action"] = "almanaque"
+            _menu_go()
+        if h3.button("FRED WAYNE", use_container_width=True, key="card_mn_fred"):
+            _menu_go(open_logo=True)
+        if h4.button("DIRECTORIO", use_container_width=True, key="card_mn_directorio"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_directorio=True)
+
+    # ── Concierge Services ──
+    with st.container(key="card_mn_services"):
+        _mn_sec("Concierge Services", "🛎")
+        s1, s2, s3, s4 = st.columns(4)
+        if s1.button("P. DINNING", use_container_width=True, key="card_menu_open_pdinning"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_pdinning=True)
+        if s2.button("CONTADOR", use_container_width=True, key="card_menu_open_shared_counter"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_shared_counter=True)
+        if s3.button("CHECK-IN DEL DÍA", use_container_width=True, key="card_menu_open_checkin_dia"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_checkin_dia=True)
+        if s4.button("NOTAS", use_container_width=True, key="card_menu_open_notas"):
+            st.query_params["skip_splash"] = "1"
+            _menu_go(open_notas=True)
+
+    # ── Quick Access (enlaces rápidos) ──
+    with st.container(key="card_mn_quick"):
+        _mn_sec("Quick Access", "⚡")
+        qa, qb, qc = st.columns(3)
+        with qa:
+            st.markdown(_mn_link("ALICE", QUICK_LINKS[1][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("OPEN TABLE", QUICK_LINKS[5][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("OUTLOOK-RES", QUICK_LINKS[8][1]), unsafe_allow_html=True)
+            st.link_button("BOX FILES", BOX_FOLDER_URL, use_container_width=True, key="card_mn_box")
+        with qb:
+            st.markdown(_mn_link("LA CERNIA", QUICK_LINKS[3][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("OUTLOOK-FW", QUICK_LINKS[6][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("RELAXURY", QUICK_LINKS[9][1]), unsafe_allow_html=True)
+        with qc:
+            st.markdown(_mn_link("NO LIMIT", QUICK_LINKS[4][1]), unsafe_allow_html=True)
+            st.markdown(_mn_link("OUTLOOK-PC", QUICK_LINKS[7][1]), unsafe_allow_html=True)
+            if st.button("Recognition", use_container_width=True, key="card_menu_open_recognition"):
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_recognition=True)
+
+    st.markdown(
+        "<div class='mn-foot'>Waldorf Astoria Costa Rica · Concierge Master v6.0</div>",
+        unsafe_allow_html=True,
+    )
+    with st.container(key="menu_hide"):
+        st.button("CERRAR", key="menu_hide_btn", on_click=_toggle_menu_flip, use_container_width=True)
 
 
 def render_menu() -> None:
     """Botón ☰ MENÚ: pill dorado ajustado al texto (mismo formato que LOGOUT). Abre el menú centrado."""
-    menu_nonce = st.session_state.get("main_menu_nonce", 0)
     st.markdown(
         """
         <style>
@@ -2661,8 +2769,28 @@ def render_menu() -> None:
         unsafe_allow_html=True,
     )
 
-    if st.button("MENÚ »", key=f"main_menu_btn_{menu_nonce}"):
-        menu_dialog()
+    flipped = bool(st.session_state.get("menu_flipped", False))
+    rot_front = "-180" if flipped else "0"
+    rot_back = "0" if flipped else "180"
+    st.markdown(
+        "<style>"
+        ".st-key-menu_front, .st-key-menu_back { backface-visibility:hidden !important; -webkit-backface-visibility:hidden !important;"
+        " transition:transform .7s cubic-bezier(.4,.2,.2,1); }"
+        ".st-key-menu_front { transform:perspective(1000px) rotateY(" + rot_front + "deg) !important; }"
+        ".st-key-menu_back { position:fixed !important; top:3vh; left:50%; width:min(820px,94vw) !important; max-height:94vh; overflow-y:auto;"
+        " box-sizing:border-box; padding:18px 22px; border:1px solid #00e5ff66; border-radius:14px; background:#05080f;"
+        " box-shadow:0 0 18px rgba(0,229,255,.25); z-index:1000;"
+        " transform:translateX(-50%) perspective(1400px) rotateY(" + rot_back + "deg) !important; }"
+        ".st-key-menu_back [data-testid='stVerticalBlock'] { gap:0.6rem; }"
+        ".st-key-menu_back [data-testid='stElementContainer']:has(style), .st-key-menu_back [data-testid='stElementContainer']:has(.main-menu-marker)"
+        " { display:none !important; }"
+        "</style>",
+        unsafe_allow_html=True,
+    )
+    with st.container(key="menu_front"):
+        st.button("MENÚ »", key="main_menu_btn", on_click=_toggle_menu_flip)
+    with st.container(key="menu_back"):
+        _menu_card_body()
 
 
 @st.dialog("⚙ OPERACIONES", width="large")
