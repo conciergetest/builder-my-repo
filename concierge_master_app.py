@@ -2970,7 +2970,7 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
         ".st-key-occ_back { position:absolute !important; top:0; right:0; width:480px; height:282px; box-sizing:border-box;"
         " margin-top:14px; padding:16px 20px 14px; border:1px solid #1e9bff55; border-radius:12px;"
         " background:linear-gradient(135deg,#1e9bff14 0%,#05080f 85%); box-shadow:0 0 10px rgba(30,155,255,.15);"
-        " transform:perspective(1000px) rotateY(" + rot_back + "deg) !important; z-index:5; }"
+        " transform:perspective(1000px) rotateY(" + rot_back + "deg) !important; z-index:5; overflow-y:auto; scrollbar-width:thin; }"
         ".st-key-occ_back [data-testid='stVerticalBlock'] { gap:0 !important; }"
         ".st-key-occ_flip_btn button, .st-key-occ_flip_back_btn button { background:transparent !important; border:none !important; box-shadow:none !important;"
         " color:#D4AF37 !important; font-family:'Orbitron','Segoe UI',sans-serif !important; font-size:15px !important; font-weight:700 !important;"
@@ -2984,13 +2984,28 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
         " padding:3px 4px; font-family:'Orbitron','Segoe UI',sans-serif; color:#D4AF37; font-size:11px; font-weight:700;"
         " letter-spacing:1px; text-transform:uppercase; }"
         ".occ-row b { color:#00e5ff; font-size:14px; text-shadow:0 0 6px rgba(0,229,255,.6); }"
+        ".occ-row-rooms { align-items:flex-start; padding:5px 4px; }"
+        ".occ-row-rooms > span:first-child { white-space:nowrap; flex:0 0 auto; }"
+        ".occ-rooms { color:#00e5ff; font-size:10px; font-weight:700; letter-spacing:.5px; text-align:right; text-transform:none;"
+        " line-height:1.4; max-width:62%; word-break:break-word; text-shadow:0 0 6px rgba(0,229,255,.6); }"
         ".occ-hint { text-align:center; color:#9fb4c8; font-size:9px; letter-spacing:1px; margin-top:2px; font-family:'Orbitron','Segoe UI',sans-serif; }"
         "</style>"
     )
     st.markdown(flip_css, unsafe_allow_html=True)
-    counts = {label: len(frame) for label, frame in frames.items()}
+    def _occ_room_list(frame: pd.DataFrame) -> str:
+        """Números de habitación de cada reserva de la categoría, ordenados (sin repetir el conteo)."""
+        if "room" not in frame.columns:
+            return "—"
+        rooms = [normalizar_room(_occ_clean(v)) for v in frame["room"]]
+        rooms = [r for r in rooms if r]
+        if not rooms:
+            return "—"
+        rooms.sort(key=lambda r: (0, int(r), "") if r.isdigit() else (1, 0, r))
+        return ", ".join(safe_text(r) for r in rooms)
+
     back_rows = "".join(
-        f"<div class='occ-row'><span>{label}</span><b>{counts[label]}</b></div>"
+        f"<div class='occ-row occ-row-rooms'><span>{label} <b>{len(frames[label])}</b></span>"
+        f"<span class='occ-rooms'>{_occ_room_list(frames[label])}</span></div>"
         for label in ["En casa", "Llegan hoy", "Llegan mañana", "Salen hoy", "Salen mañana"]
     )
     back_rows += f"<div class='occ-row'><span>Total reservas</span><b>{len(df)}</b></div>"
