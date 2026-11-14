@@ -2472,6 +2472,10 @@ MENU_DIALOG_CSS = """
 @media (max-width: 639px) {
 .st-key-menu_back .st-key-card_mn_quick [data-testid="stColumn"] { width:100% !important; flex:1 1 100% !important; }
 }
+.st-key-menu_back :is([data-testid="stElementContainer"],[data-testid="stMarkdown"],[data-testid="stMarkdownContainer"],[data-testid="stVerticalBlock"]):has(> .mn-foot),
+.st-key-menu_back :is([data-testid="stElementContainer"],[data-testid="stMarkdown"],[data-testid="stMarkdownContainer"]):has(.mn-foot) {
+    border: none !important; box-shadow: none !important; background: transparent !important; padding: 0 !important; outline: none !important;
+}
 .st-key-menu_back .mn-foot {
     margin-top: 12px;
     padding-top: 10px;
@@ -2524,7 +2528,7 @@ def _menu_card_body() -> None:
     ) if _menu_logo else ""
     st.markdown(
         _menu_logo_html
-        + "<div class='mn-title'>CONCIERGE MASTER</div><div class='mn-sub'>Waldorf Astoria Costa Rica · Luxury Services at Your Fingertips</div>",
+        + "<div class='mn-title'>CONCIERGE MASTER</div>",
         unsafe_allow_html=True,
     )
     _mn_bar()
@@ -2631,7 +2635,7 @@ def _menu_card_body() -> None:
     ) if _menu_logo else ""
     st.markdown(
         _menu_logo_html
-        + "<div class='mn-title'>CONCIERGE MASTER</div><div class='mn-sub'>Waldorf Astoria Costa Rica · Luxury Services at Your Fingertips</div>",
+        + "<div class='mn-title'>CONCIERGE MASTER</div>",
         unsafe_allow_html=True,
     )
     _mn_bar()
@@ -2777,7 +2781,7 @@ def render_menu() -> None:
         ".st-key-menu_front, .st-key-menu_back { backface-visibility:hidden !important; -webkit-backface-visibility:hidden !important;"
         " transition:transform .7s cubic-bezier(.4,.2,.2,1); }"
         ".st-key-menu_front { transform:perspective(1000px) rotateY(" + rot_front + "deg) !important; }"
-        ".st-key-menu_back { position:fixed !important; top:3vh; left:50%; width:min(820px,94vw) !important; max-height:94vh; overflow-y:auto;"
+        ".st-key-menu_back { position:fixed !important; top:3vh; left:50%; width:min(920px,94vw) !important; max-height:94vh; overflow-y:auto;"
         " box-sizing:border-box; padding:18px 22px; border:1px solid #00e5ff66; border-radius:14px; background:#05080f;"
         " box-shadow:0 0 18px rgba(0,229,255,.25); z-index:1000;"
         " transform:translateX(-50%) perspective(1400px) rotateY(" + rot_back + "deg) !important; }"
