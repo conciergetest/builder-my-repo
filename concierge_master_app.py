@@ -2051,7 +2051,7 @@ TOP_NAV_ITEMS = [
     ("QUICK ACCESS", "bolt", "#d4af37", False),
     ("BOX FILES", "folder", "#ffb74d", False),
     ("DIRECTORIO", "contact", "#b388ff", False),
-    ("Ayuda", "help", "#7cf7c4", False),
+    ("ABOUT", "help", "#7cf7c4", False),
 ]
 
 TOP_NAV_CSS = """
@@ -2113,6 +2113,7 @@ def render_top_nav() -> None:
         "CONCIERGE SERVICES": url_with(top="concierge", skip_splash="1"),
         "QUICK ACCESS": url_with(top="quick", skip_splash="1"),
         "DIRECTORIO": url_with(top="directorio", skip_splash="1"),
+        "ABOUT": url_with(top="about", skip_splash="1"),
         "BOX FILES": BOX_FOLDER_URL,
     }
     parts = [TOP_NAV_CSS, '<div class="tn-wrap">']
@@ -8900,12 +8901,62 @@ if st.session_state.pop("open_ver_info", False):
         occ_guest_dialog(_ver_info_res, allow_edit=False)
 
 
+WAYNE_PHOTO_FILENAMES = ("Wayne Foto.png", "Wayne_Foto.png", "wayne_foto.png", "WayneFoto.png", "wayne foto.png")
+
+ABOUT_HTML = """
+<style>
+html, body { margin:0; height:100%; background:#05080f; font-family:'Orbitron','Segoe UI',sans-serif; }
+.stage { perspective:1000px; display:flex; justify-content:center; align-items:center; height:400px; }
+.spin { width:250px; height:380px; transform-style:preserve-3d; transition:transform 1.2s cubic-bezier(.4,.2,.2,1); }
+.spin img { width:100%; height:100%; object-fit:contain; }
+.ctrls { display:flex; gap:12px; justify-content:center; margin-top:8px; }
+.ctrls button { min-width:150px; height:42px; padding:0 18px; border:2px solid #1e9bff; border-radius:999px; cursor:pointer;
+  background:linear-gradient(90deg,#02101f 0%,#061d38 55%,#02101f 100%); color:#f0faff; font:700 11px 'Orbitron','Segoe UI',sans-serif;
+  letter-spacing:1.5px; text-transform:uppercase;
+  box-shadow:0 0 3px #1e9bff, 0 0 9px rgba(30,155,255,.3), inset 0 0 8px rgba(30,155,255,.18); }
+.ctrls button:hover { filter:brightness(1.2); }
+</style>
+<div class="stage"><div class="spin" id="spin"><img src="data:image/png;base64,__WAYNE_IMG__" alt="Wayne Foto"></div></div>
+<div class="ctrls"><button id="rot">ROTATE</button><button id="rst">RESET</button></div>
+<script>
+var ang = 0, el = document.getElementById('spin');
+document.getElementById('rot').onclick = function () { ang += 360; el.style.transform = 'rotateY(' + ang + 'deg)'; };
+document.getElementById('rst').onclick = function () { ang = 0; el.style.transform = 'rotateY(0deg)'; };
+</script>
+"""
+
+
+def _find_wayne_photo_path() -> str | None:
+    """Devuelve la ruta de la foto de Wayne si existe junto a la app."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    for filename in WAYNE_PHOTO_FILENAMES:
+        candidate = os.path.join(base_dir, filename)
+        if os.path.exists(candidate):
+            return candidate
+    return None
+
+
+@st.dialog("ABOUT", width="small")
+def about_dialog() -> None:
+    """Popup ABOUT: foto de Wayne que gira 360 grados con ROTATE y regresa al frente con RESET."""
+    photo_path = _find_wayne_photo_path()
+    if photo_path:
+        encoded = base64.b64encode(open(photo_path, "rb").read()).decode("utf-8")
+        st.components.v1.html(ABOUT_HTML.replace("__WAYNE_IMG__", encoded), height=480, scrolling=False)
+    else:
+        st.warning(
+            "No se encontro la foto. Sube `Wayne Foto.png` a tu repositorio junto a este archivo "
+            "(tambien se aceptan `Wayne_Foto.png` o `wayne_foto.png`)."
+        )
+
+
 _TOP_POPUPS = {
     "operaciones": operaciones_dialog,
     "herramientas": herramientas_dialog,
     "concierge": concierge_services_dialog,
     "quick": quick_access_dialog,
     "directorio": directorio_dialog,
+    "about": about_dialog,
 }
 if st.query_params.get("top") in _TOP_POPUPS:
     _top_fn = _TOP_POPUPS[st.query_params["top"]]
