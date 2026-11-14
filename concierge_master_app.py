@@ -3432,6 +3432,12 @@ def render_app_links() -> None:
         ".st-key-tools_hide button { justify-content:center !important; padding:0 18px !important; }"
         ".st-key-tools_hide button > div, .st-key-tools_hide button p { justify-content:center !important; text-align:center !important; width:100% !important; }"
         ".st-key-tools_front button:hover, .st-key-tools_hide button:hover { filter:brightness(1.2) !important; }"
+        "@media (max-width:768px){"
+        ".st-key-tools_outer { height:auto !important; width:100% !important; margin:10px 0 4px !important; }"
+        ".st-key-tools_back { position:relative !important; top:auto !important; left:auto !important; width:100% !important; min-width:0 !important; max-width:100% !important; height:auto !important; }"
+        "}"
+        + (".st-key-tools_front { display:none !important; }" if flipped else ".st-key-tools_back { display:none !important; }")
+        + ""
         "</style>",
         unsafe_allow_html=True,
     )
