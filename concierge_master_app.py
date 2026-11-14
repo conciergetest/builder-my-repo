@@ -768,6 +768,23 @@ st.markdown(
         border-radius: 14px !important;
         box-shadow: 0 0 8px rgba(0,229,255,.35), 0 0 20px rgba(0,229,255,.10) !important;
     }
+    /* Botones de TODOS los popups con el estilo neón de los botones de la app (excepto el MENÚ y el Reporte, que ya tienen su estilo) */
+    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)) [data-testid="stButton"] button {
+        display:flex !important; align-items:center !important; justify-content:center !important;
+        min-height:42px !important; padding:0 20px !important; border-radius:999px !important;
+        border:2px solid #00e5ff !important;
+        background:linear-gradient(90deg, #02101f 0%, #061d38 55%, #02101f 100%) !important;
+        color:#f0faff !important;
+        font-family:'Orbitron','Segoe UI',sans-serif !important; font-weight:700 !important; font-size:11px !important;
+        letter-spacing:1px !important; text-transform:uppercase !important;
+        text-shadow:0 0 3px rgba(0,229,255,.7) !important;
+        box-shadow:0 0 3px #00e5ff, 0 0 9px rgba(0,229,255,.3), inset 0 0 8px rgba(0,229,255,.18) !important;
+        transition:box-shadow .2s ease !important;
+    }
+    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)) [data-testid="stButton"] button:hover {
+        box-shadow:0 0 4px #00e5ff, 0 0 14px rgba(0,229,255,.4), inset 0 0 10px rgba(0,229,255,.25) !important;
+        color:#ffffff !important;
+    }
     /* Cortina en TODOS los popups: se abren desde el centro hacia arriba y abajo (1.2 s) */
     @keyframes menu_curtain { from { clip-path: inset(50% -60px 50% -60px); } to { clip-path: inset(-60px -60px -60px -60px); } }
     div[data-testid="stDialog"] > div {
@@ -2532,6 +2549,155 @@ MENU_DIALOG_CSS = """
 """
 
 
+MENU_POP_CSS = """
+<style>
+.st-key-menu_pop > div {
+    background: radial-gradient(circle at 50% 0%, #0b1a2e 0%, #050812 55%, #03050a 100%) !important;
+    border: 2px solid #00e5ff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 0 8px rgba(0,229,255,.35), 0 0 20px rgba(0,229,255,.10) !important;
+    padding: 18px !important;
+}
+.st-key-menu_pop .mn-title {
+    text-align: center;
+    display: block;
+    font: 800 20px/1.1 "Georgia", "Times New Roman", serif;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, #f5e6b0, #d4af37, #f5e6b0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 4px 0 2px;
+}
+.st-key-menu_pop .mn-sub {
+    text-align: center;
+    color: #8ca4ba;
+    font: 600 11px "Segoe UI", sans-serif;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+.st-key-menu_pop .mn-bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 14px;
+    align-items: center;
+    border-top: 1px solid rgba(0,229,255,.35);
+    border-bottom: 1px solid rgba(0,229,255,.35);
+    color: #cfe9f5;
+    font: 600 11px "Segoe UI", sans-serif;
+    margin-bottom: 14px;
+}
+.st-key-menu_pop .mn-fecha {
+    color: #00e5ff;
+    font-weight: 800;
+    letter-spacing: .6px;
+    text-shadow: 0 0 8px rgba(0,229,255,.7);
+}
+.st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) {
+    margin-bottom: 14px;
+    animation: menu_rise .4s ease-out both;
+}
+.st-key-menu_pop .st-key-pop_mn_ops { --sc: #00e5ff; --c: #00e5ff; animation-delay: 0s; }
+.st-key-menu_pop .st-key-pop_mn_tools { --sc: #a78bfa; --c: #a78bfa; animation-delay: .08s; }
+.st-key-menu_pop .st-key-pop_mn_services { --sc: #4ade80; --c: #4ade80; animation-delay: .16s; }
+.st-key-menu_pop .st-key-pop_mn_quick { --sc: #fbbf24; --c: #fbbf24; animation-delay: .24s; }
+@keyframes menu_rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.st-key-menu_pop .mn-sec {
+    display: inline-block;
+    color: #eafaff;
+    font: 800 13px "Segoe UI", sans-serif;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    padding: 2px 14px 6px 4px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid color-mix(in srgb, var(--sc) 60%, transparent);
+    text-shadow: 0 0 8px var(--sc);
+    width: 100%;
+}
+.st-key-menu_pop .mn-ico { color: var(--sc); margin-right: 8px; }
+.st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) [data-testid="stHorizontalBlock"] { flex-wrap:wrap !important; gap:8px !important; align-items:center !important; }
+.st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) [data-testid="stColumn"] { width:auto !important; flex:0 0 auto !important; min-width:0 !important; }
+.st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) button, .st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) a {
+    position:relative !important; overflow:visible !important;
+    display:flex !important; align-items:center !important; justify-content:flex-start !important;
+    width:fit-content !important; max-width:100% !important; min-width:0 !important; box-sizing:border-box !important;
+    height:44px !important; min-height:44px !important; padding:0 22px 0 58px !important; margin:0 !important;
+    background:linear-gradient(90deg, #05080f 0%, color-mix(in srgb, var(--c) 14%, #05080f) 55%, #05080f 100%) !important;
+    border:2px solid var(--c) !important; border-radius:999px !important;
+    color:#eafaff !important; font-family:'Orbitron','Segoe UI',sans-serif !important; font-weight:700 !important;
+    font-size:11px !important; letter-spacing:1.5px !important; text-transform:uppercase !important; text-decoration:none !important;
+    text-align:left !important; white-space:nowrap !important;
+    box-shadow:0 0 8px color-mix(in srgb, var(--c) 55%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 18%, transparent) !important;
+    transition:filter .15s ease !important;
+}
+.st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) button > div, .st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) button p, .st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) button [data-testid="stMarkdownContainer"] {
+    justify-content:flex-start !important; text-align:left !important; width:auto !important; margin:0 !important;
+    color:inherit !important; font-family:inherit !important; font-weight:inherit !important; letter-spacing:inherit !important;
+}
+.st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) button::before, .st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) a::before {
+    content:var(--ico,'•') !important; position:absolute !important; left:4px !important; top:50% !important; transform:translateY(-50%) !important;
+    width:34px !important; height:34px !important; box-sizing:border-box !important; border-radius:50% !important;
+    border:2px solid var(--c) !important; display:flex !important; align-items:center !important; justify-content:center !important;
+    background:radial-gradient(circle, color-mix(in srgb, var(--c) 30%, #000) 0%, #05080f 85%) !important;
+    box-shadow:0 0 6px var(--c), inset 0 0 8px color-mix(in srgb, var(--c) 45%, transparent) !important;
+    color:#ffffff !important; font-size:14px !important; line-height:1 !important; text-shadow:0 0 6px var(--c) !important;
+    font-family:'Segoe UI Emoji','Noto Color Emoji',sans-serif !important; letter-spacing:0 !important; text-transform:none !important;
+}
+.st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) button::after, .st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) a::after {
+    content:'' !important; position:absolute !important; left:46px !important; top:50% !important; transform:translateY(-50%) !important;
+    width:2px !important; height:26px !important; background:linear-gradient(var(--c), color-mix(in srgb, var(--c) 50%, #fff)) !important;
+    box-shadow:0 0 6px var(--c) !important;
+}
+.st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) button:hover, .st-key-menu_pop :is(.st-key-pop_mn_ops,.st-key-pop_mn_tools,.st-key-pop_mn_services,.st-key-pop_mn_quick) a:hover { filter:brightness(1.2) !important; color:#ffffff !important; }
+.st-key-menu_pop .st-key-pop_mn_nueva button { --ico:'➕'; }
+.st-key-menu_pop .st-key-pop_mn_importar button { --ico:'⬆'; }
+.st-key-menu_pop .st-key-pop_mn_exportar button { --ico:'⬇'; }
+.st-key-menu_pop .st-key-pop_mn_reporte button { --ico:'📊'; }
+.st-key-menu_pop .st-key-pop_mn_agenda button { --ico:'📅'; }
+.st-key-menu_pop .st-key-pop_mn_bonus button { --ico:'💰'; }
+.st-key-menu_pop .st-key-pop_mn_calculadora button { --ico:'🧮'; }
+.st-key-menu_pop .st-key-pop_mn_almanaque button { --ico:'📆'; }
+.st-key-menu_pop .st-key-pop_mn_fred button { --ico:'🏷️'; }
+.st-key-menu_pop .st-key-pop_mn_directorio button { --ico:'📇'; }
+.st-key-menu_pop .st-key-pop_open_pdinning button { --ico:'🍽️'; }
+.st-key-menu_pop .st-key-pop_open_shared_counter button { --ico:'🔢'; }
+.st-key-menu_pop .st-key-pop_open_checkin_dia button { --ico:'✅'; }
+.st-key-menu_pop .st-key-pop_open_notas button { --ico:'📝'; }
+.st-key-menu_pop .st-key-pop_open_recognition button { --ico:'🏅'; }
+.st-key-menu_pop .st-key-pop_mn_box a { --ico:'📁'; }
+.st-key-menu_pop a.mn-pill { --ico:'🔗'; }
+.st-key-menu_pop .st-key-pop_mn_box a, .st-key-menu_pop .st-key-pop_mn_box a p { font-family:'Orbitron','Segoe UI',sans-serif !important; font-weight:700 !important; font-size:11px !important; letter-spacing:1.5px !important; color:#eafaff !important; }
+@media (min-width: 640px) {
+.st-key-menu_pop .st-key-pop_mn_quick [data-testid="stHorizontalBlock"] { flex-wrap:nowrap !important; align-items:flex-start !important; }
+.st-key-menu_pop .st-key-pop_mn_quick [data-testid="stColumn"] { width:auto !important; flex:0 1 auto !important; min-width:0 !important; }
+.st-key-menu_pop .st-key-pop_mn_quick [data-testid="stColumn"]:nth-child(n+2) { padding-left:14px !important; }
+}
+@media (max-width: 639px) {
+.st-key-menu_pop .st-key-pop_mn_quick [data-testid="stColumn"] { width:100% !important; flex:1 1 100% !important; }
+}
+.st-key-menu_pop :is([data-testid="stElementContainer"],[data-testid="stMarkdown"],[data-testid="stMarkdownContainer"],[data-testid="stVerticalBlock"]):has(> .mn-foot),
+.st-key-menu_pop :is([data-testid="stElementContainer"],[data-testid="stMarkdown"],[data-testid="stMarkdownContainer"]):has(.mn-foot) {
+    border: none !important; box-shadow: none !important; background: transparent !important; padding: 0 !important; outline: none !important;
+}
+.st-key-menu_pop .mn-foot {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #1a2a3a;
+    text-align: center;
+    color: #4a5a6a;
+    font-size: 10px;
+}
+.st-key-menu_pop { margin-top: 22px !important; }
+.st-key-menu_pop { background: radial-gradient(circle at 50% 0%, #0b1a2e 0%, #050812 55%, #03050a 100%) !important; padding: 18px 20px !important; border-radius: 12px !important; }
+.st-key-menu_pop > div { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; border-radius: 0 !important; }
+div[data-testid="stDialog"]:has(.st-key-menu_pop) > div:first-child { background: #050812 !important; }
+.st-key-menu_pop .mn-sec { margin-bottom: 18px !important; }
+.st-key-menu_pop [data-testid="stVerticalBlock"] { gap: 0.6rem; }
+</style>
+"""
+
+
 def _mn_sec(title: str, icon: str) -> None:
     """Encabezado de sección dentro del MENÚ (el color lo pone el contenedor vía --sc)."""
     st.markdown(
@@ -2845,97 +3011,101 @@ def render_menu() -> None:
 def operaciones_dialog() -> None:
     """Popup OPERACIONES: mismos botones, formato y funciones que la sección del MENÚ."""
     st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
-    st.markdown(MENU_DIALOG_CSS, unsafe_allow_html=True)
-    with st.container(key="mn_ops"):
-        _mn_sec("Operaciones", "⚙")
-        c1, c2, c3, c4, c5, c6 = st.columns(6)
-        if c1.button("NUEVA", use_container_width=True, key="mn_nueva"):
-            # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_nueva=True)
-        if c2.button("IMPORTAR", use_container_width=True, key="mn_importar"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_importar=True)
-        if c3.button("EXPORTAR", use_container_width=True, key="mn_exportar"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_exportar=True)
-        if c4.button("REPORTE", use_container_width=True, key="mn_reporte"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_reporte=True)
-        if c5.button("AGENDA", use_container_width=True, key="mn_agenda"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_agenda=True)
-        if c6.button("BONUS", use_container_width=True, key="mn_bonus"):
-            st.query_params["action"] = "bonus"
-            _menu_go()
+    st.markdown(MENU_POP_CSS, unsafe_allow_html=True)
+    with st.container(key="menu_pop"):
+        with st.container(key="pop_mn_ops"):
+            _mn_sec("Operaciones", "⚙")
+            c1, c2, c3, c4, c5, c6 = st.columns(6)
+            if c1.button("NUEVA", use_container_width=True, key="pop_mn_nueva"):
+                # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_nueva=True)
+            if c2.button("IMPORTAR", use_container_width=True, key="pop_mn_importar"):
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_importar=True)
+            if c3.button("EXPORTAR", use_container_width=True, key="pop_mn_exportar"):
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_exportar=True)
+            if c4.button("REPORTE", use_container_width=True, key="pop_mn_reporte"):
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_reporte=True)
+            if c5.button("AGENDA", use_container_width=True, key="pop_mn_agenda"):
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_agenda=True)
+            if c6.button("BONUS", use_container_width=True, key="pop_mn_bonus"):
+                st.query_params["action"] = "bonus"
+                _menu_go()
 
 
 @st.dialog("🛠 HERRAMIENTAS", width="large")
 def herramientas_dialog() -> None:
     """Popup HERRAMIENTAS: mismos botones y funciones que el MENÚ."""
     st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
-    st.markdown(MENU_DIALOG_CSS, unsafe_allow_html=True)
-    with st.container(key="mn_tools"):
-        _mn_sec("Herramientas", "🛠")
-        h1, h2, h3, h4 = st.columns(4)
-        if h1.button("CALCULADORA", use_container_width=True, key="mn_calculadora"):
-            st.query_params["action"] = "calculadora"
-            _menu_go()
-        if h2.button("ALMANAQUE", use_container_width=True, key="mn_almanaque"):
-            st.query_params["action"] = "almanaque"
-            _menu_go()
-        if h3.button("FRED WAYNE", use_container_width=True, key="mn_fred"):
-            _menu_go(open_logo=True)
-        if h4.button("DIRECTORIO", use_container_width=True, key="mn_directorio"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_directorio=True)
+    st.markdown(MENU_POP_CSS, unsafe_allow_html=True)
+    with st.container(key="menu_pop"):
+        with st.container(key="pop_mn_tools"):
+            _mn_sec("Herramientas", "🛠")
+            h1, h2, h3, h4 = st.columns(4)
+            if h1.button("CALCULADORA", use_container_width=True, key="pop_mn_calculadora"):
+                st.query_params["action"] = "calculadora"
+                _menu_go()
+            if h2.button("ALMANAQUE", use_container_width=True, key="pop_mn_almanaque"):
+                st.query_params["action"] = "almanaque"
+                _menu_go()
+            if h3.button("FRED WAYNE", use_container_width=True, key="pop_mn_fred"):
+                _menu_go(open_logo=True)
+            if h4.button("DIRECTORIO", use_container_width=True, key="pop_mn_directorio"):
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_directorio=True)
 
 
 @st.dialog("🛎 CONCIERGE SERVICES", width="large")
 def concierge_services_dialog() -> None:
     """Popup CONCIERGE SERVICES: mismos botones y funciones que el MENÚ."""
     st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
-    st.markdown(MENU_DIALOG_CSS, unsafe_allow_html=True)
-    with st.container(key="mn_services"):
-        _mn_sec("Concierge Services", "🛎")
-        s1, s2, s3, s4 = st.columns(4)
-        if s1.button("P. DINNING", use_container_width=True, key="menu_open_pdinning"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_pdinning=True)
-        if s2.button("CONTADOR", use_container_width=True, key="menu_open_shared_counter"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_shared_counter=True)
-        if s3.button("CHECK-IN DEL DÍA", use_container_width=True, key="menu_open_checkin_dia"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_checkin_dia=True)
-        if s4.button("NOTAS", use_container_width=True, key="menu_open_notas"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_notas=True)
+    st.markdown(MENU_POP_CSS, unsafe_allow_html=True)
+    with st.container(key="menu_pop"):
+        with st.container(key="pop_mn_services"):
+            _mn_sec("Concierge Services", "🛎")
+            s1, s2, s3, s4 = st.columns(4)
+            if s1.button("P. DINNING", use_container_width=True, key="pop_open_pdinning"):
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_pdinning=True)
+            if s2.button("CONTADOR", use_container_width=True, key="pop_open_shared_counter"):
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_shared_counter=True)
+            if s3.button("CHECK-IN DEL DÍA", use_container_width=True, key="pop_open_checkin_dia"):
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_checkin_dia=True)
+            if s4.button("NOTAS", use_container_width=True, key="pop_open_notas"):
+                st.query_params["skip_splash"] = "1"
+                _menu_go(open_notas=True)
 
 
 @st.dialog("⚡ QUICK ACCESS", width="large")
 def quick_access_dialog() -> None:
     """Popup QUICK ACCESS: mismos enlaces y formato que el MENÚ."""
     st.markdown("<span class='main-menu-marker'></span>", unsafe_allow_html=True)
-    st.markdown(MENU_DIALOG_CSS, unsafe_allow_html=True)
-    with st.container(key="mn_quick"):
-        _mn_sec("Quick Access", "⚡")
-        qa, qb, qc = st.columns(3)
-        with qa:
-            st.markdown(_mn_link("ALICE", QUICK_LINKS[1][1]), unsafe_allow_html=True)
-            st.markdown(_mn_link("OPEN TABLE", QUICK_LINKS[5][1]), unsafe_allow_html=True)
-            st.markdown(_mn_link("OUTLOOK-RES", QUICK_LINKS[8][1]), unsafe_allow_html=True)
-            st.link_button("BOX FILES", BOX_FOLDER_URL, use_container_width=True, key="mn_box")
-        with qb:
-            st.markdown(_mn_link("LA CERNIA", QUICK_LINKS[3][1]), unsafe_allow_html=True)
-            st.markdown(_mn_link("OUTLOOK-FW", QUICK_LINKS[6][1]), unsafe_allow_html=True)
-            st.markdown(_mn_link("RELAXURY", QUICK_LINKS[9][1]), unsafe_allow_html=True)
-        with qc:
-            st.markdown(_mn_link("NO LIMIT", QUICK_LINKS[4][1]), unsafe_allow_html=True)
-            st.markdown(_mn_link("OUTLOOK-PC", QUICK_LINKS[7][1]), unsafe_allow_html=True)
-            if st.button("Recognition", use_container_width=True, key="menu_open_recognition"):
-                st.query_params["skip_splash"] = "1"
-                _menu_go(open_recognition=True)
+    st.markdown(MENU_POP_CSS, unsafe_allow_html=True)
+    with st.container(key="menu_pop"):
+        with st.container(key="pop_mn_quick"):
+            _mn_sec("Quick Access", "⚡")
+            qa, qb, qc = st.columns(3)
+            with qa:
+                st.markdown(_mn_link("ALICE", QUICK_LINKS[1][1]), unsafe_allow_html=True)
+                st.markdown(_mn_link("OPEN TABLE", QUICK_LINKS[5][1]), unsafe_allow_html=True)
+                st.markdown(_mn_link("OUTLOOK-RES", QUICK_LINKS[8][1]), unsafe_allow_html=True)
+                st.link_button("BOX FILES", BOX_FOLDER_URL, use_container_width=True, key="pop_mn_box")
+            with qb:
+                st.markdown(_mn_link("LA CERNIA", QUICK_LINKS[3][1]), unsafe_allow_html=True)
+                st.markdown(_mn_link("OUTLOOK-FW", QUICK_LINKS[6][1]), unsafe_allow_html=True)
+                st.markdown(_mn_link("RELAXURY", QUICK_LINKS[9][1]), unsafe_allow_html=True)
+            with qc:
+                st.markdown(_mn_link("NO LIMIT", QUICK_LINKS[4][1]), unsafe_allow_html=True)
+                st.markdown(_mn_link("OUTLOOK-PC", QUICK_LINKS[7][1]), unsafe_allow_html=True)
+                if st.button("Recognition", use_container_width=True, key="pop_open_recognition"):
+                    st.query_params["skip_splash"] = "1"
+                    _menu_go(open_recognition=True)
 
 
 def _occ_clean(value: object) -> str:
