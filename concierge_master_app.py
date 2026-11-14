@@ -66,6 +66,12 @@ st.markdown(
         box-shadow: 0 0 12px rgba(103, 232, 249, 0.9);
     }
     *::-webkit-scrollbar-corner { background: #000000; }
+    .dvn-scroller, [data-testid="stDataFrame"] * { scrollbar-width: auto !important; scrollbar-color: auto !important; }
+    .dvn-scroller::-webkit-scrollbar { width: 8px; height: 8px; }
+    .dvn-scroller::-webkit-scrollbar-track { background: #000000; border-radius: 8px; }
+    .dvn-scroller::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #22d3ee, #0e7490); border-radius: 8px; box-shadow: 0 0 6px rgba(34, 211, 238, 0.6); }
+    .dvn-scroller::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #67e8f9, #22d3ee); box-shadow: 0 0 12px rgba(103, 232, 249, 0.9); }
+    .dvn-scroller::-webkit-scrollbar-corner { background: #000000; }
     </style>
     """,
     unsafe_allow_html=True,
