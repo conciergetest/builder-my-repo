@@ -3025,72 +3025,83 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
             st.markdown(back_rows + "<div class='occ-hint'>TOCA EL TÍTULO PARA VOLVER</div>", unsafe_allow_html=True)
 
 
+def _toggle_tools_flip() -> None:
+    """Voltea la tarjeta TOOLS. El estado vive en session_state para sobrevivir a los reruns."""
+    st.session_state["tools_flipped"] = not st.session_state.get("tools_flipped", False)
+
+
 def render_app_links() -> None:
-    """Botón TOOLS: al tocarlo se ocultan y aparecen las 4 apps; OCULTAR regresa al botón TOOLS."""
+    """Botón TOOLS: la tarjeta gira en 3D y muestra las 4 apps; OCULTAR la regresa al botón TOOLS."""
     apps = [
         ("🏊", "Aquatic Reservations", "https://activities-avhsghtxc4ewcdvhqjejrp.streamlit.app/", "#1e9bff"),
         ("📋", "Operator's Log", "https://hotel-logbook-zu2ywlashxhykapkbxawfc.streamlit.app/", "#1e9bff"),
         ("✏️", "VT Creator", "https://activity-certificate-waldorf-jwxquxl93r5ntvye4w3ftu.streamlit.app/", "#1e9bff"),
         ("🗄️", "VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/", "#1e9bff"),
     ]
-    if "tools_open" not in st.session_state:
-        st.session_state.tools_open = False
+    flipped = bool(st.session_state.get("tools_flipped", False))
+    rot_front = "-180" if flipped else "0"
+    rot_back = "0" if flipped else "180"
     st.markdown(
-        '<style>'
-        '.app-links { display:flex; flex-wrap:wrap; justify-content:flex-start; gap:12px; margin:14px 0 4px; }'
-        '.app-link { display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 12px; '
-        'box-sizing:border-box; width:fit-content; max-width:100%; justify-self:center; padding:0 22px; border:2px solid var(--c); border-radius:999px; color:#f0faff !important; text-decoration:none !important; '
-        "font-family:'Orbitron','Segoe UI',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; text-align:center; white-space:nowrap; overflow:hidden; "
-        'background:linear-gradient(90deg,#02101f 0%,#061d38 55%,#02101f 100%); '
-        'box-shadow:0 0 3px var(--c), 0 0 9px color-mix(in srgb, var(--c) 30%, transparent), inset 0 0 8px color-mix(in srgb, var(--c) 18%, transparent); '
-        'transition:box-shadow .2s ease; min-height:46px; }'
-        '.app-link:hover, .app-link:visited, .app-link:active { color:#fff !important; text-decoration:none !important; }'
-        '.app-link:hover { box-shadow:0 0 4px var(--c), 0 0 14px color-mix(in srgb, var(--c) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 25%, transparent); }'
-        '.app-link span { color:#f0faff !important; text-decoration:none !important; text-shadow:0 0 3px color-mix(in srgb, var(--c) 70%, transparent); }'
-        '@media (max-width:980px){ .app-links { justify-content:flex-start; } }'
-        "html body .st-key-tools_show button, html body .st-key-tools_hide button {"
-        " position:relative !important; overflow:visible !important; display:flex !important; align-items:center !important; justify-content:flex-start !important;"
-        " width:fit-content !important; min-width:0 !important; height:46px !important; min-height:46px !important; padding:0 26px 0 58px !important; margin:14px 0 4px !important;"
+        "<style>"
+        ".st-key-tools_outer { position:relative !important; width:fit-content !important; height:50px !important; min-height:0 !important;"
+        " margin:14px 0 4px !important; overflow:visible !important; }"
+        ".st-key-tools_outer > div, .st-key-tools_outer [data-testid='stVerticalBlock'] { overflow:visible !important; }"
+        ".st-key-tools_front, .st-key-tools_back { backface-visibility:hidden !important; -webkit-backface-visibility:hidden !important;"
+        " transition:transform .7s cubic-bezier(.4,.2,.2,1); }"
+        ".st-key-tools_front { position:relative !important; width:fit-content !important; transform:perspective(1000px) rotateY(" + rot_front + "deg) !important; }"
+        ".st-key-tools_back { position:absolute !important; top:0; left:0; width:320px !important; min-width:320px !important; height:372px; box-sizing:border-box;"
+        " padding:44px 18px 16px; border:1px solid #1e9bff55; border-radius:12px;"
+        " background:linear-gradient(135deg,#0b2440 0%,#05080f 85%) #05080f; box-shadow:0 0 10px rgba(30,155,255,.25);"
+        " transform:perspective(1000px) rotateY(" + rot_back + "deg) !important; z-index:5; overflow:visible !important; }"
+        ".st-key-tools_back [data-testid='stVerticalBlock'] { gap:10px !important; width:100% !important; }"
+        ".st-key-tools_back [data-testid='stElementContainer'], .st-key-tools_back [data-testid='stMarkdownContainer'] { width:100% !important; }"
+        ".st-key-tools_back [data-testid='stMarkdown'], .st-key-tools_back [data-testid='stMarkdownContainer'] { height:auto !important; overflow:visible !important; }"
+        ".tools-title { display:block; margin:0 0 12px !important; line-height:1.3 !important; text-align:center; color:#1e9bff; font-family:'Orbitron','Segoe UI',sans-serif; font-size:14px; font-weight:700;"
+        " letter-spacing:2px; text-transform:uppercase; text-shadow:0 0 6px rgba(30,155,255,.55); }"
+        ".app-link { display:flex; align-items:center; justify-content:center; box-sizing:border-box; width:100%; min-height:42px;"
+        " padding:0 16px; border:2px solid var(--c); border-radius:999px; color:#f0faff !important; text-decoration:none !important;"
+        " font-family:'Orbitron','Segoe UI',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:1px; text-transform:uppercase;"
+        " text-align:center; white-space:nowrap; overflow:hidden;"
+        " background:linear-gradient(90deg,#02101f 0%,#061d38 55%,#02101f 100%);"
+        " box-shadow:0 0 3px var(--c), 0 0 9px color-mix(in srgb, var(--c) 30%, transparent), inset 0 0 8px color-mix(in srgb, var(--c) 18%, transparent); }"
+        ".app-link:hover, .app-link:visited, .app-link:active { color:#fff !important; text-decoration:none !important; }"
+        ".app-link:hover { box-shadow:0 0 4px var(--c), 0 0 14px color-mix(in srgb, var(--c) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 25%, transparent); }"
+        ".app-link span { color:#f0faff !important; text-shadow:0 0 3px color-mix(in srgb, var(--c) 70%, transparent); }"
+        ".st-key-tools_front button, .st-key-tools_hide button {"
+        " position:relative !important; display:flex !important; align-items:center !important; justify-content:flex-start !important;"
+        " width:fit-content !important; height:46px !important; min-height:46px !important; padding:0 26px 0 58px !important; margin:0 !important;"
         " background:linear-gradient(90deg,#02101f 0%,#061d38 55%,#02101f 100%) !important; border:2px solid #1e9bff !important; border-radius:999px !important;"
         " color:#f0faff !important; font-family:'Orbitron','Segoe UI',sans-serif !important; font-weight:700 !important; font-size:11px !important;"
-        " letter-spacing:1.5px !important; text-transform:uppercase !important; text-align:left !important; white-space:nowrap !important;"
+        " letter-spacing:1.5px !important; text-transform:uppercase !important; white-space:nowrap !important;"
         " box-shadow:0 0 3px #1e9bff, 0 0 9px rgba(30,155,255,.3), inset 0 0 8px rgba(30,155,255,.18) !important; }"
-        "html body .st-key-tools_show button > div, html body .st-key-tools_show button p,"
-        " html body .st-key-tools_hide button > div, html body .st-key-tools_hide button p { margin:0 !important; width:auto !important; justify-content:flex-start !important; text-align:left !important; color:inherit !important; font:inherit !important; letter-spacing:inherit !important; }"
-        "html body .st-key-tools_show button::before, html body .st-key-tools_hide button::before {"
-        " content:'🛠'; position:absolute; left:4px; top:50%; transform:translateY(-50%); width:36px; height:36px; box-sizing:border-box; border-radius:50%;"
-        " border:2px solid #1e9bff; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle, #0a2a4a 0%, #05080f 85%);"
-        " box-shadow:0 0 6px #1e9bff, inset 0 0 8px rgba(30,155,255,.45); font-size:15px; line-height:1; font-family:'Segoe UI Emoji','Noto Color Emoji',sans-serif; }"
-        "html body .st-key-tools_hide button::before { content:'✖'; color:#fff; font-size:13px; }"
-        "html body .st-key-tools_row { flex-wrap:wrap !important; align-items:center !important; gap:8px !important; margin:14px 0 4px !important; }"
-        "html body .st-key-tools_row > div { width:auto !important; flex:0 0 auto !important; min-width:0 !important; }"
-        "html body .st-key-tools_row [data-testid='stMarkdownContainer'] p { margin:0 !important; }"
-        "@media (max-width:768px){ html body .st-key-tools_row { flex-direction:column !important; align-items:flex-start !important; } html body .st-key-tools_row > div { width:100% !important; } html body .st-key-tools_row [data-testid=\"stMarkdownContainer\"], html body .st-key-tools_row [data-testid=\"stElementContainer\"] { width:100% !important; text-align:left !important; display:block !important; } html body .st-key-tools_row a.app-link { justify-self:flex-start !important; margin:0 0 10px !important; } html body .st-key-tools_row .st-key-tools_hide button { margin:0 0 10px !important; } }"
-        "html body .st-key-tools_row a.app-link { padding:0 12px 0 62px !important; font-size:9.5px !important; letter-spacing:.4px !important; }"
-        "html body .st-key-tools_hide button { margin:0 !important; }"
-        "html body .st-key-tools_show button::after, html body .st-key-tools_hide button::after {"
-        " content:''; position:absolute; left:46px; top:50%; transform:translateY(-50%); width:2px; height:28px; background:linear-gradient(#1e9bff,#8fd3ff); box-shadow:0 0 6px #1e9bff; }"
-        "html body .st-key-tools_show button:hover, html body .st-key-tools_hide button:hover { filter:brightness(1.2) !important; }"
+        ".st-key-tools_front button > div, .st-key-tools_front button p, .st-key-tools_hide button > div, .st-key-tools_hide button p"
+        " { margin:0 !important; width:auto !important; justify-content:flex-start !important; text-align:left !important; color:inherit !important; font:inherit !important; letter-spacing:inherit !important; }"
+        ".st-key-tools_front button::before { content:'🛠'; position:absolute; left:4px; top:50%; transform:translateY(-50%); width:36px; height:36px; box-sizing:border-box;"
+        " border-radius:50%; border:2px solid #1e9bff; display:flex; align-items:center; justify-content:center;"
+        " background:radial-gradient(circle, #0a2a4a 0%, #05080f 85%); box-shadow:0 0 6px #1e9bff, inset 0 0 8px rgba(30,155,255,.45);"
+        " font-size:15px; line-height:1; font-family:'Segoe UI Emoji','Noto Color Emoji',sans-serif; }"
+        ".st-key-tools_front button::after { content:''; position:absolute; left:46px; top:50%; transform:translateY(-50%); width:2px; height:28px;"
+        " background:linear-gradient(#1e9bff,#8fd3ff); box-shadow:0 0 6px #1e9bff; }"
+        ".st-key-tools_hide, .st-key-tools_hide [data-testid='stElementContainer'], .st-key-tools_hide button { width:100% !important; }"
+        ".st-key-tools_hide button { justify-content:center !important; padding:0 18px !important; }"
+        ".st-key-tools_hide button > div, .st-key-tools_hide button p { justify-content:center !important; text-align:center !important; width:100% !important; }"
+        ".st-key-tools_front button:hover, .st-key-tools_hide button:hover { filter:brightness(1.2) !important; }"
         "</style>",
         unsafe_allow_html=True,
     )
-    if not st.session_state.tools_open:
-        with st.container(key="tools_show"):
-            if st.button("TOOLS", key="tools_show_btn", use_container_width=True):
-                st.session_state.tools_open = True
-                st.rerun()
-        return
-    with st.container(key="tools_row", horizontal=True):
-        for ico, label, url, bg in apps:
-            st.markdown(
-                f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="--c:{bg};--ico:\'{ico}\'">'
-                f'<span>{label}</span></a>',
-                unsafe_allow_html=True,
-            )
-        with st.container(key="tools_hide"):
-            if st.button("OCULTAR", key="tools_hide_btn", use_container_width=True):
-                st.session_state.tools_open = False
-                st.rerun()
+    with st.container(key="tools_outer"):
+        with st.container(key="tools_front"):
+            st.button("TOOLS", key="tools_show_btn", on_click=_toggle_tools_flip, use_container_width=True)
+        with st.container(key="tools_back"):
+            st.markdown("<div class='tools-title'>Tools</div>", unsafe_allow_html=True)
+            for ico, label, url, bg in apps:
+                st.markdown(
+                    f'<a class="app-link" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" style="--c:{bg}">'
+                    f"<span>{label}</span></a>",
+                    unsafe_allow_html=True,
+                )
+            with st.container(key="tools_hide"):
+                st.button("OCULTAR", key="tools_hide_btn", on_click=_toggle_tools_flip, use_container_width=True)
 
 
 def apply_filters(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
