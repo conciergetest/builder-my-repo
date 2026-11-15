@@ -2048,9 +2048,9 @@ html body .st-key-btn_guests_directory button { --c:#1e9bff; --ico:'👥'; }
 html body .st-key-btn_pending button { --ico:'📌'; }
 html body .st-key-bulk_all button { --c:#3b82f6; --ico:'✔'; }
 html body .st-key-bulk_none button { --c:#3b82f6; --ico:'✖'; }
-html body .st-key-bulk_row [data-testid="stHorizontalBlock"] { flex-wrap:wrap !important; gap:8px !important; align-items:center !important; }
+html body .st-key-bulk_row [data-testid="stHorizontalBlock"] { flex-wrap:nowrap !important; gap:8px !important; align-items:center !important; }
 html body .st-key-bulk_row [data-testid="stColumn"] { width:auto !important; flex:0 0 auto !important; min-width:0 !important; }
-html body .st-key-bulk_row button { padding:0 14px 0 60px !important; font-size:11px !important; letter-spacing:1px !important; }
+html body .st-key-bulk_row button { padding:0 10px 0 54px !important; font-size:9px !important; letter-spacing:.5px !important; }
 html body .st-key-btn_header_arrivals button > div, html body .st-key-btn_header_arrivals button p,
 html body .st-key-btn_header_reminders button > div, html body .st-key-btn_header_reminders button p,
 html body .st-key-btn_header_qrcode button > div, html body .st-key-btn_header_qrcode button p,
@@ -8514,7 +8514,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
 
         # Panel de seleccion masiva
-        st.markdown('<div class="panel" style="margin-top:4px"><div class="bulk-head"><svg width="26" height="20" viewBox="0 0 26 20"><g fill="#e8c170"><circle cx="7" cy="6" r="3.2"/><circle cx="19" cy="6" r="3.2"/><circle cx="13" cy="7" r="3.8"/><path d="M1 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M13 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M7 18c0-4 3-6 6-6s6 2 6 6z" opacity=".9"/></g></svg><span>SELECCION MASIVA</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="panel" style="margin-top:9px"><div class="bulk-head"><svg width="26" height="20" viewBox="0 0 26 20"><g fill="#e8c170"><circle cx="7" cy="6" r="3.2"/><circle cx="19" cy="6" r="3.2"/><circle cx="13" cy="7" r="3.8"/><path d="M1 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M13 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M7 18c0-4 3-6 6-6s6 2 6 6z" opacity=".9"/></g></svg><span>SELECCION MASIVA</span></div>', unsafe_allow_html=True)
         if not filtered.empty:
             all_ids_current = filtered["id"].dropna().astype(str).tolist()
             with st.container(key="bulk_row"):
@@ -8524,7 +8524,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                     st.session_state.pop("selected_reservation", None)
                     st.session_state.pop("selected_reservation_id", None)
                     st.rerun()
-                if c2.button("DESMARCAR", key="bulk_none"):
+                if c2.button("UNCHECK", key="bulk_none"):
                     st.session_state.bulk_selected_ids = []
                     st.rerun()
             count_sel = len(st.session_state.get("bulk_selected_ids", []))
@@ -8627,8 +8627,8 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 st.session_state["open_pending"] = True
                 st.query_params["skip_splash"] = "1"
                 st.rerun()
-    st.markdown("<style>html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button { width:auto !important; min-width:0 !important; padding:0 12px 0 56px !important; font-size:10px !important; letter-spacing:.5px !important; } html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { padding:0 12px 0 56px !important; }</style>", unsafe_allow_html=True)
-    st.markdown("<div style='height:3px'></div>", unsafe_allow_html=True)
+    st.markdown("<style>div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:wrap !important; align-items:center !important; } @media (min-width:1600px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:nowrap !important; } } @media (max-width:1600px){ div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:0 !important; } } @media (max-width:1366px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { width:60vw !important; max-width:60vw !important; } } div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:-34px !important; } html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button { width:auto !important; min-width:0 !important; padding:0 12px 0 56px !important; font-size:10px !important; letter-spacing:.5px !important; } html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { padding:0 12px 0 56px !important; }</style>", unsafe_allow_html=True)
+    st.markdown("<div style='height:64px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
         <style>
