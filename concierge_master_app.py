@@ -2002,7 +2002,7 @@ NEON_PILL_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
 .st-key-header_arrivals_btn button, .st-key-header_reminders_btn button, .st-key-header_qrcode_btn button,
-.st-key-btn_vip_candidates button, .st-key-btn_guests_directory button, .st-key-btn_pending button, .st-key-btn_occ_summary button,
+.st-key-btn_vip_candidates button, .st-key-btn_guests_directory button, .st-key-btn_pending button, .st-key-btn_occ_summary button, .st-key-btn_tools_pop button,
 .neon-pill {
     display:flex !important; align-items:center !important; justify-content:center !important;
     width:fit-content !important; max-width:100%; box-sizing:border-box; min-height:46px; padding:0 22px !important; margin:0 auto !important;
@@ -2016,7 +2016,7 @@ NEON_PILL_CSS = """
     transition: box-shadow .2s ease !important;
 }
 .st-key-header_arrivals_btn button:hover, .st-key-header_reminders_btn button:hover, .st-key-header_qrcode_btn button:hover,
-.st-key-btn_vip_candidates button:hover, .st-key-btn_guests_directory button:hover, .st-key-btn_pending button:hover, .st-key-btn_occ_summary button:hover,
+.st-key-btn_vip_candidates button:hover, .st-key-btn_guests_directory button:hover, .st-key-btn_pending button:hover, .st-key-btn_occ_summary button:hover, .st-key-btn_tools_pop button:hover,
 .neon-pill:hover {
     box-shadow: 0 0 4px var(--c), 0 0 14px color-mix(in srgb, var(--c) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 25%, transparent) !important;
     transform:none !important; filter:none !important; color:#ffffff !important;
@@ -2028,7 +2028,7 @@ NEON_PILL_CSS = """
 MENU_FMT_CSS = """
 <style>
 html body .st-key-btn_header_arrivals button, html body .st-key-btn_header_reminders button, html body .st-key-btn_header_qrcode button,
-html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button,
+html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button, html body .st-key-btn_tools_pop button,
 html body .st-key-bulk_all button, html body .st-key-bulk_none button,
 html body a.neon-pill, html body a.app-link {
     position:relative !important; overflow:visible !important;
@@ -2047,6 +2047,7 @@ html body .st-key-btn_vip_candidates button { --c:#1e9bff; --ico:'🌟'; }
 html body .st-key-btn_guests_directory button { --c:#1e9bff; --ico:'👥'; }
 html body .st-key-btn_pending button { --ico:'📌'; }
 html body .st-key-btn_occ_summary button { --c:#1e9bff; --ico:'📊'; }
+html body .st-key-btn_tools_pop button { --c:#1e9bff; --ico:'🛠'; }
 html body .st-key-bulk_all button { --c:#3b82f6; --ico:'✔'; }
 html body .st-key-bulk_none button { --c:#3b82f6; --ico:'✖'; }
 html body .st-key-bulk_row [data-testid="stHorizontalBlock"] { flex-wrap:nowrap !important; gap:8px !important; align-items:center !important; }
@@ -2057,7 +2058,7 @@ html body .st-key-btn_header_reminders button > div, html body .st-key-btn_heade
 html body .st-key-btn_header_qrcode button > div, html body .st-key-btn_header_qrcode button p,
 html body .st-key-btn_vip_candidates button > div, html body .st-key-btn_vip_candidates button p,
 html body .st-key-btn_guests_directory button > div, html body .st-key-btn_guests_directory button p,
-html body .st-key-btn_pending button > div, html body .st-key-btn_pending button p, html body .st-key-btn_occ_summary button p,
+html body .st-key-btn_pending button > div, html body .st-key-btn_pending button p, html body .st-key-btn_occ_summary button p, html body .st-key-btn_tools_pop button p,
 html body .st-key-bulk_all button > div, html body .st-key-bulk_all button p,
 html body .st-key-bulk_none button > div, html body .st-key-bulk_none button p {
     justify-content:flex-start !important; text-align:left !important; width:auto !important; margin:0 !important;
@@ -2065,7 +2066,7 @@ html body .st-key-bulk_none button > div, html body .st-key-bulk_none button p {
 }
 html body .st-key-btn_header_arrivals button::before, html body .st-key-btn_header_reminders button::before,
 html body .st-key-btn_header_qrcode button::before, html body .st-key-btn_vip_candidates button::before,
-html body .st-key-btn_guests_directory button::before, html body .st-key-btn_pending button::before, html body .st-key-btn_occ_summary button::before,
+html body .st-key-btn_guests_directory button::before, html body .st-key-btn_pending button::before, html body .st-key-btn_occ_summary button::before, html body .st-key-btn_tools_pop button::before,
 html body .st-key-bulk_all button::before, html body .st-key-bulk_none button::before,
 html body a.neon-pill::before, html body a.app-link::before {
     content:var(--ico,'•') !important; position:absolute !important; left:4px !important; top:50% !important; transform:translateY(-50%) !important;
@@ -2078,7 +2079,7 @@ html body a.neon-pill::before, html body a.app-link::before {
 }
 html body .st-key-btn_header_arrivals button::after, html body .st-key-btn_header_reminders button::after,
 html body .st-key-btn_header_qrcode button::after, html body .st-key-btn_vip_candidates button::after,
-html body .st-key-btn_guests_directory button::after, html body .st-key-btn_pending button::after, html body .st-key-btn_occ_summary button::after,
+html body .st-key-btn_guests_directory button::after, html body .st-key-btn_pending button::after, html body .st-key-btn_occ_summary button::after, html body .st-key-btn_tools_pop button::after,
 html body .st-key-bulk_all button::after, html body .st-key-bulk_none button::after,
 html body a.neon-pill::after, html body a.app-link::after {
     content:'' !important; position:absolute !important; left:50px !important; top:50% !important; transform:translateY(-50%) !important;
@@ -2087,7 +2088,7 @@ html body a.neon-pill::after, html body a.app-link::after {
 }
 html body .st-key-btn_header_arrivals button:hover, html body .st-key-btn_header_reminders button:hover,
 html body .st-key-btn_header_qrcode button:hover, html body .st-key-btn_vip_candidates button:hover,
-html body .st-key-btn_guests_directory button:hover, html body .st-key-btn_pending button:hover, html body .st-key-btn_occ_summary button:hover,
+html body .st-key-btn_guests_directory button:hover, html body .st-key-btn_pending button:hover, html body .st-key-btn_occ_summary button:hover, html body .st-key-btn_tools_pop button:hover,
 html body .st-key-bulk_all button:hover, html body .st-key-bulk_none button:hover,
 html body a.neon-pill:hover, html body a.app-link:hover {
     filter:brightness(1.15) !important; color:#ffffff !important;
@@ -3439,6 +3440,28 @@ def occ_summary_dialog(df: pd.DataFrame) -> None:
         unsafe_allow_html=True,
     )
     render_occupancy_panel(df)
+
+
+@st.dialog("🛠 Tools", width="small")
+def tools_dialog() -> None:
+    """Popup TOOLS: las 4 apps, abierto desde el botón de la fila de filtros."""
+    apps = [
+        ("🏊", "Aquatic Reservations", "https://activities-avhsghtxc4ewcdvhqjejrp.streamlit.app/"),
+        ("📋", "Operator's Log", "https://hotel-logbook-zu2ywlashxhykapkbxawfc.streamlit.app/"),
+        ("✏️", "VT Creator", "https://activity-certificate-waldorf-jwxquxl93r5ntvye4w3ftu.streamlit.app/"),
+        ("🗄️", "VT DataBase", "https://activity-certificates-fimphxc9yzupjuoimxrkc7.streamlit.app/"),
+    ]
+    for ico, label, url in apps:
+        st.markdown(
+            f'<a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" '
+            'style="display:flex;align-items:center;justify-content:center;min-height:44px;margin-bottom:10px;'
+            'border:2px solid #1e9bff;border-radius:999px;color:#f0faff;text-decoration:none;'
+            "font-family:'Orbitron','Segoe UI',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;"
+            'background:linear-gradient(90deg,#02101f 0%,#061d38 55%,#02101f 100%);'
+            'box-shadow:0 0 3px #1e9bff,0 0 9px rgba(30,155,255,.3);">'
+            f"{ico}&nbsp;&nbsp;{html.escape(label)}</a>",
+            unsafe_allow_html=True,
+        )
 
 
 def _toggle_tools_flip() -> None:
@@ -8555,17 +8578,14 @@ def render_dashboard(df: pd.DataFrame) -> None:
         relaxury = int(category_match_mask(filtered, "RELAXURY").sum())
         max_cat = max([int(category_match_mask(filtered, c).sum()) for c in CATEGORY_CHART_COLORS] + [1])
         render_relaxury_card(relaxury, max_cat)
-        apps_col, _occ_spacer = st.columns([1.7, 1], gap="small")
-        with apps_col:
-            render_app_links()
 
 
     # Fila horizontal: filtros + menú
-    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:0px'></div>", unsafe_allow_html=True)
     st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
     st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(a.neon-pill) > div[data-testid="stColumn"]:has(a.neon-pill) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
     st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { justify-content:flex-start !important; gap:8px !important; } div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
-    f1, f2, f3, f4, vip_col, guests_col, pending_col, occ_btn_col = st.columns([0.8, 0.9, 0.9, 2.2, 1, 1, 1, 1])
+    f1, f2, f3, f4, vip_col, guests_col, pending_col, tools_btn_col, occ_btn_col = st.columns([0.8, 0.9, 0.9, 2.2, 1, 1, 1, 1, 1])
 
     with f1:
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
@@ -8640,12 +8660,16 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 st.session_state["open_pending"] = True
                 st.query_params["skip_splash"] = "1"
                 st.rerun()
+    with tools_btn_col:
+        with st.container(key="btn_tools_pop"):
+            if st.button("TOOLS", use_container_width=True, key="do_open_tools"):
+                tools_dialog()
     with occ_btn_col:
         with st.container(key="btn_occ_summary"):
             if st.button("REP. OCC", use_container_width=True, key="do_open_occ_summary"):
                 occ_summary_dialog(df)
-    st.markdown("<style>div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:wrap !important; align-items:center !important; } @media (min-width:1600px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:nowrap !important; } } @media (max-width:1600px){ div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:0 !important; } } @media (max-width:1366px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { width:60vw !important; max-width:60vw !important; } } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) > div[data-testid='stColumn'] { align-self:center !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stElementContainer'] { margin-top:0 !important; margin-bottom:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stVerticalBlock'] { gap:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { transform:translateY(-25px) !important; } div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:-34px !important; } html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button { width:auto !important; min-width:0 !important; padding:0 12px 0 56px !important; font-size:10px !important; letter-spacing:.5px !important; } html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { padding:0 12px 0 56px !important; }</style>", unsafe_allow_html=True)
-    st.markdown("<div style='height:64px'></div>", unsafe_allow_html=True)
+    st.markdown("<style>div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:wrap !important; align-items:center !important; } @media (min-width:1600px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:nowrap !important; } } @media (max-width:1600px){ div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:0 !important; } } @media (max-width:1366px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { width:60vw !important; max-width:60vw !important; } } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) > div[data-testid='stColumn'] { align-self:center !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stElementContainer'] { margin-top:0 !important; margin-bottom:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stVerticalBlock'] { gap:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { transform:translateY(-25px) !important; } div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:-34px !important; } html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button, html body .st-key-btn_tools_pop button { width:auto !important; min-width:0 !important; padding:0 12px 0 56px !important; font-size:10px !important; letter-spacing:.5px !important; } html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { padding:0 12px 0 56px !important; }</style>", unsafe_allow_html=True)
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
         <style>
