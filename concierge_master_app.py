@@ -8688,10 +8688,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
         html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button,
         html body .st-key-btn_tools_pop button, html body div[class*="st-key-main_menu_btn"] button,
         html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill {
-            height:34px !important; min-height:34px !important; font-size:13px !important;
-            letter-spacing:.4px !important; padding:0 10px 0 52px !important; top:0 !important;
+            height:46px !important; min-height:46px !important; font-size:12px !important;
+            letter-spacing:.4px !important; padding:0 8px 0 58px !important; top:0 !important;
         }
-        html body div[class*="st-key-main_menu_btn"] button { font-size:13px !important; padding:0 10px 0 52px !important; }
+        html body div[class*="st-key-main_menu_btn"] button { font-size:12px !important; padding:0 8px 0 58px !important; }
         html body div[class*="st-key-main_menu_btn"] { margin-top:0 !important; }
         html body .st-key-btn_vip_candidates button p, html body .st-key-btn_guests_directory button p,
         html body .st-key-btn_pending button p, html body .st-key-btn_occ_summary button p,
@@ -8699,14 +8699,21 @@ def render_dashboard(df: pd.DataFrame) -> None:
         html body .st-key-btn_vip_candidates button > div, html body .st-key-btn_guests_directory button > div,
         html body .st-key-btn_pending button > div, html body .st-key-btn_occ_summary button > div,
         html body .st-key-btn_tools_pop button > div, html body div[class*="st-key-main_menu_btn"] button > div,
-        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill * { font-size:13px !important; line-height:1.1 !important; }
+        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill * { font-size:12px !important; line-height:1.1 !important; }
         html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill { transform:none !important; }
         html body .st-key-checkin_date_wrap { width:128px !important; max-width:128px !important; }
         html body .st-key-checkin_date_wrap label p { font-size:7px !important; letter-spacing:.3px !important; margin-bottom:0 !important; }
-        html body .st-key-checkin_date_wrap input { height:34px !important; min-height:34px !important; font-size:11px !important; padding:0 8px !important; }
+        html body .st-key-checkin_date_wrap input { height:46px !important; min-height:46px !important; font-size:11px !important; padding:0 8px !important; }
         html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) div[data-testid="stVerticalBlock"] { gap:0 !important; }
-        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { margin-top:0 !important; }
-        /* Chips de checkout mas bajos */
+        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { margin-top:0 !important; } html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { flex-wrap:nowrap !important; } html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; }
+                /* Circulos de iconos mas grandes */
+        html body .st-key-btn_vip_candidates button::before, html body .st-key-btn_guests_directory button::before, html body .st-key-btn_pending button::before, html body .st-key-btn_occ_summary button::before, html body .st-key-btn_tools_pop button::before, html body div[class*="st-key-main_menu_btn"] button::before, html body a.neon-pill::before {
+            width:42px !important; height:42px !important; left:5px !important; font-size:21px !important;
+        }
+        html body .st-key-btn_vip_candidates button::after, html body .st-key-btn_guests_directory button::after, html body .st-key-btn_pending button::after, html body .st-key-btn_occ_summary button::after, html body .st-key-btn_tools_pop button::after, html body div[class*="st-key-main_menu_btn"] button::after, html body a.neon-pill::after {
+            left:54px !important; height:32px !important;
+        }
+/* Chips de checkout mas bajos */
         html body div[class*="st-key-main_menu_btn"] button, html body div[class*="st-key-main_menu_btn"] button * { font-size:13px !important; line-height:1.1 !important; }
         html body .chip-day { min-height:24px !important; padding:2px 18px !important; font-size:10.5px !important; }
         html body .st-key-bulk_row button { height:28px !important; min-height:28px !important; }
@@ -9182,6 +9189,8 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
+
 
 
 
