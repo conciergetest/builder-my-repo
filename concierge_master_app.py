@@ -801,7 +801,7 @@ st.markdown(
         box-shadow: 0 0 8px rgba(0,229,255,.35), 0 0 20px rgba(0,229,255,.10) !important;
     }
     /* Botones de TODOS los popups con el estilo neón de los botones de la app (excepto el MENÚ y el Reporte, que ya tienen su estilo) */
-    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)) [data-testid="stButton"] button {
+    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)):not(:has(.st-key-occ_wrap)) [data-testid="stButton"] button {
         display:flex !important; align-items:center !important; justify-content:center !important;
         min-height:42px !important; padding:0 20px !important; border-radius:999px !important;
         border:2px solid #00e5ff !important;
@@ -813,7 +813,7 @@ st.markdown(
         box-shadow:0 0 3px #00e5ff, 0 0 9px rgba(0,229,255,.3), inset 0 0 8px rgba(0,229,255,.18) !important;
         transition:box-shadow .2s ease !important;
     }
-    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)) [data-testid="stButton"] button:hover {
+    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)):not(:has(.st-key-occ_wrap)) [data-testid="stButton"] button:hover {
         box-shadow:0 0 4px #00e5ff, 0 0 14px rgba(0,229,255,.4), inset 0 0 10px rgba(0,229,255,.25) !important;
         color:#ffffff !important;
     }
@@ -2002,7 +2002,7 @@ NEON_PILL_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
 .st-key-header_arrivals_btn button, .st-key-header_reminders_btn button, .st-key-header_qrcode_btn button,
-.st-key-btn_vip_candidates button, .st-key-btn_guests_directory button, .st-key-btn_pending button,
+.st-key-btn_vip_candidates button, .st-key-btn_guests_directory button, .st-key-btn_pending button, .st-key-btn_occ_summary button,
 .neon-pill {
     display:flex !important; align-items:center !important; justify-content:center !important;
     width:fit-content !important; max-width:100%; box-sizing:border-box; min-height:46px; padding:0 22px !important; margin:0 auto !important;
@@ -2016,7 +2016,7 @@ NEON_PILL_CSS = """
     transition: box-shadow .2s ease !important;
 }
 .st-key-header_arrivals_btn button:hover, .st-key-header_reminders_btn button:hover, .st-key-header_qrcode_btn button:hover,
-.st-key-btn_vip_candidates button:hover, .st-key-btn_guests_directory button:hover, .st-key-btn_pending button:hover,
+.st-key-btn_vip_candidates button:hover, .st-key-btn_guests_directory button:hover, .st-key-btn_pending button:hover, .st-key-btn_occ_summary button:hover,
 .neon-pill:hover {
     box-shadow: 0 0 4px var(--c), 0 0 14px color-mix(in srgb, var(--c) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--c) 25%, transparent) !important;
     transform:none !important; filter:none !important; color:#ffffff !important;
@@ -2028,7 +2028,7 @@ NEON_PILL_CSS = """
 MENU_FMT_CSS = """
 <style>
 html body .st-key-btn_header_arrivals button, html body .st-key-btn_header_reminders button, html body .st-key-btn_header_qrcode button,
-html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button,
+html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button,
 html body .st-key-bulk_all button, html body .st-key-bulk_none button,
 html body a.neon-pill, html body a.app-link {
     position:relative !important; overflow:visible !important;
@@ -2046,6 +2046,7 @@ html body .st-key-btn_header_qrcode button { --c:#1e9bff; --ico:'🔗'; }
 html body .st-key-btn_vip_candidates button { --c:#1e9bff; --ico:'🌟'; }
 html body .st-key-btn_guests_directory button { --c:#1e9bff; --ico:'👥'; }
 html body .st-key-btn_pending button { --ico:'📌'; }
+html body .st-key-btn_occ_summary button { --c:#1e9bff; --ico:'📊'; }
 html body .st-key-bulk_all button { --c:#3b82f6; --ico:'✔'; }
 html body .st-key-bulk_none button { --c:#3b82f6; --ico:'✖'; }
 html body .st-key-bulk_row [data-testid="stHorizontalBlock"] { flex-wrap:nowrap !important; gap:8px !important; align-items:center !important; }
@@ -2056,7 +2057,7 @@ html body .st-key-btn_header_reminders button > div, html body .st-key-btn_heade
 html body .st-key-btn_header_qrcode button > div, html body .st-key-btn_header_qrcode button p,
 html body .st-key-btn_vip_candidates button > div, html body .st-key-btn_vip_candidates button p,
 html body .st-key-btn_guests_directory button > div, html body .st-key-btn_guests_directory button p,
-html body .st-key-btn_pending button > div, html body .st-key-btn_pending button p,
+html body .st-key-btn_pending button > div, html body .st-key-btn_pending button p, html body .st-key-btn_occ_summary button p,
 html body .st-key-bulk_all button > div, html body .st-key-bulk_all button p,
 html body .st-key-bulk_none button > div, html body .st-key-bulk_none button p {
     justify-content:flex-start !important; text-align:left !important; width:auto !important; margin:0 !important;
@@ -2064,7 +2065,7 @@ html body .st-key-bulk_none button > div, html body .st-key-bulk_none button p {
 }
 html body .st-key-btn_header_arrivals button::before, html body .st-key-btn_header_reminders button::before,
 html body .st-key-btn_header_qrcode button::before, html body .st-key-btn_vip_candidates button::before,
-html body .st-key-btn_guests_directory button::before, html body .st-key-btn_pending button::before,
+html body .st-key-btn_guests_directory button::before, html body .st-key-btn_pending button::before, html body .st-key-btn_occ_summary button::before,
 html body .st-key-bulk_all button::before, html body .st-key-bulk_none button::before,
 html body a.neon-pill::before, html body a.app-link::before {
     content:var(--ico,'•') !important; position:absolute !important; left:4px !important; top:50% !important; transform:translateY(-50%) !important;
@@ -2077,7 +2078,7 @@ html body a.neon-pill::before, html body a.app-link::before {
 }
 html body .st-key-btn_header_arrivals button::after, html body .st-key-btn_header_reminders button::after,
 html body .st-key-btn_header_qrcode button::after, html body .st-key-btn_vip_candidates button::after,
-html body .st-key-btn_guests_directory button::after, html body .st-key-btn_pending button::after,
+html body .st-key-btn_guests_directory button::after, html body .st-key-btn_pending button::after, html body .st-key-btn_occ_summary button::after,
 html body .st-key-bulk_all button::after, html body .st-key-bulk_none button::after,
 html body a.neon-pill::after, html body a.app-link::after {
     content:'' !important; position:absolute !important; left:50px !important; top:50% !important; transform:translateY(-50%) !important;
@@ -2086,7 +2087,7 @@ html body a.neon-pill::after, html body a.app-link::after {
 }
 html body .st-key-btn_header_arrivals button:hover, html body .st-key-btn_header_reminders button:hover,
 html body .st-key-btn_header_qrcode button:hover, html body .st-key-btn_vip_candidates button:hover,
-html body .st-key-btn_guests_directory button:hover, html body .st-key-btn_pending button:hover,
+html body .st-key-btn_guests_directory button:hover, html body .st-key-btn_pending button:hover, html body .st-key-btn_occ_summary button:hover,
 html body .st-key-bulk_all button:hover, html body .st-key-bulk_none button:hover,
 html body a.neon-pill:hover, html body a.app-link:hover {
     filter:brightness(1.15) !important; color:#ffffff !important;
@@ -3418,12 +3419,26 @@ def render_occupancy_panel(df: pd.DataFrame) -> None:
                 c_btn, c_val = st.columns([3, 1], gap="small")
                 with c_btn:
                     if st.button(label, key=f"occ_btn_{i}", use_container_width=True):
-                        occ_detail_dialog(label, frame)
+                        st.session_state["occ_detail_pick"] = (label, frame)
+                        _app_rerun()
                 with c_val:
                     st.markdown(f"<div class='occ-value'>{len(frame)}</div>", unsafe_allow_html=True)
         with st.container(key="occ_back"):
             st.button("Resumen", key="occ_flip_back_btn", on_click=_toggle_occ_flip, use_container_width=True)
             st.markdown(back_rows + "<div class='occ-hint'>TOCA EL TÍTULO PARA VOLVER</div>", unsafe_allow_html=True)
+
+
+@st.dialog("📊 Reporte de Ocupación", width="small")
+def occ_summary_dialog(df: pd.DataFrame) -> None:
+    """Popup del Reporte de Ocupación, abierto desde el botón REP. OCC."""
+    st.markdown(
+        "<style>div[data-testid='stDialog'] .st-key-occ_outer { height:320px !important; min-height:320px !important; }"
+        "div[data-testid='stDialog'] .st-key-occ_wrap, div[data-testid='stDialog'] .st-key-occ_back"
+        " { left:0 !important; right:0 !important; width:100% !important; margin-top:14px !important; }"
+        "div[data-testid='stDialog']:has(.st-key-occ_wrap) > div:first-child { background:#050812 !important; }</style>",
+        unsafe_allow_html=True,
+    )
+    render_occupancy_panel(df)
 
 
 def _toggle_tools_flip() -> None:
@@ -8540,11 +8555,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
         relaxury = int(category_match_mask(filtered, "RELAXURY").sum())
         max_cat = max([int(category_match_mask(filtered, c).sum()) for c in CATEGORY_CHART_COLORS] + [1])
         render_relaxury_card(relaxury, max_cat)
-        apps_col, occ_col = st.columns([1.7, 1], gap="small")
+        apps_col, _occ_spacer = st.columns([1.7, 1], gap="small")
         with apps_col:
             render_app_links()
-        with occ_col:
-            render_occupancy_panel(df)
 
 
     # Fila horizontal: filtros + menú
@@ -8552,7 +8565,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
     st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
     st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(a.neon-pill) > div[data-testid="stColumn"]:has(a.neon-pill) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
     st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { justify-content:flex-start !important; gap:8px !important; } div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
-    f1, f2, f3, f4, vip_col, guests_col, pending_col = st.columns([0.8, 0.9, 0.9, 2.4, 1, 1, 1])
+    f1, f2, f3, f4, vip_col, guests_col, pending_col, occ_btn_col = st.columns([0.8, 0.9, 0.9, 2.2, 1, 1, 1, 1])
 
     with f1:
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
@@ -8627,7 +8640,11 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 st.session_state["open_pending"] = True
                 st.query_params["skip_splash"] = "1"
                 st.rerun()
-    st.markdown("<style>div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:wrap !important; align-items:center !important; } @media (min-width:1600px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:nowrap !important; } } @media (max-width:1600px){ div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:0 !important; } } @media (max-width:1366px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { width:60vw !important; max-width:60vw !important; } } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) > div[data-testid='stColumn'] { align-self:center !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stElementContainer'] { margin-top:0 !important; margin-bottom:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stVerticalBlock'] { gap:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { transform:translateY(-25px) !important; } div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:-34px !important; } html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button { width:auto !important; min-width:0 !important; padding:0 12px 0 56px !important; font-size:10px !important; letter-spacing:.5px !important; } html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { padding:0 12px 0 56px !important; }</style>", unsafe_allow_html=True)
+    with occ_btn_col:
+        with st.container(key="btn_occ_summary"):
+            if st.button("REP. OCC", use_container_width=True, key="do_open_occ_summary"):
+                occ_summary_dialog(df)
+    st.markdown("<style>div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:wrap !important; align-items:center !important; } @media (min-width:1600px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:nowrap !important; } } @media (max-width:1600px){ div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:0 !important; } } @media (max-width:1366px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { width:60vw !important; max-width:60vw !important; } } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) > div[data-testid='stColumn'] { align-self:center !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stElementContainer'] { margin-top:0 !important; margin-bottom:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stVerticalBlock'] { gap:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { transform:translateY(-25px) !important; } div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:-34px !important; } html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button { width:auto !important; min-width:0 !important; padding:0 12px 0 56px !important; font-size:10px !important; letter-spacing:.5px !important; } html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { padding:0 12px 0 56px !important; }</style>", unsafe_allow_html=True)
     st.markdown("<div style='height:64px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
@@ -8948,6 +8965,11 @@ _occ_guest = st.session_state.pop("occ_guest_detail", None)
 if _occ_guest is not None:
     st.session_state.pop("open_editar", None)
     occ_guest_dialog(_occ_guest)
+
+# Detalle de una fila del Reporte de Ocupación (abierto desde el popup REP. OCC).
+_occ_pick = st.session_state.pop("occ_detail_pick", None)
+if _occ_pick is not None:
+    occ_detail_dialog(*_occ_pick)
 
 # Popup VER INFO (solo lectura) desde los botones de la reserva seleccionada.
 if st.session_state.pop("open_ver_info", False):
