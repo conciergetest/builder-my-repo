@@ -1225,9 +1225,20 @@ def _header_card_flip_css() -> str:
         parts.append(
             f".st-key-{back} {{ position:fixed !important; top:3vh; left:50%; width:min({width}px,94vw) !important;"
             " max-height:94vh; overflow-y:auto; box-sizing:border-box; padding:18px 22px;"
-            " border:1px solid #1e9bff66; border-radius:14px; background:#05080f;"
-            " box-shadow:0 0 18px rgba(30,155,255,.25); z-index:1000;"
-            " transform:translateX(-50%); animation:cardFlipIn .7s cubic-bezier(.4,.2,.2,1) both; }}"
+            " border:2px solid #00e5ff !important; border-radius:14px; background:#05080f;"
+            " box-shadow:0 0 8px rgba(0,229,255,.35), 0 0 20px rgba(0,229,255,.10); z-index:1000;"
+            " transform:translateX(-50%); animation:cardFlipIn .7s cubic-bezier(.4,.2,.2,1) both; }"
+        )
+        # Mismas lineas doradas que recorren los popups (st.dialog)
+        parts.append(
+            f".st-key-{back}::before, .st-key-{back}::after {{ content:''; position:fixed; inset:0; border-radius:14px;"
+            " padding:3px; pointer-events:none; z-index:1001;"
+            " -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);"
+            " -webkit-mask-composite:xor; mask-composite:exclude; }"
+            f".st-key-{back}::before {{ background:conic-gradient(from var(--pop-ang), transparent 0deg, transparent 290deg, rgba(255,196,0,.35) 320deg, #ffc400 344deg, #fff6c2 360deg);"
+            " filter:drop-shadow(0 0 4px rgba(255,196,0,.95)); animation:pop-scan-fwd 4s linear infinite; }"
+            f".st-key-{back}::after {{ background:conic-gradient(from calc(var(--pop-ang) + 180deg), transparent 0deg, transparent 290deg, rgba(255,215,90,.35) 320deg, #ffd75a 344deg, #fffbe0 360deg);"
+            " filter:drop-shadow(0 0 4px rgba(255,215,90,.95)); animation:pop-scan-rev 4s linear infinite; }"
         )
     parts.append("</style>")
     return "".join(parts)
@@ -9134,3 +9145,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
