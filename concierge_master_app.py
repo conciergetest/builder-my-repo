@@ -241,10 +241,11 @@ def check_password() -> bool:
             background:linear-gradient(180deg, #23211c 0%, #1b1a16 100%);
             border-bottom:1px solid rgba(243,227,161,.55); box-shadow:0 2px 12px rgba(212,175,55,.35);
         }
-        .login-head .login-fire { display:inline-block; padding-bottom:4px; color:transparent; -webkit-text-fill-color:transparent; text-shadow:none;
-            background:url("data:image/gif;base64,""" + (_fire_gif_b64() or "") + """") bottom center / 100% 300%;
-            -webkit-background-clip:text; background-clip:text; }
+        .login-fire, .login-head .login-fire { display:inline-block; color:transparent; -webkit-text-fill-color:transparent; text-shadow:none;
+            background:url("data:image/gif;base64,""" + (_fire_gif_b64() or "") + """") bottom center / 100% 300%; -webkit-background-clip:text; background-clip:text; }
+        .login-head .login-fire { padding-bottom:4px; }
         .login-brand { display:flex; align-items:center; gap:22px; padding:0 34px; margin-bottom:26px; }
+        .login-logo .login-fire-fw { font-size:40px; font-weight:700; line-height:1; padding-bottom:4px; }
         .login-logo {
             flex:0 0 auto; width:86px; height:86px; border-radius:50%; box-sizing:border-box;
             border:2px solid #b8962e; background:radial-gradient(circle at 50% 40%, #2a2822 0%, #0d0c0a 80%);
@@ -252,8 +253,8 @@ def check_password() -> bool:
             display:flex; align-items:center; justify-content:center;
             color:#d9c27a; font-family:'Cinzel',Georgia,serif; font-size:28px; font-weight:600; letter-spacing:1px;
         }
-        .login-name { font-family:'Cinzel',Georgia,serif; color:#ece3c8; font-size:26px; letter-spacing:2px; line-height:1.1; margin:0; }
-        .login-sub { font-family:'Cinzel',Georgia,serif; color:#c9a84c; font-size:11.5px; letter-spacing:.6px; margin:6px 0 0 0; white-space:nowrap; }
+        .login-name { font-family:'Cinzel',Georgia,serif; color:#00e5ff; font-size:34px; text-shadow:0 0 8px rgba(0,229,255,.55); letter-spacing:2px; line-height:1.1; margin:0; }
+        .login-sub { font-family:'Cinzel',Georgia,serif; color:#ffd84a; text-shadow:0 0 6px rgba(255,216,74,.45); font-size:11.5px; letter-spacing:.6px; margin:6px 0 0 0; white-space:nowrap; }
         @media (max-width:480px) { .login-sub { white-space:normal !important; font-size:10px !important; letter-spacing:.2px !important; line-height:1.35; } }
         .st-key-login_card [data-testid="stForm"] { border:none !important; padding:0 34px !important; }
         .st-key-login_card [data-testid="stTextInput"] label p { color:#e8dcc0 !important; font-size:15px !important; font-family:'Cinzel',Georgia,serif; letter-spacing:.5px; }
@@ -281,7 +282,7 @@ def check_password() -> bool:
         </style>
         <div class="login-head"><span class="login-fire">WELCOME BACK</span></div>
         <div class="login-brand">
-          <div class="login-logo">FW</div>
+          <div class="login-logo"><span class="login-fire login-fire-fw">FW</span></div>
           <div>
             <p class="login-name">FRED WAYNE</p>
             <p class="login-sub">CONCIERGE MASTER SOFTWARE</p>
