@@ -828,7 +828,7 @@ st.markdown(
     @keyframes pop-scan-rev { to { --pop-ang:-360deg; } }
     div[data-testid="stDialog"] > div:first-child::before,
     div[data-testid="stDialog"] > div:first-child::after {
-        content:""; position:absolute; inset:0; border-radius:14px; padding:2px; pointer-events:none; z-index:50;
+        content:""; position:absolute; inset:0; border-radius:14px; padding:3px; pointer-events:none; z-index:50;
         -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
         -webkit-mask-composite:xor; mask-composite:exclude;
     }
