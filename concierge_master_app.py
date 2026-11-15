@@ -1929,6 +1929,16 @@ def _waldorf_logo_b64() -> str | None:
     return None
 
 
+@st.cache_data(show_spinner=False)
+def _fire_gif_b64() -> str | None:
+    """GIF de fuego (base64) para el texto 'Concierge Master' del header."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fire.gif")
+    if os.path.isfile(path):
+        with open(path, "rb") as fh:
+            return base64.b64encode(fh.read()).decode("utf-8")
+    return None
+
+
 WALDORF_MINI_LOGO_FILENAMES = (
     "Waldorf Logo Mini.png", "Waldorf_Logo_Mini.png", "waldorf logo mini.png", "WaldorfLogoMini.png",
 )
@@ -2193,6 +2203,7 @@ def show_header() -> None:
     header_left, header_center, header_right = st.columns([1.15, 1.35, 0.85])
     with header_left:
         _logo_b64 = _waldorf_logo_b64()
+        _fire_b64 = _fire_gif_b64() or ''
         if _logo_b64:
             st.markdown(
                 """
@@ -2202,11 +2213,12 @@ def show_header() -> None:
 .wa-div { width:2px; height:66px; flex:0 0 2px; background:linear-gradient(180deg,transparent,#d4af37 20%,#d4af37 80%,transparent); }
 .wa-prod { color:#00e5ff; font:800 24px/1.15 'Segoe UI',Arial,sans-serif; letter-spacing:.3px; text-shadow:0 0 8px rgba(0,229,255,.6); white-space:nowrap; }
 .wa-prod span { color:#8ca4ba; font-weight:700; }
+.wa-prod .wa-fire { display:inline-block; padding-bottom:3px; color:transparent; -webkit-text-fill-color:transparent; text-shadow:none; background:url("data:image/gif;base64,""" + _fire_b64 + """") bottom center / 100% 300%; -webkit-background-clip:text; background-clip:text; }
 </style>
 <div class="wa-brand">
   <img class="wa-logo" alt="Waldorf Astoria" src="data:image/png;base64,""" + _logo_b64 + """" />
   <span class="wa-div"></span>
-  <div class="wa-prod">Concierge Master <span>v6.0</span></div>
+  <div class="wa-prod"><span class="wa-fire">Concierge Master</span> <span>v6.0</span></div>
 </div>
                 """,
                 unsafe_allow_html=True,
@@ -9033,3 +9045,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
