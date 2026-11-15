@@ -233,7 +233,17 @@ def check_password() -> bool:
               linear-gradient(180deg, rgba(255,255,255,.035) 0%, rgba(0,0,0,0) 40%),
               radial-gradient(ellipse at 50% 45%, #2b2922 0%, #161512 65%, #0e0d0b 100%) !important;
             box-shadow: 0 0 28px rgba(212,175,55,.22), inset 0 0 40px rgba(0,0,0,.55) !important;
-            overflow:hidden;
+            overflow:hidden; position:relative;
+        }
+        @property --scan-ang { syntax:'<angle>'; inherits:false; initial-value:0deg; }
+        @keyframes scan-spin { to { --scan-ang:360deg; } }
+        .st-key-login_card::before {
+            content:""; position:absolute; inset:0; border-radius:10px; padding:2px; pointer-events:none; z-index:2;
+            background:conic-gradient(from var(--scan-ang), transparent 0deg, transparent 290deg, rgba(0,229,255,.35) 320deg, #00e5ff 344deg, #e6fdff 360deg);
+            -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite:xor; mask-composite:exclude;
+            filter:drop-shadow(0 0 4px rgba(0,229,255,.9));
+            animation:scan-spin 4s linear infinite;
         }
         .login-head {
             font-family:'Cinzel',Georgia,serif; color:#ece3c8; font-size:32px; letter-spacing:3px;
