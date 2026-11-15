@@ -237,13 +237,19 @@ def check_password() -> bool:
         }
         @property --scan-ang { syntax:'<angle>'; inherits:false; initial-value:0deg; }
         @keyframes scan-spin { to { --scan-ang:360deg; } }
-        .st-key-login_card::before {
+        .st-key-login_card::before, .st-key-login_card::after {
             content:""; position:absolute; inset:0; border-radius:10px; padding:2px; pointer-events:none; z-index:2;
-            background:conic-gradient(from var(--scan-ang), transparent 0deg, transparent 290deg, rgba(0,229,255,.35) 320deg, #00e5ff 344deg, #e6fdff 360deg);
             -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
             -webkit-mask-composite:xor; mask-composite:exclude;
-            filter:drop-shadow(0 0 4px rgba(0,229,255,.9));
             animation:scan-spin 4s linear infinite;
+        }
+        .st-key-login_card::before {
+            background:conic-gradient(from var(--scan-ang), transparent 0deg, transparent 290deg, rgba(0,229,255,.35) 320deg, #00e5ff 344deg, #e6fdff 360deg);
+            filter:drop-shadow(0 0 4px rgba(0,229,255,.9));
+        }
+        .st-key-login_card::after {
+            background:conic-gradient(from calc(var(--scan-ang) + 180deg), transparent 0deg, transparent 290deg, rgba(26,255,200,.35) 320deg, #1affc8 344deg, #d8fff8 360deg);
+            filter:drop-shadow(0 0 4px rgba(26,255,200,.9));
         }
         .login-head {
             font-family:'Cinzel',Georgia,serif; color:#ece3c8; font-size:32px; letter-spacing:3px;
