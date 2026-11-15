@@ -8680,6 +8680,42 @@ def render_dashboard(df: pd.DataFrame) -> None:
             if st.button("REP. OCC", use_container_width=True, key="do_open_occ_summary"):
                 occ_summary_dialog(df)
     st.markdown("<style>div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:wrap !important; align-items:center !important; } @media (min-width:1600px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:nowrap !important; } } @media (max-width:1600px){ div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:0 !important; } } @media (max-width:1366px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { width:60vw !important; max-width:60vw !important; } } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) > div[data-testid='stColumn'] { align-self:center !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stElementContainer'] { margin-top:0 !important; margin-bottom:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stVerticalBlock'] { gap:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { transform:translateY(-25px) !important; } div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:-34px !important; } html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button, html body .st-key-btn_tools_pop button { width:auto !important; min-width:0 !important; padding:0 12px 0 56px !important; font-size:10px !important; letter-spacing:.5px !important; } html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { padding:0 12px 0 56px !important; }</style>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <style>
+        /* Compactar la fila de filtros y subirla justo debajo del bloque superior */
+        html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button,
+        html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button,
+        html body .st-key-btn_tools_pop button, html body div[class*="st-key-main_menu_btn"] button,
+        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill {
+            height:34px !important; min-height:34px !important; font-size:8.5px !important;
+            letter-spacing:.4px !important; padding:0 10px 0 52px !important; top:0 !important;
+        }
+        html body div[class*="st-key-main_menu_btn"] button { font-size:9px !important; padding:0 10px 0 52px !important; }
+        html body div[class*="st-key-main_menu_btn"] { margin-top:0 !important; }
+        html body .st-key-btn_vip_candidates button p, html body .st-key-btn_guests_directory button p,
+        html body .st-key-btn_pending button p, html body .st-key-btn_occ_summary button p,
+        html body .st-key-btn_tools_pop button p, html body div[class*="st-key-main_menu_btn"] button p,
+        html body .st-key-btn_vip_candidates button > div, html body .st-key-btn_guests_directory button > div,
+        html body .st-key-btn_pending button > div, html body .st-key-btn_occ_summary button > div,
+        html body .st-key-btn_tools_pop button > div, html body div[class*="st-key-main_menu_btn"] button > div,
+        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill * { font-size:8.5px !important; line-height:1.1 !important; }
+        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill { transform:none !important; }
+        html body .st-key-checkin_date_wrap { width:128px !important; max-width:128px !important; }
+        html body .st-key-checkin_date_wrap label p { font-size:7px !important; letter-spacing:.3px !important; margin-bottom:0 !important; }
+        html body .st-key-checkin_date_wrap input { height:34px !important; min-height:34px !important; font-size:11px !important; padding:0 8px !important; }
+        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) div[data-testid="stVerticalBlock"] { gap:0 !important; }
+        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { margin-top:0 !important; }
+        /* Chips de checkout mas bajos */
+        html body .chip-day { min-height:24px !important; padding:2px 18px !important; font-size:10.5px !important; }
+        html body .st-key-bulk_row button { height:28px !important; min-height:28px !important; }
+        /* Quitar el espacio de los bloques que solo llevan CSS */
+        html body div[data-testid="stLayoutWrapper"]:has(.chip-day) ~ div[data-testid="stElementContainer"]:has(style):not(:has(a)):not(:has(button)):not(:has(input)):not(:has(.total-badge)):not(:has([data-testid="stDataFrame"])) { display:none !important; }
+        html body div[data-testid="stLayoutWrapper"]:has(.chip-day) ~ div[data-testid="stElementContainer"]:not(:has(a,button,input,.total-badge,canvas,iframe,img,svg,p,span,table,[role="grid"],[role="table"],[class*="dataframe" i],[class*="DataFrame"],[data-testid*="Frame"],[data-testid*="Table"])):not(:has(*:not(style):not(div):not(hr)))  { display:none !important; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
