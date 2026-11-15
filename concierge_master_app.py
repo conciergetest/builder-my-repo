@@ -4215,30 +4215,30 @@ def limpiar_checkins_pasados() -> None:
 
 CHECKIN_CAL_CSS = """
 <style>
-[class*="st-key-checkin_cal_"] button {
+div[data-testid="stDialog"]:not(#_ck) [class*="st-key-checkin_cal_"] button {
     min-height:34px !important; padding:2px 0 !important;
     font-size:11px !important; border-radius:8px !important;
 }
-[class*="st-key-checkin_cal_hit_"] button {
+div[data-testid="stDialog"]:not(#_ck) [class*="st-key-checkin_cal_hit_"] button {
     background:#3a2c00 !important; border:1px solid #D4AF37 !important;
     color:#FFD24A !important; font-weight:800 !important;
 }
-[class*="st-key-checkin_cal_hit_"] button:hover {
+div[data-testid="stDialog"]:not(#_ck) [class*="st-key-checkin_cal_hit_"] button:hover {
     background:#D4AF37 !important; border-color:#FFE9A8 !important;
     color:#1C1300 !important; transform:scale(1.06);
 }
-[class*="st-key-checkin_cal_miss_"] button {
+div[data-testid="stDialog"]:not(#_ck) [class*="st-key-checkin_cal_miss_"] button {
     background:#0d0d0d !important; border:1px solid #1c1c1c !important;
     color:#5f7286 !important; font-weight:600 !important;
 }
-[class*="st-key-checkin_cal_miss_"] button:hover {
+div[data-testid="stDialog"]:not(#_ck) [class*="st-key-checkin_cal_miss_"] button:hover {
     border-color:#2c3a48 !important; color:#8ca4ba !important;
 }
-[class*="st-key-checkin_cal_today_"] button {
+div[data-testid="stDialog"]:not(#_ck) [class*="st-key-checkin_cal_today_"] button {
     background:#06171c !important; border:1px solid #00e5ff !important;
     color:#00e5ff !important; font-weight:800 !important;
 }
-[class*="st-key-checkin_cal_sel_"] button {
+div[data-testid="stDialog"]:not(#_ck) [class*="st-key-checkin_cal_sel_"] button {
     background:#00e5ff !important; border:1px solid #00e5ff !important;
     color:#00151d !important; font-weight:900 !important;
 }
@@ -9145,4 +9145,5 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
