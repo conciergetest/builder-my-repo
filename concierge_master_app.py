@@ -236,7 +236,7 @@ def check_password() -> bool:
             overflow:hidden;
         }
         .login-head {
-            font-family:'Cinzel',Georgia,serif; color:#ece3c8; font-size:24px; letter-spacing:3px;
+            font-family:'Cinzel',Georgia,serif; color:#ece3c8; font-size:32px; letter-spacing:3px;
             text-align:center; padding:22px 0 16px 0; margin:0 0 26px 0;
             background:linear-gradient(180deg, #23211c 0%, #1b1a16 100%);
             border-bottom:1px solid rgba(243,227,161,.55); box-shadow:0 2px 12px rgba(212,175,55,.35);
