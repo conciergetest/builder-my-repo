@@ -8688,10 +8688,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
         html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button,
         html body .st-key-btn_tools_pop button, html body div[class*="st-key-main_menu_btn"] button,
         html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill {
-            height:34px !important; min-height:34px !important; font-size:10px !important;
+            height:34px !important; min-height:34px !important; font-size:11.5px !important;
             letter-spacing:.4px !important; padding:0 10px 0 52px !important; top:0 !important;
         }
-        html body div[class*="st-key-main_menu_btn"] button { font-size:9px !important; padding:0 10px 0 52px !important; }
+        html body div[class*="st-key-main_menu_btn"] button { font-size:11.5px !important; padding:0 10px 0 52px !important; }
         html body div[class*="st-key-main_menu_btn"] { margin-top:0 !important; }
         html body .st-key-btn_vip_candidates button p, html body .st-key-btn_guests_directory button p,
         html body .st-key-btn_pending button p, html body .st-key-btn_occ_summary button p,
@@ -8699,7 +8699,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         html body .st-key-btn_vip_candidates button > div, html body .st-key-btn_guests_directory button > div,
         html body .st-key-btn_pending button > div, html body .st-key-btn_occ_summary button > div,
         html body .st-key-btn_tools_pop button > div, html body div[class*="st-key-main_menu_btn"] button > div,
-        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill * { font-size:10px !important; line-height:1.1 !important; }
+        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill * { font-size:11.5px !important; line-height:1.1 !important; }
         html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill { transform:none !important; }
         html body .st-key-checkin_date_wrap { width:128px !important; max-width:128px !important; }
         html body .st-key-checkin_date_wrap label p { font-size:7px !important; letter-spacing:.3px !important; margin-bottom:0 !important; }
@@ -8707,6 +8707,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) div[data-testid="stVerticalBlock"] { gap:0 !important; }
         html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { margin-top:0 !important; }
         /* Chips de checkout mas bajos */
+        html body div[class*="st-key-main_menu_btn"] button, html body div[class*="st-key-main_menu_btn"] button * { font-size:11.5px !important; line-height:1.1 !important; }
         html body .chip-day { min-height:24px !important; padding:2px 18px !important; font-size:10.5px !important; }
         html body .st-key-bulk_row button { height:28px !important; min-height:28px !important; }
         /* Quitar el espacio de los bloques que solo llevan CSS */
