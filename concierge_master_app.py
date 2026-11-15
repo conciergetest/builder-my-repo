@@ -115,6 +115,16 @@ def _quitar_token_auth() -> None:
         del st.query_params["k"]
 
 
+@st.cache_data(show_spinner=False)
+def _fire_gif_b64() -> str | None:
+    """GIF de fuego (base64) para el texto 'Concierge Master' del header."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fire.gif")
+    if os.path.isfile(path):
+        with open(path, "rb") as fh:
+            return base64.b64encode(fh.read()).decode("utf-8")
+    return None
+
+
 def check_password() -> bool:
     """Muestra el login y devuelve True solo si la clave APP_PASSWORD es correcta."""
     import hmac
@@ -231,6 +241,9 @@ def check_password() -> bool:
             background:linear-gradient(180deg, #23211c 0%, #1b1a16 100%);
             border-bottom:1px solid rgba(243,227,161,.55); box-shadow:0 2px 12px rgba(212,175,55,.35);
         }
+        .login-head .login-fire { display:inline-block; padding-bottom:4px; color:transparent; -webkit-text-fill-color:transparent; text-shadow:none;
+            background:url("data:image/gif;base64,""" + (_fire_gif_b64() or "") + """") bottom center / 100% 300%;
+            -webkit-background-clip:text; background-clip:text; }
         .login-brand { display:flex; align-items:center; gap:22px; padding:0 34px; margin-bottom:26px; }
         .login-logo {
             flex:0 0 auto; width:86px; height:86px; border-radius:50%; box-sizing:border-box;
@@ -266,7 +279,7 @@ def check_password() -> bool:
         [data-testid="stFormSubmitButton"] button p { color:#111 !important; }
         .login-err { font-family:'Cinzel',Georgia,serif; color:#ff7b7b; font-size:13px; text-align:center; margin-top:12px; letter-spacing:.5px; }
         </style>
-        <div class="login-head">WELCOME BACK</div>
+        <div class="login-head"><span class="login-fire">WELCOME BACK</span></div>
         <div class="login-brand">
           <div class="login-logo">FW</div>
           <div>
@@ -1926,16 +1939,6 @@ def _waldorf_logo_b64() -> str | None:
         if os.path.isfile(path):
             with open(path, "rb") as fh:
                 return base64.b64encode(fh.read()).decode("utf-8")
-    return None
-
-
-@st.cache_data(show_spinner=False)
-def _fire_gif_b64() -> str | None:
-    """GIF de fuego (base64) para el texto 'Concierge Master' del header."""
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fire.gif")
-    if os.path.isfile(path):
-        with open(path, "rb") as fh:
-            return base64.b64encode(fh.read()).decode("utf-8")
     return None
 
 
@@ -9045,4 +9048,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
