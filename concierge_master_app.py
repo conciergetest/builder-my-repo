@@ -833,13 +833,13 @@ st.markdown(
         -webkit-mask-composite:xor; mask-composite:exclude;
     }
     div[data-testid="stDialog"] > div:first-child::before {
-        background:conic-gradient(from var(--pop-ang), transparent 0deg, transparent 290deg, rgba(0,229,255,.35) 320deg, #00e5ff 344deg, #e6fdff 360deg);
-        filter:drop-shadow(0 0 4px rgba(0,229,255,.9));
+        background:conic-gradient(from var(--pop-ang), transparent 0deg, transparent 290deg, rgba(255,196,0,.35) 320deg, #ffc400 344deg, #fff6c2 360deg);
+        filter:drop-shadow(0 0 4px rgba(255,196,0,.95));
         animation:pop-scan-fwd 4s linear infinite;
     }
     div[data-testid="stDialog"] > div:first-child::after {
-        background:conic-gradient(from calc(var(--pop-ang) + 180deg), transparent 0deg, transparent 290deg, rgba(26,255,200,.35) 320deg, #1affc8 344deg, #d8fff8 360deg);
-        filter:drop-shadow(0 0 4px rgba(26,255,200,.9));
+        background:conic-gradient(from calc(var(--pop-ang) + 180deg), transparent 0deg, transparent 290deg, rgba(255,215,90,.35) 320deg, #ffd75a 344deg, #fffbe0 360deg);
+        filter:drop-shadow(0 0 4px rgba(255,215,90,.95));
         animation:pop-scan-rev 4s linear infinite;
     }
 </style>
