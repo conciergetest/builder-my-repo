@@ -8724,13 +8724,6 @@ def render_dashboard(df: pd.DataFrame) -> None:
         """,
         unsafe_allow_html=True,
     )
-    # En celular/tablet (pantalla tactil): quitar brillos y animaciones para que vaya fluido. En PC no cambia nada.
-    st.markdown("""<style>
-    @media (hover: none) and (pointer: coarse) {
-        *, *::before, *::after { animation: none !important; transition: none !important; }
-        * { box-shadow: none !important; text-shadow: none !important; filter: none !important; }
-    }
-    </style>""", unsafe_allow_html=True)
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
@@ -9196,6 +9189,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
