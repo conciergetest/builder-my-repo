@@ -9202,7 +9202,7 @@ WAYNE_ACTIVE_HTML = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
 html, body { margin:0; background:transparent; }
-.card { position:relative; box-sizing:border-box; width:calc(100% - 10px); height:600px; margin:4px 5px; border-radius:14px; overflow:hidden; background:#05080f;
+.card { position:relative; box-sizing:border-box; width:calc(100% - 10px); height:600px; margin:74px 5px 4px; border-radius:14px; overflow:hidden; background:#05080f;
   border:1.5px solid #00e5ff; box-shadow:0 0 12px rgba(0,229,255,.55), inset 0 0 18px rgba(0,229,255,.2);
   font-family:'Orbitron','Segoe UI',Arial,sans-serif; }
 .photo { position:absolute; left:0; top:0; width:100%; height:100%; object-fit:cover; object-position:50% 25%; }
@@ -9219,7 +9219,14 @@ html, body { margin:0; background:transparent; }
 .lbl { margin-top:8px; color:#f5e6b0; font-weight:700; font-size:13px; letter-spacing:2px; text-transform:uppercase; }
 .since { position:absolute; left:0; right:0; bottom:16px; text-align:center; color:#8ca4ba; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; }
 .since b { color:#ff3b3b; font-weight:700; }
+.since .gold { color:#ffe066; font-weight:700; margin-left:8px; text-shadow:0 0 6px rgba(255,214,70,.9), 0 0 14px rgba(212,175,55,.7); }
+.wclock { position:absolute; left:0; right:0; top:0; height:70px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Orbitron','Segoe UI',Arial,sans-serif; }
+.wbox { display:inline-block; padding:4px 14px 3px 14px; border-radius:10px; border:2px solid #00e5ff; background:linear-gradient(180deg,#041a24,#02101a); box-shadow:0 0 10px rgba(0,229,255,.55), inset 0 0 12px rgba(0,229,255,.25); }
+#wa-clock { color:#7ff6ff; font-size:24px; font-weight:700; line-height:1.1; letter-spacing:2px; text-shadow:0 0 6px #00e5ff, 0 0 16px rgba(0,229,255,.8); white-space:nowrap; }
+#wa-ampm { font-size:11px; margin-left:4px; color:#7ff6ff; text-shadow:0 0 6px #00e5ff; }
+.wdate { margin-top:4px; color:#00e5ff; font-size:13px; font-weight:700; font-family:'Segoe UI',Arial,sans-serif; }
 </style>
+<div class="wclock"><div class="wbox"><span id="wa-clock">--:--:--</span><span id="wa-ampm"></span></div><div class="wdate" id="wa-date">Loading...</div></div>
 <div class="card">
   <img class="photo" src="data:image/png;base64,__WAYNE_IMG__" alt="Fred Wayne">
   <div class="shade-top"></div>
@@ -9230,7 +9237,7 @@ html, body { margin:0; background:transparent; }
     <div class="tile"><div class="box" id="wa-mm">0</div><div class="lbl">Months</div></div>
     <div class="tile"><div class="box" id="wa-dd">0</div><div class="lbl">Days</div></div>
   </div>
-  <div class="since">Online desde <b>Mar 1, 2026</b></div>
+  <div class="since">Online desde <b>Mar 1, 2026</b><span class="gold">And Counting...</span></div>
 </div>
 <script>
 (function () {
@@ -9249,6 +9256,17 @@ html, body { margin:0; background:transparent; }
     document.getElementById('wa-mm').textContent = v[1];
     document.getElementById('wa-dd').textContent = v[2];
   }
+  var clockFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+  var dateFmt = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  function tickClock() {
+    var now = new Date();
+    var parts = clockFmt.formatToParts(now);
+    document.getElementById('wa-clock').textContent = parts.filter(function (p) { return p.type !== 'dayPeriod'; }).map(function (p) { return p.value; }).join('').trim();
+    document.getElementById('wa-ampm').textContent = (parts.find(function (p) { return p.type === 'dayPeriod'; }) || {}).value || '';
+    document.getElementById('wa-date').textContent = dateFmt.format(now);
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
   tick();
   setInterval(tick, 60000);
 })();
@@ -9262,7 +9280,7 @@ def wayne_photo_dialog() -> None:
     photo_path = _find_wayne_photo_path()
     if photo_path:
         encoded = base64.b64encode(open(photo_path, "rb").read()).decode("utf-8")
-        st.components.v1.html(WAYNE_ACTIVE_HTML.replace("__WAYNE_IMG__", encoded), height=610, scrolling=False)
+        st.components.v1.html(WAYNE_ACTIVE_HTML.replace("__WAYNE_IMG__", encoded), height=690, scrolling=False)
     else:
         st.warning("No se encontro la foto. Sube `Wayne Foto.png` a tu repositorio junto a este archivo.")
 
@@ -9332,6 +9350,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
