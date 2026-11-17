@@ -8543,35 +8543,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
     total_display = len(filtered_preview) if active_filters else len(df)
     total_label = "RESERVAS FILTRADAS" if active_filters else "TOTAL RESERVAS"
 
-    left, categories_col, insights_col = st.columns([1.35, 5.0, 0.75], gap="small")
+    left, right = st.columns([1.35, 5.65], gap="small")
     filtered, filters = apply_filters(df)
 
     with left:
-        st.markdown(
-            """
-            <style>
-            .ops-panel-heading {
-                display:flex; align-items:center; gap:8px; margin:0 0 7px;
-                color:#e8c170; font:800 12px/1.2 'Segoe UI',sans-serif;
-                letter-spacing:.7px; text-transform:uppercase;
-                text-shadow:0 0 7px rgba(212,175,55,.35);
-            }
-            .ops-panel-heading .ops-panel-icon { color:#ffd54a; font-size:19px; }
-            .ops-panel-kicker {
-                color:#8ca4ba; font-size:9px; font-weight:700;
-                letter-spacing:.6px; text-transform:uppercase; margin:0 0 6px 2px;
-            }
-            div[data-testid="stColumn"]:has(.ops-panel-heading) {
-                box-sizing:border-box; padding:8px !important;
-                border:1px solid #D4AF3766; border-radius:13px;
-                background:linear-gradient(145deg,#1c1708 0%,#050505 78%);
-                box-shadow:0 0 10px rgba(212,175,55,.12);
-            }
-            </style>
-            <div class="ops-panel-heading"><span class="ops-panel-icon">♟</span>OPERATIONS PANEL</div>
-            """,
-            unsafe_allow_html=True,
-        )
         today = ahora_cr()
         checkout_links = []
         for offset in range(8):
@@ -8584,7 +8559,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 f'<span>{date:%b %d}: {count}</span>'
                 f'<span class="chip-arrow"><svg width="12" height="16" viewBox="0 0 12 16" fill="none" stroke="#00e5ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2l6 6-6 6"/></svg></span></a>'
             )
-        st.markdown('<div style="color:#e8c170;font:800 11px \'Segoe UI\',sans-serif;letter-spacing:.6px;line-height:1.5;margin:0 0 2px 2px">Checking-Out Rooms</div><div class="ops-panel-kicker">Next 8 Days</div>', unsafe_allow_html=True)
+        st.markdown('<div style="color:#e8c170;font:800 12px \'Segoe UI\',sans-serif;letter-spacing:.6px;line-height:1.5;margin:0 0 12px 2px">Checking-Out Rooms</div>', unsafe_allow_html=True)
         st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
 
         # Panel de seleccion masiva
@@ -8609,55 +8584,12 @@ def render_dashboard(df: pd.DataFrame) -> None:
         st.markdown("</div>", unsafe_allow_html=True)
 
 
-    with categories_col:
+    with right:
         render_category_chart(filtered)
         relaxury = int(category_match_mask(filtered, "RELAXURY").sum())
         max_cat = max([int(category_match_mask(filtered, c).sum()) for c in CATEGORY_CHART_COLORS] + [1])
         render_relaxury_card(relaxury, max_cat)
 
-    with insights_col:
-        st.markdown(
-            """
-            <style>
-            .st-key-guest_insights_card [data-testid="stButton"] button {
-                min-height:126px !important; height:126px !important; padding:12px 5px !important;
-                display:flex !important; flex-direction:column !important; align-items:center !important;
-                justify-content:center !important; white-space:normal !important;
-                border:1px solid #D4AF37 !important; border-radius:12px !important;
-                background:linear-gradient(150deg,#2b2108 0%,#080808 65%) !important;
-                color:#ffe580 !important; font:800 10px/1.4 'Segoe UI',Arial,sans-serif !important;
-                letter-spacing:.55px !important; text-align:center !important;
-                box-shadow:0 0 10px rgba(212,175,55,.22),inset 0 0 16px rgba(212,175,55,.08) !important;
-                transition:filter .18s ease,box-shadow .18s ease !important;
-            }
-            .st-key-guest_insights_card [data-testid="stButton"] button > div {
-                display:flex !important; flex-direction:column !important; align-items:center !important;
-                justify-content:center !important; white-space:normal !important;
-            }
-            .st-key-guest_insights_card [data-testid="stButton"] button p {
-                white-space:normal !important; text-align:center !important; line-height:1.35 !important;
-            }
-            .st-key-guest_insights_card [data-testid="stButton"] button::before {
-                content:"▥"; display:block; margin-bottom:8px; color:#ffd54a;
-                font-size:31px; line-height:1; text-shadow:0 0 10px rgba(255,213,74,.7);
-            }
-            .st-key-guest_insights_card [data-testid="stButton"] button:hover {
-                filter:brightness(1.18) !important;
-                box-shadow:0 0 16px rgba(212,175,55,.5),inset 0 0 18px rgba(212,175,55,.12) !important;
-            }
-            .st-key-guest_insights_card { margin-top:27px !important; }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-        with st.container(key="guest_insights_card"):
-            if st.button(
-                "GUEST INSIGHTS »",
-                key="open_guest_insights",
-                use_container_width=True,
-                help="Abrir el resumen de ocupación y huéspedes",
-            ):
-                occ_summary_dialog(df)
 
     # Fila horizontal: filtros + menú
     st.markdown("<div style='height:0px'></div>", unsafe_allow_html=True)
@@ -8808,51 +8740,21 @@ def render_dashboard(df: pd.DataFrame) -> None:
         """,
         unsafe_allow_html=True,
     )
+    # "TOTAL RESERVAS" (o "RESERVAS FILTRADAS" si hay filtros activos) se
+    # muestra aquí, justo encima del buscador rápido: primero la etiqueta,
+    # luego el número — a pedido del usuario.
     st.markdown(
-        """
-        <style>
-        .reservations-header {
-            min-height:40px; display:flex; align-items:center; gap:11px;
-            padding:3px 8px; border:1px solid #1e9bff44; border-radius:10px;
-            background:linear-gradient(90deg,#08151b 0%,#050608 80%);
-            box-shadow:0 0 8px rgba(0,229,255,.1);
-        }
-        .reservations-header-icon {
-            color:#D4AF37; font-size:22px; line-height:1;
-            text-shadow:0 0 8px rgba(212,175,55,.65);
-        }
-        .reservations-header-title {
-            color:#00e5ff; font:800 14px/1.15 'Segoe UI',Arial,sans-serif;
-            letter-spacing:.45px; text-transform:uppercase; white-space:nowrap;
-        }
-        .reservations-header-count {
-            color:#4ade80; font-size:11px; font-weight:800; white-space:nowrap;
-            text-shadow:0 0 7px rgba(74,222,128,.35);
-        }
-        .st-key-global_search input {
-            min-height:40px !important; border:1px solid #1e9bff55 !important;
-            border-radius:10px !important; background:#050608 !important;
-        }
-        </style>
-        """,
+        f'<div class="total-badge"><div class="summary-label">{total_label}</div>'
+        f'<div class="summary-value">{total_display}</div></div>',
         unsafe_allow_html=True,
     )
-    db_title_col, db_search_col = st.columns([1.3, 1], gap="small")
-    with db_title_col:
-        st.markdown(
-            f'<div class="reservations-header"><span class="reservations-header-icon">▤</span>'
-            f'<span class="reservations-header-title">Reservations Database</span>'
-            f'<span class="reservations-header-count">● {total_display} Reservations</span></div>',
-            unsafe_allow_html=True,
-        )
-    with db_search_col:
-        st.text_input(
-            "Búsqueda rápida",
-            key="global_search",
-            placeholder="🔍 Search by name, phone, reservation, VIP...",
-            label_visibility="collapsed",
-            on_change=st.rerun,
-        )
+    st.text_input(
+        "Búsqueda rápida",
+        key="global_search",
+        placeholder="🔍 Buscar por nombre, teléfono, reserva, VIP, Relaxury...",
+        label_visibility="collapsed",
+        on_change=st.rerun,
+    )
     filtered, filters = apply_filters(df)
 
     if filters:
@@ -8996,49 +8898,6 @@ def render_dashboard(df: pd.DataFrame) -> None:
         )
 
     render_reservations_grid(filtered)
-    st.markdown(
-        """
-        <style>
-        .concierge-footer {
-            display:flex; align-items:center; gap:14px; min-height:48px;
-            margin:7px 0 0; padding:4px 12px;
-            border-top:1px solid #D4AF3788; border-bottom:1px solid #D4AF3744;
-            background:linear-gradient(90deg,#050505 0%,#111009 50%,#050505 100%);
-            box-shadow:0 -3px 12px rgba(212,175,55,.08);
-        }
-        .concierge-footer-mark {
-            color:#D4AF37; font:700 28px/1 Georgia,serif; white-space:nowrap;
-            text-shadow:0 0 8px rgba(212,175,55,.45);
-        }
-        .concierge-footer-line {
-            height:2px; flex:1 1 auto; min-width:20px;
-            background:linear-gradient(90deg,#D4AF37,#00e5ff 65%,transparent);
-            box-shadow:0 0 7px rgba(0,229,255,.4);
-        }
-        .concierge-footer-center {
-            color:#e8c170; font:700 10px/1.3 'Segoe UI',Arial,sans-serif;
-            letter-spacing:.6px; text-align:center; white-space:nowrap;
-        }
-        .concierge-footer-signature {
-            color:#D4AF37; font:italic 700 10px/1.3 Georgia,serif;
-            text-align:right; white-space:nowrap;
-        }
-        @media (max-width:700px) {
-            .concierge-footer { gap:7px; padding:4px 6px; }
-            .concierge-footer-mark { font-size:22px; }
-            .concierge-footer-center,.concierge-footer-signature { font-size:8px; }
-        }
-        </style>
-        <div class="concierge-footer">
-            <span class="concierge-footer-mark">WA</span>
-            <span class="concierge-footer-line"></span>
-            <span class="concierge-footer-center">Waldorf Astoria Costa Rica &nbsp;·&nbsp; Concierge Department</span>
-            <span class="concierge-footer-line"></span>
-            <span class="concierge-footer-signature">Hecho por Fred Wayne</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 # -----------------------------------------------------------------------------
