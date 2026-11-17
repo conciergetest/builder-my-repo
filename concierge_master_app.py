@@ -8916,7 +8916,6 @@ button, a, [role="button"], select, summary, label[for] {
 </style>""",
     unsafe_allow_html=True,
 )
-render_top_nav()
 show_header()
 render_main_spin_logo()
 reservations = cargar_reservaciones()
@@ -9189,6 +9188,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
