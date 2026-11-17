@@ -2013,7 +2013,7 @@ NEON_PILL_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
 .st-key-header_arrivals_btn button, .st-key-header_reminders_btn button, .st-key-header_qrcode_btn button,
-.st-key-btn_vip_candidates button, .st-key-btn_guests_directory button, .st-key-btn_pending button, .st-key-btn_occ_summary button, .st-key-btn_tools_pop button, .st-key-btn_ops_panel button, .st-key-btn_guest_insights button,
+.st-key-btn_vip_candidates button, .st-key-btn_guests_directory button, .st-key-btn_pending button, .st-key-btn_occ_summary button, .st-key-btn_tools_pop button, .st-key-btn_guest_insights button, .st-key-ops_box button,
 .neon-pill {
     display:flex !important; align-items:center !important; justify-content:center !important;
     width:fit-content !important; max-width:100%; box-sizing:border-box; min-height:46px; padding:0 22px !important; margin:0 auto !important;
@@ -8569,11 +8569,24 @@ def operations_panel_dialog(df: pd.DataFrame) -> None:
 
 @st.dialog("GUEST INSIGHTS", width="large")
 def guest_insights_dialog(df: pd.DataFrame) -> None:
+    # Resumen de solo lectura (sin botones) para no repetir las claves del
+    # gráfico que ya se ven en la pantalla principal.
     filtered, filters = apply_filters(df)
-    render_category_chart(filtered)
-    relaxury = int(category_match_mask(filtered, "RELAXURY").sum())
-    max_cat = max([int(category_match_mask(filtered, c).sum()) for c in CATEGORY_CHART_COLORS] + [1])
-    render_relaxury_card(relaxury, max_cat)
+    counts = {c: int(category_match_mask(filtered, c).sum()) for c in CATEGORY_CHART_COLORS}
+    max_cat = max(list(counts.values()) + [1])
+    rows = []
+    for cat, color in CATEGORY_CHART_COLORS.items():
+        n = counts[cat]
+        pct = max(2, min(100, round(n / max_cat * 100))) if n else 0
+        rows.append(
+            f'<div style="display:flex;align-items:center;gap:12px;padding:8px 12px;margin:6px 0;'
+            f'border:1px solid {color}55;border-radius:10px;background:linear-gradient(135deg,{color}22 0%,#0b0b0b 85%);">'
+            f'<div style="flex:0 0 150px;color:#f0faff;font:700 12px Segoe UI,sans-serif;letter-spacing:.5px">{cat}</div>'
+            f'<div style="flex:1;height:8px;background:#1a1a1a;border-radius:6px;overflow:hidden"><div style="width:{pct}%;height:100%;background:{color};box-shadow:0 0 8px {color}88"></div></div>'
+            f'<div style="flex:0 0 60px;text-align:right;color:{color};font:800 16px Segoe UI,sans-serif">{n}</div>'
+            f'</div>'
+        )
+    st.markdown("".join(rows), unsafe_allow_html=True)
 
 
 def render_dashboard(df: pd.DataFrame) -> None:
@@ -8596,6 +8609,25 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
 
 
+
+    # Banda superior (imagen 2): Operations Panel | Guest Categories | Guest Insights
+    ops_col, cat_col, ins_col = st.columns([1.35, 5.2, 0.8], gap="small")
+    with ops_col:
+        with st.container(key="ops_box"):
+            st.markdown('<div class="ops-box-title">OPERATIONS PANEL</div>', unsafe_allow_html=True)
+            if st.button("CHECKING-OUT ROOMS  ›", use_container_width=True, key="do_ops_checkout"):
+                operations_panel_dialog(df)
+            if st.button("BULK SELECTION  ›", use_container_width=True, key="do_ops_bulk"):
+                operations_panel_dialog(df)
+    with cat_col:
+        render_category_chart(filtered)
+        _relaxury = int(category_match_mask(filtered, "RELAXURY").sum())
+        _max_cat = max([int(category_match_mask(filtered, c).sum()) for c in CATEGORY_CHART_COLORS] + [1])
+        render_relaxury_card(_relaxury, _max_cat)
+    with ins_col:
+        with st.container(key="btn_guest_insights"):
+            if st.button("GUEST INSIGHTS", use_container_width=True, key="do_open_guest_insights"):
+                guest_insights_dialog(df)
 
     # Fila horizontal: filtros + menú
     st.markdown("<div style='height:0px'></div>", unsafe_allow_html=True)
@@ -8685,22 +8717,6 @@ def render_dashboard(df: pd.DataFrame) -> None:
         with st.container(key="btn_occ_summary"):
             if st.button("REP. OCC", use_container_width=True, key="do_open_occ_summary"):
                 occ_summary_dialog(df)
-    # Segunda fila de botones: Operations Panel y Guest Insights
-    st.markdown(
-        "<style>div[data-testid='stHorizontalBlock']:has(.st-key-btn_ops_panel) { justify-content:flex-start !important; gap:12px !important; } "
-        "div[data-testid='stHorizontalBlock']:has(.st-key-btn_ops_panel) > div[data-testid='stColumn'] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>",
-        unsafe_allow_html=True,
-    )
-    ops_btn_col, insights_btn_col, _ops_spacer = st.columns([1.6, 1.4, 6], gap="small")
-    with ops_btn_col:
-        with st.container(key="btn_ops_panel"):
-            if st.button("OPERATIONS PANEL", use_container_width=True, key="do_open_ops_panel"):
-                operations_panel_dialog(df)
-    with insights_btn_col:
-        with st.container(key="btn_guest_insights"):
-            if st.button("GUEST INSIGHTS", use_container_width=True, key="do_open_guest_insights"):
-                guest_insights_dialog(df)
-    st.markdown("<style>html body .st-key-btn_ops_panel button { --c:#e8c170; } html body .st-key-btn_guest_insights button { --c:#00e5ff; } html body .st-key-btn_ops_panel button, html body .st-key-btn_guest_insights button { height:46px !important; min-height:46px !important; width:auto !important; min-width:0 !important; padding:0 8px 0 58px !important; font-size:12px !important; letter-spacing:.4px !important; }html body .st-key-btn_ops_panel button p, html body .st-key-btn_guest_insights button p, html body .st-key-btn_ops_panel button > div, html body .st-key-btn_guest_insights button > div { font-size:12px !important; line-height:1.1 !important; }</style>", unsafe_allow_html=True)
     st.markdown("<style>div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:wrap !important; align-items:center !important; } @media (min-width:1600px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:nowrap !important; } } @media (max-width:1600px){ div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:0 !important; } } @media (max-width:1366px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { width:60vw !important; max-width:60vw !important; } } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) > div[data-testid='stColumn'] { align-self:center !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stElementContainer'] { margin-top:0 !important; margin-bottom:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stVerticalBlock'] { gap:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { transform:translateY(-25px) !important; } div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:-34px !important; } html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button, html body .st-key-btn_tools_pop button { width:auto !important; min-width:0 !important; padding:0 12px 0 56px !important; font-size:10px !important; letter-spacing:.5px !important; } html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { padding:0 12px 0 56px !important; }</style>", unsafe_allow_html=True)
     st.markdown(
         """
@@ -8762,20 +8778,33 @@ def render_dashboard(df: pd.DataFrame) -> None:
         """,
         unsafe_allow_html=True,
     )
-    # "TOTAL RESERVAS" (o "RESERVAS FILTRADAS" si hay filtros activos) se
-    # muestra aquí, justo encima del buscador rápido: primero la etiqueta,
-    # luego el número — a pedido del usuario.
+    # Cuadro "RESERVATIONS DATABASE" con contador y buscador adentro (imagen 2)
+    with st.container(key="res_db_frame"):
+        st.markdown(
+            f'<div class="res-db-title">RESERVATIONS DATABASE <span class="res-db-count">'
+            f'&#9679; {total_display} {"filtradas" if active_filters else "Reservations"}</span></div>',
+            unsafe_allow_html=True,
+        )
+        st.text_input(
+            "Búsqueda rápida",
+            key="global_search",
+            placeholder="Buscar por nombre, teléfono, reserva, VIP, Relaxury...",
+            label_visibility="collapsed",
+            on_change=st.rerun,
+        )
     st.markdown(
-        f'<div class="total-badge"><div class="summary-label">{total_label}</div>'
-        f'<div class="summary-value">{total_display}</div></div>',
+        """
+        <style>
+        .ops-box-title { color:#e8c170; font:800 13px 'Segoe UI',sans-serif; letter-spacing:.6px; margin:0 0 8px 4px; }
+        .st-key-ops_box { border:1px solid #e8c17099; border-radius:14px; padding:10px 10px 12px; background:linear-gradient(135deg,#1a1405 0%,#070707 90%); box-shadow:0 0 16px #e8c17040; }
+        .st-key-ops_box button { width:100% !important; height:46px !important; min-height:46px !important; justify-content:flex-start !important; padding:0 14px !important; --c:#e8c170 !important; font-size:11px !important; }
+        .st-key-btn_guest_insights button { --c:#00e5ff !important; height:100% !important; min-height:120px !important; width:100% !important; }
+        .st-key-res_db_frame { border:1px solid #00e5ff77; border-radius:12px; padding:8px 14px 10px; background:#03101c; box-shadow:0 0 14px #00e5ff33; margin-top:6px; }
+        .res-db-title { color:#00e5ff; font:800 15px 'Segoe UI',sans-serif; letter-spacing:.8px; margin:0 0 6px 2px; }
+        .res-db-count { color:#22f58b; font-size:12px; margin-left:10px; }
+        </style>
+        """,
         unsafe_allow_html=True,
-    )
-    st.text_input(
-        "Búsqueda rápida",
-        key="global_search",
-        placeholder="🔍 Buscar por nombre, teléfono, reserva, VIP, Relaxury...",
-        label_visibility="collapsed",
-        on_change=st.rerun,
     )
     filtered, filters = apply_filters(df)
 
@@ -9211,6 +9240,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
