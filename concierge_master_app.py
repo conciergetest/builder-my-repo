@@ -9202,7 +9202,7 @@ WAYNE_ACTIVE_HTML = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
 html, body { margin:0; background:transparent; }
-.card { position:relative; width:100%; height:600px; border-radius:14px; overflow:hidden; background:#05080f;
+.card { position:relative; box-sizing:border-box; width:calc(100% - 10px); height:600px; margin:4px 5px; border-radius:14px; overflow:hidden; background:#05080f;
   border:1.5px solid #00e5ff; box-shadow:0 0 12px rgba(0,229,255,.55), inset 0 0 18px rgba(0,229,255,.2);
   font-family:'Orbitron','Segoe UI',Arial,sans-serif; }
 .photo { position:absolute; left:0; top:0; width:100%; height:100%; object-fit:cover; object-position:50% 25%; }
@@ -9332,6 +9332,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
