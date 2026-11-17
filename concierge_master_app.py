@@ -9172,12 +9172,71 @@ def about_dialog() -> None:
         )
 
 
+WAYNE_ACTIVE_HTML = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+html, body { margin:0; background:transparent; }
+.card { position:relative; width:100%; height:600px; border-radius:14px; overflow:hidden; background:#05080f;
+  border:1.5px solid #00e5ff; box-shadow:0 0 12px rgba(0,229,255,.55), inset 0 0 18px rgba(0,229,255,.2);
+  font-family:'Orbitron','Segoe UI',Arial,sans-serif; }
+.photo { position:absolute; left:0; top:0; width:100%; height:100%; object-fit:cover; object-position:50% 25%; }
+.shade-top { position:absolute; left:0; right:0; top:0; height:150px; background:linear-gradient(180deg, rgba(5,8,15,.92), rgba(5,8,15,0)); }
+.shade-bot { position:absolute; left:0; right:0; bottom:0; height:270px; background:linear-gradient(0deg, rgba(5,8,15,.97) 22%, rgba(5,8,15,.6) 60%, rgba(5,8,15,0)); }
+.title { position:absolute; top:18px; left:0; right:0; text-align:center; font-weight:700; font-size:20px; letter-spacing:4px; text-transform:uppercase;
+  background:linear-gradient(90deg, #f5e6b0, #d4af37, #f5e6b0); -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 0 6px rgba(212,175,55,.5)); }
+.stats { position:absolute; left:16px; right:16px; bottom:58px; display:flex; gap:10px; }
+.tile { flex:1; text-align:center; }
+.box { height:54px; display:flex; align-items:center; justify-content:center; border:1.5px solid #00e5ff; border-radius:10px;
+  background:linear-gradient(180deg, rgba(4,26,36,.92), rgba(2,16,26,.92)); box-shadow:0 0 8px rgba(0,229,255,.55), inset 0 0 10px rgba(0,229,255,.2);
+  color:#e8fbff; font-weight:700; font-size:26px; text-shadow:0 0 6px #00e5ff; }
+.lbl { margin-top:8px; color:#f5e6b0; font-weight:700; font-size:13px; letter-spacing:2px; text-transform:uppercase; }
+.since { position:absolute; left:0; right:0; bottom:16px; text-align:center; color:#8ca4ba; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; }
+.since b { color:#ff3b3b; font-weight:700; }
+</style>
+<div class="card">
+  <img class="photo" src="data:image/png;base64,__WAYNE_IMG__" alt="Fred Wayne">
+  <div class="shade-top"></div>
+  <div class="shade-bot"></div>
+  <div class="title">Active Days</div>
+  <div class="stats">
+    <div class="tile"><div class="box" id="wa-yy">0</div><div class="lbl">Years</div></div>
+    <div class="tile"><div class="box" id="wa-mm">0</div><div class="lbl">Months</div></div>
+    <div class="tile"><div class="box" id="wa-dd">0</div><div class="lbl">Days</div></div>
+  </div>
+  <div class="since">Online desde <b>Mar 1, 2026</b></div>
+</div>
+<script>
+(function () {
+  var SINCE = new Date(2026, 2, 1);
+  function calc(from, to) {
+    var y = to.getFullYear() - from.getFullYear(), m = to.getMonth() - from.getMonth(), d = to.getDate() - from.getDate();
+    if (d < 0) { m -= 1; d += new Date(to.getFullYear(), to.getMonth(), 0).getDate(); }
+    if (m < 0) { y -= 1; m += 12; }
+    return [y, m, d];
+  }
+  function tick() {
+    var now = new Date();
+    var end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    var v = calc(SINCE, end);
+    document.getElementById('wa-yy').textContent = v[0];
+    document.getElementById('wa-mm').textContent = v[1];
+    document.getElementById('wa-dd').textContent = v[2];
+  }
+  tick();
+  setInterval(tick, 60000);
+})();
+</script>
+"""
+
+
 @st.dialog("FRED WAYNE", width="small")
 def wayne_photo_dialog() -> None:
-    """Popup del icono dorado: foto plana de Wayne, sin controles."""
+    """Popup del icono dorado: foto de Wayne con los dias activos de la app abajo."""
     photo_path = _find_wayne_photo_path()
     if photo_path:
-        st.image(photo_path, use_container_width=True)
+        encoded = base64.b64encode(open(photo_path, "rb").read()).decode("utf-8")
+        st.components.v1.html(WAYNE_ACTIVE_HTML.replace("__WAYNE_IMG__", encoded), height=610, scrolling=False)
     else:
         st.warning("No se encontro la foto. Sube `Wayne Foto.png` a tu repositorio junto a este archivo.")
 
@@ -9242,6 +9301,8 @@ elif action == "carta":
 elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
+    render_dashboard(reservations)
+
     render_dashboard(reservations)
 
 
