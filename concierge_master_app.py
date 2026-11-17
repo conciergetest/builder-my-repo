@@ -2013,7 +2013,7 @@ NEON_PILL_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
 .st-key-header_arrivals_btn button, .st-key-header_reminders_btn button, .st-key-header_qrcode_btn button,
-.st-key-btn_vip_candidates button, .st-key-btn_guests_directory button, .st-key-btn_pending button, .st-key-btn_occ_summary button, .st-key-btn_tools_pop button,
+.st-key-btn_vip_candidates button, .st-key-btn_guests_directory button, .st-key-btn_pending button, .st-key-btn_occ_summary button, .st-key-btn_tools_pop button, .st-key-btn_ops_panel button, .st-key-btn_guest_insights button,
 .neon-pill {
     display:flex !important; align-items:center !important; justify-content:center !important;
     width:fit-content !important; max-width:100%; box-sizing:border-box; min-height:46px; padding:0 22px !important; margin:0 auto !important;
@@ -8179,7 +8179,7 @@ def render_reservations_grid(df: pd.DataFrame) -> None:
         gridOptions=builder.build(),
         custom_css=GRID_CSS,
         theme="alpine",
-        height=625,
+        height=720,
         fit_columns_on_grid_load=False,
         allow_unsafe_jscode=True,
         update_mode=GridUpdateMode.SELECTION_CHANGED,
@@ -8527,6 +8527,55 @@ def category_detail_dialog() -> None:
         st.rerun()
 
 
+@st.dialog("OPERATIONS PANEL", width="large")
+def operations_panel_dialog(df: pd.DataFrame) -> None:
+    filtered, filters = apply_filters(df)
+    today = ahora_cr()
+    checkout_links = []
+    for offset in range(8):
+        date = today + timedelta(days=offset)
+        stored = date.strftime("%B %d, %Y")
+        count = int((df["check_out"] == stored).sum())
+        checkout_links.append(
+            f'<a class="quick-link chip-day{"" if offset % 2 == 0 else " alt"}" href="{url_with(checkout_filtro=stored)}" target="_self">'
+            f'<span class="chip-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7 14h2M11 14h2M15 14h2M7 18h2M11 18h2" stroke-width="2.4"/></svg></span>'
+            f'<span>{date:%b %d}: {count}</span>'
+            f'<span class="chip-arrow"><svg width="12" height="16" viewBox="0 0 12 16" fill="none" stroke="#00e5ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2l6 6-6 6"/></svg></span></a>'
+        )
+    st.markdown('<div style="color:#e8c170;font:800 12px \'Segoe UI\',sans-serif;letter-spacing:.6px;line-height:1.5;margin:0 0 12px 2px">Checking-Out Rooms</div>', unsafe_allow_html=True)
+    st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
+
+    # Panel de seleccion masiva
+    st.markdown('<div class="panel" style="margin-top:9px"><div class="bulk-head"><svg width="26" height="20" viewBox="0 0 26 20"><g fill="#e8c170"><circle cx="7" cy="6" r="3.2"/><circle cx="19" cy="6" r="3.2"/><circle cx="13" cy="7" r="3.8"/><path d="M1 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M13 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M7 18c0-4 3-6 6-6s6 2 6 6z" opacity=".9"/></g></svg><span>SELECCION MASIVA</span></div>', unsafe_allow_html=True)
+    if not filtered.empty:
+        all_ids_current = filtered["id"].dropna().astype(str).tolist()
+        with st.container(key="bulk_row"):
+            c1, c2 = st.columns(2)
+            if c1.button("SELECC. TODO", key="bulk_all"):
+                st.session_state.bulk_selected_ids = all_ids_current
+                st.session_state.pop("selected_reservation", None)
+                st.session_state.pop("selected_reservation_id", None)
+                st.rerun()
+            if c2.button("UNCHECK", key="bulk_none"):
+                st.session_state.bulk_selected_ids = []
+                st.rerun()
+        count_sel = len(st.session_state.get("bulk_selected_ids", []))
+        st.markdown(f'<div style="text-align:center;color:#e8c170;font-size:13px;font-weight:700;margin-top:4px">{count_sel} de {len(all_ids_current)} seleccionadas</div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div style="color:#8ca4ba;font-size:10px;text-align:center">No hay reservas para seleccionar</div>', unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+@st.dialog("GUEST INSIGHTS", width="large")
+def guest_insights_dialog(df: pd.DataFrame) -> None:
+    filtered, filters = apply_filters(df)
+    render_category_chart(filtered)
+    relaxury = int(category_match_mask(filtered, "RELAXURY").sum())
+    max_cat = max([int(category_match_mask(filtered, c).sum()) for c in CATEGORY_CHART_COLORS] + [1])
+    render_relaxury_card(relaxury, max_cat)
+
+
 def render_dashboard(df: pd.DataFrame) -> None:
     # Borra automáticamente los reminders cuyo Due Date ya pasó (una vez por
     # día por sesión, para no golpear Supabase en cada rerun).
@@ -8543,52 +8592,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
     total_display = len(filtered_preview) if active_filters else len(df)
     total_label = "RESERVAS FILTRADAS" if active_filters else "TOTAL RESERVAS"
 
-    left, right = st.columns([1.35, 5.65], gap="small")
     filtered, filters = apply_filters(df)
 
-    with left:
-        today = ahora_cr()
-        checkout_links = []
-        for offset in range(8):
-            date = today + timedelta(days=offset)
-            stored = date.strftime("%B %d, %Y")
-            count = int((df["check_out"] == stored).sum())
-            checkout_links.append(
-                f'<a class="quick-link chip-day{"" if offset % 2 == 0 else " alt"}" href="{url_with(checkout_filtro=stored)}" target="_self">'
-                f'<span class="chip-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7 14h2M11 14h2M15 14h2M7 18h2M11 18h2" stroke-width="2.4"/></svg></span>'
-                f'<span>{date:%b %d}: {count}</span>'
-                f'<span class="chip-arrow"><svg width="12" height="16" viewBox="0 0 12 16" fill="none" stroke="#00e5ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2l6 6-6 6"/></svg></span></a>'
-            )
-        st.markdown('<div style="color:#e8c170;font:800 12px \'Segoe UI\',sans-serif;letter-spacing:.6px;line-height:1.5;margin:0 0 12px 2px">Checking-Out Rooms</div>', unsafe_allow_html=True)
-        st.markdown('<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">' + "".join(checkout_links) + "</div>", unsafe_allow_html=True)
 
-        # Panel de seleccion masiva
-        st.markdown('<div class="panel" style="margin-top:9px"><div class="bulk-head"><svg width="26" height="20" viewBox="0 0 26 20"><g fill="#e8c170"><circle cx="7" cy="6" r="3.2"/><circle cx="19" cy="6" r="3.2"/><circle cx="13" cy="7" r="3.8"/><path d="M1 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M13 18c0-4 3-6 6-6s6 2 6 6z"/><path d="M7 18c0-4 3-6 6-6s6 2 6 6z" opacity=".9"/></g></svg><span>SELECCION MASIVA</span></div>', unsafe_allow_html=True)
-        if not filtered.empty:
-            all_ids_current = filtered["id"].dropna().astype(str).tolist()
-            with st.container(key="bulk_row"):
-                c1, c2 = st.columns(2)
-                if c1.button("SELECC. TODO", key="bulk_all"):
-                    st.session_state.bulk_selected_ids = all_ids_current
-                    st.session_state.pop("selected_reservation", None)
-                    st.session_state.pop("selected_reservation_id", None)
-                    st.rerun()
-                if c2.button("UNCHECK", key="bulk_none"):
-                    st.session_state.bulk_selected_ids = []
-                    st.rerun()
-            count_sel = len(st.session_state.get("bulk_selected_ids", []))
-            st.markdown(f'<div style="text-align:center;color:#e8c170;font-size:13px;font-weight:700;margin-top:4px">{count_sel} de {len(all_ids_current)} seleccionadas</div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div style="color:#8ca4ba;font-size:10px;text-align:center">No hay reservas para seleccionar</div>', unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-
-    with right:
-        render_category_chart(filtered)
-        relaxury = int(category_match_mask(filtered, "RELAXURY").sum())
-        max_cat = max([int(category_match_mask(filtered, c).sum()) for c in CATEGORY_CHART_COLORS] + [1])
-        render_relaxury_card(relaxury, max_cat)
 
 
     # Fila horizontal: filtros + menú
@@ -8679,6 +8685,22 @@ def render_dashboard(df: pd.DataFrame) -> None:
         with st.container(key="btn_occ_summary"):
             if st.button("REP. OCC", use_container_width=True, key="do_open_occ_summary"):
                 occ_summary_dialog(df)
+    # Segunda fila de botones: Operations Panel y Guest Insights
+    st.markdown(
+        "<style>div[data-testid='stHorizontalBlock']:has(.st-key-btn_ops_panel) { justify-content:flex-start !important; gap:12px !important; } "
+        "div[data-testid='stHorizontalBlock']:has(.st-key-btn_ops_panel) > div[data-testid='stColumn'] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>",
+        unsafe_allow_html=True,
+    )
+    ops_btn_col, insights_btn_col, _ops_spacer = st.columns([1.6, 1.4, 6], gap="small")
+    with ops_btn_col:
+        with st.container(key="btn_ops_panel"):
+            if st.button("OPERATIONS PANEL", use_container_width=True, key="do_open_ops_panel"):
+                operations_panel_dialog(df)
+    with insights_btn_col:
+        with st.container(key="btn_guest_insights"):
+            if st.button("GUEST INSIGHTS", use_container_width=True, key="do_open_guest_insights"):
+                guest_insights_dialog(df)
+    st.markdown("<style>html body .st-key-btn_ops_panel button { --c:#e8c170; } html body .st-key-btn_guest_insights button { --c:#00e5ff; } html body .st-key-btn_ops_panel button, html body .st-key-btn_guest_insights button { height:46px !important; min-height:46px !important; width:auto !important; min-width:0 !important; padding:0 8px 0 58px !important; font-size:12px !important; letter-spacing:.4px !important; }html body .st-key-btn_ops_panel button p, html body .st-key-btn_guest_insights button p, html body .st-key-btn_ops_panel button > div, html body .st-key-btn_guest_insights button > div { font-size:12px !important; line-height:1.1 !important; }</style>", unsafe_allow_html=True)
     st.markdown("<style>div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:wrap !important; align-items:center !important; } @media (min-width:1600px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:nowrap !important; } } @media (max-width:1600px){ div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:0 !important; } } @media (max-width:1366px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { width:60vw !important; max-width:60vw !important; } } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) > div[data-testid='stColumn'] { align-self:center !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stElementContainer'] { margin-top:0 !important; margin-bottom:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stVerticalBlock'] { gap:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { transform:translateY(-25px) !important; } div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:-34px !important; } html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button, html body .st-key-btn_tools_pop button { width:auto !important; min-width:0 !important; padding:0 12px 0 56px !important; font-size:10px !important; letter-spacing:.5px !important; } html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { padding:0 12px 0 56px !important; }</style>", unsafe_allow_html=True)
     st.markdown(
         """
@@ -9189,6 +9211,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
