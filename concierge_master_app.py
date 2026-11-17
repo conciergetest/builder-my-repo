@@ -2613,6 +2613,11 @@ MENU_DIALOG_CSS = """
 .st-key-menu_back :is([data-testid="stElementContainer"],[data-testid="stMarkdown"],[data-testid="stMarkdownContainer"]):has(.mn-foot) {
     border: none !important; box-shadow: none !important; background: transparent !important; padding: 0 !important; outline: none !important;
 }
+/* Sin lineas cyan en el encabezado (arriba) ni en el recuadro de CERRAR (abajo) */
+.st-key-menu_back [data-testid="stElementContainer"]:has(.mn-title),
+.st-key-menu_back [data-testid="stLayoutWrapper"]:has(.st-key-menu_hide) {
+    border: none !important; box-shadow: none !important; outline: none !important;
+}
 .st-key-menu_back .mn-foot {
     margin-top: 12px;
     padding-top: 10px;
@@ -9224,6 +9229,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
