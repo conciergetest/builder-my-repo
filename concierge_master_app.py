@@ -2271,11 +2271,14 @@ def show_header() -> None:
 .wa-prod { color:#00e5ff; font:800 24px/1.15 'Segoe UI',Arial,sans-serif; letter-spacing:.3px; text-shadow:0 0 8px rgba(0,229,255,.6); white-space:nowrap; }
 .wa-prod span { color:#8ca4ba; font-weight:700; }
 .wa-prod .wa-fire { display:inline-block; padding-bottom:3px; color:transparent; -webkit-text-fill-color:transparent; text-shadow:none; background:url("data:image/gif;base64,""" + _fire_b64 + """") bottom center / 100% 300%; -webkit-background-clip:text; background-clip:text; }
+.wa-info { position:relative; z-index:5; display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; margin-left:12px; vertical-align:middle; border-radius:50%; text-decoration:none !important; cursor:pointer; transition:transform .2s, filter .2s; filter:drop-shadow(0 0 4px rgba(212,175,55,.6)); }
+.wa-info svg { width:30px; height:30px; display:block; }
+.wa-info:hover { transform:scale(1.12); filter:drop-shadow(0 0 8px #f3e3a1) drop-shadow(0 0 3px #d4af37); }
 </style>
 <div class="wa-brand">
   <img class="wa-logo" alt="Waldorf Astoria" src="data:image/png;base64,""" + _logo_b64 + """" />
   <span class="wa-div"></span>
-  <div class="wa-prod"><span class="wa-fire">Concierge Master</span> <span>v6.0</span></div>
+  <div class="wa-prod"><span class="wa-fire">Concierge Master</span> <span>v6.0</span><a class="wa-info" href="""+ '"' + html.escape(url_with(top="wayne", skip_splash="1"), quote=True) + '"' +"""  target="_self" title="Foto Fred Wayne"><svg viewBox="0 0 100 100"><defs><linearGradient id="waGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5e6b0"/><stop offset=".5" stop-color="#d4af37"/><stop offset="1" stop-color="#8a6f22"/></linearGradient></defs><circle cx="50" cy="50" r="44" fill="none" stroke="url(#waGold)" stroke-width="8"/><rect x="28" y="32" width="44" height="7" fill="url(#waGold)"/><rect x="28" y="46.5" width="44" height="7" fill="url(#waGold)"/><rect x="28" y="61" width="44" height="7" fill="url(#waGold)"/></svg></a></div>
 </div>
                 """,
                 unsafe_allow_html=True,
@@ -9169,7 +9172,18 @@ def about_dialog() -> None:
         )
 
 
+@st.dialog("FRED WAYNE", width="small")
+def wayne_photo_dialog() -> None:
+    """Popup del icono dorado: foto plana de Wayne, sin controles."""
+    photo_path = _find_wayne_photo_path()
+    if photo_path:
+        st.image(photo_path, use_container_width=True)
+    else:
+        st.warning("No se encontro la foto. Sube `Wayne Foto.png` a tu repositorio junto a este archivo.")
+
+
 _TOP_POPUPS = {
+    "wayne": wayne_photo_dialog,
     "operaciones": operaciones_dialog,
     "herramientas": herramientas_dialog,
     "concierge": concierge_services_dialog,
@@ -9229,6 +9243,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
