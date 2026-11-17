@@ -8614,10 +8614,10 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with f2:
         date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;--ico:&quot;↻&quot;;height:46px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 14px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;--ico:&quot;↻&quot;;height:40px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 10px 0 54px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
     with f3:
-        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;--ico:&quot;✖&quot;;height:46px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 14px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;--ico:&quot;✖&quot;;height:40px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 10px 0 54px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
     with f4:
         render_menu()
@@ -8728,6 +8728,34 @@ def render_dashboard(df: pd.DataFrame) -> None:
         /* Quitar el espacio de los bloques que solo llevan CSS */
         html body div[data-testid="stLayoutWrapper"]:has(.chip-day) ~ div[data-testid="stElementContainer"]:has(style):not(:has(a)):not(:has(button)):not(:has(input)):not(:has(.total-badge)):not(:has([data-testid="stDataFrame"])) { display:none !important; }
         html body div[data-testid="stLayoutWrapper"]:has(.chip-day) ~ div[data-testid="stElementContainer"]:not(:has(a,button,input,.total-badge,canvas,iframe,img,svg,p,span,table,[role="grid"],[role="table"],[class*="dataframe" i],[class*="DataFrame"],[data-testid*="Frame"],[data-testid*="Table"])):not(:has(*:not(style):not(div):not(hr)))  { display:none !important; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        """
+        <style>
+        /* Botones de la barra (filtros, VIP, Huéspedes, Pending, Tools, Rep. Occ): más chicos y rojo al hover, igual que LOGOUT */
+        html body .st-key-btn_vip_candidates button,
+        html body .st-key-btn_guests_directory button,
+        html body .st-key-btn_pending button,
+        html body .st-key-btn_occ_summary button,
+        html body .st-key-btn_tools_pop button,
+        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill {
+            height:40px !important; min-height:40px !important; font-size:12px !important;
+            padding:0 10px 0 54px !important; top:0 !important;
+        }
+        html body .st-key-btn_vip_candidates button::before, html body .st-key-btn_guests_directory button::before, html body .st-key-btn_pending button::before, html body .st-key-btn_occ_summary button::before, html body .st-key-btn_tools_pop button::before, html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill::before {
+            width:30px !important; height:30px !important; left:5px !important; font-size:15px !important;
+        }
+        html body .st-key-btn_vip_candidates button::after, html body .st-key-btn_guests_directory button::after, html body .st-key-btn_pending button::after, html body .st-key-btn_occ_summary button::after, html body .st-key-btn_tools_pop button::after, html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill::after {
+            left:42px !important; height:22px !important;
+        }
+        html body .st-key-btn_vip_candidates button:hover, html body .st-key-btn_guests_directory button:hover, html body .st-key-btn_pending button:hover, html body .st-key-btn_occ_summary button:hover, html body .st-key-btn_tools_pop button:hover, html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill:hover {
+            --c:#ff2d3d !important; background:#7a0b14 !important; border-color:#ff2d3d !important; color:#ffffff !important;
+            box-shadow:0 0 10px #ff3b4a, 0 0 28px rgba(255,30,50,.85), inset 0 0 18px rgba(255,30,50,.55) !important;
+            filter:none !important;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -9196,6 +9224,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
