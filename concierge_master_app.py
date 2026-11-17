@@ -668,7 +668,9 @@ st.markdown(
     .stApp { background: #000000; color: #edf8ff; }
     /* AG Grid selected row handled via rowClassRules */
     header[data-testid="stHeader"] { display: none; }
-    .block-container { max-width: 100%; padding: .7rem 1.1rem 1.4rem; }
+    .block-container { max-width: 100%; padding: 0 1.1rem 1.4rem; }
+    [data-testid="stMainBlockContainer"] { padding-top: 0 !important; }
+    div[data-testid="stElementContainer"]:has(.wa-brand) { margin-top: -26px !important; }
     [data-testid="stVerticalBlock"] { gap: .45rem; }
     [data-testid="stTextInput"] input, [data-testid="stDateInput"] input {
         color: #effaff !important; background: #0d0d0d !important;
@@ -9188,6 +9190,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
