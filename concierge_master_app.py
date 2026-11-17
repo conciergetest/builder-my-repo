@@ -2278,7 +2278,7 @@ def show_header() -> None:
 <div class="wa-brand">
   <img class="wa-logo" alt="Waldorf Astoria" src="data:image/png;base64,""" + _logo_b64 + """" />
   <span class="wa-div"></span>
-  <div class="wa-prod"><span class="wa-fire">Concierge Master</span> <span>v6.0</span><a class="wa-info" href="""+ '"' + html.escape(url_with(top="wayne", skip_splash="1"), quote=True) + '"' +"""  target="_self" title="Foto Fred Wayne"><svg viewBox="0 0 100 100"><defs><linearGradient id="waGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5e6b0"/><stop offset=".5" stop-color="#d4af37"/><stop offset="1" stop-color="#8a6f22"/></linearGradient></defs><circle cx="50" cy="50" r="44" fill="none" stroke="url(#waGold)" stroke-width="8"/><rect x="28" y="32" width="44" height="7" fill="url(#waGold)"/><rect x="28" y="46.5" width="44" height="7" fill="url(#waGold)"/><rect x="28" y="61" width="44" height="7" fill="url(#waGold)"/></svg></a></div>
+  <div class="wa-prod"><span class="wa-fire">Concierge Master</span> <span>v6.0</span><a class="wa-info" href="#" title="Foto Fred Wayne"><svg viewBox="0 0 100 100"><defs><linearGradient id="waGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5e6b0"/><stop offset=".5" stop-color="#d4af37"/><stop offset="1" stop-color="#8a6f22"/></linearGradient></defs><circle cx="50" cy="50" r="44" fill="none" stroke="url(#waGold)" stroke-width="8"/><rect x="28" y="32" width="44" height="7" fill="url(#waGold)"/><rect x="28" y="46.5" width="44" height="7" fill="url(#waGold)"/><rect x="28" y="61" width="44" height="7" fill="url(#waGold)"/></svg></a></div>
 </div>
                 """,
                 unsafe_allow_html=True,
@@ -2299,6 +2299,32 @@ def show_header() -> None:
                 """,
                 unsafe_allow_html=True,
             )
+    st.markdown(
+        "<style>.st-key-wa_info_box { display:none !important; }</style>",
+        unsafe_allow_html=True,
+    )
+    with st.container(key="wa_info_box"):
+        if st.button("Foto Fred Wayne", key="wa_info_btn"):
+            st.session_state["wa_info_open"] = True
+    components.html(
+        """
+<script>
+(function () {
+  var P = window.parent;
+  if (!P || !P.document || P.__waInfoBound) return;
+  P.__waInfoBound = true;
+  P.document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a.wa-info') : null;
+    if (!a) return;
+    e.preventDefault();
+    var b = P.document.querySelector('.st-key-wa_info_box button');
+    if (b) b.click();
+  }, true);
+})();
+</script>
+        """,
+        height=0,
+    )
     with header_center:
         st.markdown(
             "<div style='text-align:center;color:#00e5ff;font-size:13px;font-weight:800;letter-spacing:1px;margin:0 0 4px 0;'>"
@@ -9241,6 +9267,10 @@ def wayne_photo_dialog() -> None:
         st.warning("No se encontro la foto. Sube `Wayne Foto.png` a tu repositorio junto a este archivo.")
 
 
+if st.session_state.pop("wa_info_open", False):
+    wayne_photo_dialog()
+
+
 _TOP_POPUPS = {
     "wayne": wayne_photo_dialog,
     "operaciones": operaciones_dialog,
@@ -9303,7 +9333,6 @@ elif action == "cancelar":
 else:
     render_dashboard(reservations)
 
-    render_dashboard(reservations)
 
 
 
