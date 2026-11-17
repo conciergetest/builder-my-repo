@@ -2367,39 +2367,45 @@ def show_header() -> None:
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
     .logout-wrap { display:flex; justify-content:flex-end; margin:0 0 6px 0; }
     .logout-btn {
-        display:flex; align-items:center; width:196px; height:52px; box-sizing:border-box;
+        display:flex; align-items:center; width:150px; height:40px; box-sizing:border-box;
         border-radius:999px; text-decoration:none !important; cursor:pointer;
         background: linear-gradient(90deg, #02101f 0%, #061d38 55%, #02101f 100%);
         border: 2px solid #1e9bff;
         box-shadow: 0 0 6px #1e9bff, 0 0 18px rgba(30,155,255,.55), inset 0 0 14px rgba(30,155,255,.35);
         transition: box-shadow .2s ease;
     }
-    .logout-btn:hover {
-        box-shadow: 0 0 10px #4fd8ff, 0 0 28px rgba(0,212,255,.85), inset 0 0 18px rgba(30,155,255,.55);
+    .logout-btn:hover, html body a.logout-btn:hover {
+        background: #7a0b14 !important;
+        border-color: #ff2d3d !important;
+        box-shadow: 0 0 10px #ff3b4a, 0 0 28px rgba(255,30,50,.85), inset 0 0 18px rgba(255,30,50,.55) !important;
     }
+    .logout-btn:hover .lo-ico { border-color: #ff5a66; background: radial-gradient(circle, #5a0810 0%, #2a0306 85%); box-shadow: 0 0 8px #ff3b4a, inset 0 0 8px rgba(255,30,50,.5); }
+    .logout-btn:hover .lo-sep { background: linear-gradient(#ff5a66, #b00014); box-shadow: 0 0 6px #ff3b4a; }
+    .logout-btn:hover .lo-txt { text-shadow: 0 0 6px #ff7a85, 0 0 14px rgba(255,40,60,.7); }
+    .logout-btn:hover .lo-arr { color: #ff7a85; text-shadow: 0 0 6px #ff3b4a; }
     .logout-btn .lo-ico {
-        flex: 0 0 auto; width: 42px; height: 42px; margin-left: 3px; border-radius: 50%; box-sizing: border-box;
+        flex: 0 0 auto; width: 30px; height: 30px; margin-left: 3px; border-radius: 50%; box-sizing: border-box;
         border: 2px solid #39a8ff; display: flex; align-items: center; justify-content: center;
         background: radial-gradient(circle, #0b2b52 0%, #02101f 85%);
         box-shadow: 0 0 8px #1e9bff, inset 0 0 8px rgba(30,155,255,.5);
     }
     .logout-btn .lo-sep {
-        flex: 0 0 auto; width: 2px; height: 32px; margin: 0 14px;
+        flex: 0 0 auto; width: 2px; height: 22px; margin: 0 9px;
         background: linear-gradient(#00d4ff, #0066ff); box-shadow: 0 0 6px #00d4ff;
     }
     .logout-btn .lo-txt {
-        flex: 1; font-family: 'Orbitron', 'Segoe UI', sans-serif; font-weight: 700; font-size: 17px;
-        letter-spacing: 2px; color: #f0faff; text-shadow: 0 0 6px #5ec8ff, 0 0 14px rgba(0,212,255,.6);
+        flex: 1; font-family: 'Orbitron', 'Segoe UI', sans-serif; font-weight: 700; font-size: 12px;
+        letter-spacing: 1.5px; color: #f0faff; text-shadow: 0 0 6px #5ec8ff, 0 0 14px rgba(0,212,255,.6);
     }
     .logout-btn .lo-arr {
-        flex: 0 0 auto; margin-right: 12px; color: #5ee7ff; font-size: 20px; font-weight: 700;
+        flex: 0 0 auto; margin-right: 9px; color: #5ee7ff; font-size: 15px; font-weight: 700;
         text-shadow: 0 0 6px #00d4ff;
     }
     </style>
     <div class="logout-wrap">
     <a class="logout-btn" href="./" target="_self" title="Cerrar sesión">
       <span class="lo-ico">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px #00d4ff)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px #00d4ff)">
           <path d="M11 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h6"/>
           <path d="M9 12h11"/><path d="M16 8l4 4-4 4"/>
         </svg>
@@ -9190,6 +9196,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
