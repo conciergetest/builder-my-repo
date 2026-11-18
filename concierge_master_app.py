@@ -8682,13 +8682,28 @@ def render_dashboard(df: pd.DataFrame) -> None:
         (ico_notas_col, "📝", "Notas", "top_ico_notas", "open_notas"),
         (ico_dir_col, "📇", "Directorio", "top_ico_directorio", "open_directorio"),
     ]
+    _top_ico_css = ""
+    _app_dir = os.path.dirname(os.path.abspath(__file__))
     for _col, _ico, _tip, _key, _flag in _top_icons:
+        _png_name = _tip.split(" ")[0] + ".png"
+        _png_path = os.path.join(_app_dir, _png_name)
+        if os.path.exists(_png_path):
+            with open(_png_path, "rb") as _fh:
+                _png_b64 = base64.b64encode(_fh.read()).decode("utf-8")
+            _top_ico_css += (
+                'html body [class*="st-key-' + _key + '"] button[class] { background-image:url("data:image/png;base64,'
+                + _png_b64 + '") !important; background-size:34px 34px !important; background-repeat:no-repeat !important; background-position:center !important; }'
+                'html body [class*="st-key-' + _key + '"] button[class] p { font-size:0 !important; }'
+            )
+            _ico = " "
         with _col:
             with st.container(key=_key):
                 if st.button(_ico, help=_tip, key="do_" + _key):
                     st.session_state[_flag] = True
                     st.query_params["skip_splash"] = "1"
                     st.rerun()
+    if _top_ico_css:
+        st.markdown("<style>" + _top_ico_css + "</style>", unsafe_allow_html=True)
     st.markdown(
         """<style>
         div[data-testid="stColumn"]:has(div[data-testid="stHorizontalBlock"] [class*="st-key-top_ico_"]) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
@@ -8700,7 +8715,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
             background:transparent !important; box-shadow:none !important;
             display:flex !important; align-items:center !important; justify-content:center !important; }
         html body [class*="st-key-top_ico_"] button p { margin:0 !important; font-size:22px !important; line-height:1 !important; }
-        html body [class*="st-key-top_ico_"] button:hover { filter:drop-shadow(0 0 6px #1e9bff) brightness(1.2) !important; background:transparent !important; }
+        html body [class*="st-key-top_ico_"] button:hover { filter:drop-shadow(0 0 6px #1e9bff) brightness(1.2) !important; background-color:transparent !important; }
         </style>""",
         unsafe_allow_html=True,
     )
@@ -9333,6 +9348,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
