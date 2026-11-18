@@ -2880,35 +2880,19 @@ def _menu_card_body() -> None:
     # ── Herramientas ──
     with st.container(key="card_mn_tools"):
         _mn_sec("Herramientas", "🛠")
-        h1, h2, h3, h4 = st.columns(4)
-        if h1.button("CALCULADORA", use_container_width=True, key="card_mn_calculadora"):
-            st.query_params["action"] = "calculadora"
-            _menu_go()
-        if h2.button("ALMANAQUE", use_container_width=True, key="card_mn_almanaque"):
-            st.query_params["action"] = "almanaque"
-            _menu_go()
-        if h3.button("FRED WAYNE", use_container_width=True, key="card_mn_fred"):
+        if st.button("FRED WAYNE", use_container_width=True, key="card_mn_fred"):
             _menu_go(open_logo=True)
-        if h4.button("DIRECTORIO", use_container_width=True, key="card_mn_directorio"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_directorio=True)
 
     # ── Concierge Services ──
     with st.container(key="card_mn_services"):
         _mn_sec("Concierge Services", "🛎")
-        s1, s2, s3, s4 = st.columns(4)
+        s1, s2 = st.columns(2)
         if s1.button("P. DINNING", use_container_width=True, key="card_menu_open_pdinning"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_pdinning=True)
-        if s2.button("CONTADOR", use_container_width=True, key="card_menu_open_shared_counter"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_shared_counter=True)
-        if s3.button("CHECK-IN DEL DÍA", use_container_width=True, key="card_menu_open_checkin_dia"):
+        if s2.button("CHECK-IN DEL DÍA", use_container_width=True, key="card_menu_open_checkin_dia"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_checkin_dia=True)
-        if s4.button("NOTAS", use_container_width=True, key="card_menu_open_notas"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_notas=True)
 
     # ── Quick Access (enlaces rápidos) ──
     with st.container(key="card_mn_quick"):
@@ -2987,35 +2971,19 @@ def _menu_card_body() -> None:
     # ── Herramientas ──
     with st.container(key="card_mn_tools"):
         _mn_sec("Herramientas", "🛠")
-        h1, h2, h3, h4 = st.columns(4)
-        if h1.button("CALCULADORA", use_container_width=True, key="card_mn_calculadora"):
-            st.query_params["action"] = "calculadora"
-            _menu_go()
-        if h2.button("ALMANAQUE", use_container_width=True, key="card_mn_almanaque"):
-            st.query_params["action"] = "almanaque"
-            _menu_go()
-        if h3.button("FRED WAYNE", use_container_width=True, key="card_mn_fred"):
+        if st.button("FRED WAYNE", use_container_width=True, key="card_mn_fred"):
             _menu_go(open_logo=True)
-        if h4.button("DIRECTORIO", use_container_width=True, key="card_mn_directorio"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_directorio=True)
 
     # ── Concierge Services ──
     with st.container(key="card_mn_services"):
         _mn_sec("Concierge Services", "🛎")
-        s1, s2, s3, s4 = st.columns(4)
+        s1, s2 = st.columns(2)
         if s1.button("P. DINNING", use_container_width=True, key="card_menu_open_pdinning"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_pdinning=True)
-        if s2.button("CONTADOR", use_container_width=True, key="card_menu_open_shared_counter"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_shared_counter=True)
-        if s3.button("CHECK-IN DEL DÍA", use_container_width=True, key="card_menu_open_checkin_dia"):
+        if s2.button("CHECK-IN DEL DÍA", use_container_width=True, key="card_menu_open_checkin_dia"):
             st.query_params["skip_splash"] = "1"
             _menu_go(open_checkin_dia=True)
-        if s4.button("NOTAS", use_container_width=True, key="card_menu_open_notas"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_notas=True)
 
     # ── Quick Access (enlaces rápidos) ──
     with st.container(key="card_mn_quick"):
@@ -3155,18 +3123,8 @@ def herramientas_dialog() -> None:
     with st.container(key="menu_pop"):
         with st.container(key="pop_mn_tools"):
             _mn_sec("Herramientas", "🛠")
-            h1, h2, h3, h4 = st.columns(4)
-            if h1.button("CALCULADORA", use_container_width=True, key="pop_mn_calculadora"):
-                st.query_params["action"] = "calculadora"
-                _menu_go()
-            if h2.button("ALMANAQUE", use_container_width=True, key="pop_mn_almanaque"):
-                st.query_params["action"] = "almanaque"
-                _menu_go()
-            if h3.button("FRED WAYNE", use_container_width=True, key="pop_mn_fred"):
+            if st.button("FRED WAYNE", use_container_width=True, key="pop_mn_fred"):
                 _menu_go(open_logo=True)
-            if h4.button("DIRECTORIO", use_container_width=True, key="pop_mn_directorio"):
-                st.query_params["skip_splash"] = "1"
-                _menu_go(open_directorio=True)
 
 
 @st.dialog("🛎 CONCIERGE SERVICES", width="large")
@@ -3177,19 +3135,13 @@ def concierge_services_dialog() -> None:
     with st.container(key="menu_pop"):
         with st.container(key="pop_mn_services"):
             _mn_sec("Concierge Services", "🛎")
-            s1, s2, s3, s4 = st.columns(4)
+            s1, s2 = st.columns(2)
             if s1.button("P. DINNING", use_container_width=True, key="pop_open_pdinning"):
                 st.query_params["skip_splash"] = "1"
                 _menu_go(open_pdinning=True)
-            if s2.button("CONTADOR", use_container_width=True, key="pop_open_shared_counter"):
-                st.query_params["skip_splash"] = "1"
-                _menu_go(open_shared_counter=True)
-            if s3.button("CHECK-IN DEL DÍA", use_container_width=True, key="pop_open_checkin_dia"):
+            if s2.button("CHECK-IN DEL DÍA", use_container_width=True, key="pop_open_checkin_dia"):
                 st.query_params["skip_splash"] = "1"
                 _menu_go(open_checkin_dia=True)
-            if s4.button("NOTAS", use_container_width=True, key="pop_open_notas"):
-                st.query_params["skip_splash"] = "1"
-                _menu_go(open_notas=True)
 
 
 @st.dialog("⚡ QUICK ACCESS", width="large")
@@ -8721,6 +8673,32 @@ def render_dashboard(df: pd.DataFrame) -> None:
         with st.container(key="btn_occ_summary"):
             if st.button("REP. OCC", use_container_width=True, key="do_open_occ_summary"):
                 occ_summary_dialog(df)
+    ico_calc_col, ico_cal_col, ico_cnt_col, ico_notas_col, ico_dir_col, _ico_pad = st.columns([0.6, 0.6, 0.6, 0.6, 0.6, 6])
+    _top_icons = [
+        (ico_calc_col, "🧮", "Calculadora", "top_ico_calc", "open_calculator"),
+        (ico_cal_col, "📆", "Almanaque", "top_ico_almanaque", "open_calendar"),
+        (ico_cnt_col, "🔢", "Contador", "top_ico_contador", "open_shared_counter"),
+        (ico_notas_col, "📝", "Notas", "top_ico_notas", "open_notas"),
+        (ico_dir_col, "📇", "Directorio", "top_ico_directorio", "open_directorio"),
+    ]
+    for _col, _ico, _tip, _key, _flag in _top_icons:
+        with _col:
+            with st.container(key=_key):
+                if st.button(_ico, help=_tip, key="do_" + _key):
+                    st.session_state[_flag] = True
+                    st.query_params["skip_splash"] = "1"
+                    st.rerun()
+    st.markdown(
+        """<style>
+        html body [class*="st-key-top_ico_"] button { width:42px !important; min-width:42px !important; height:42px !important; min-height:42px !important;
+            padding:0 !important; border-radius:50% !important; border:2px solid #1e9bff !important; color:#f0faff !important;
+            background:radial-gradient(circle, #0a2a4a 0%, #05080f 85%) !important; box-shadow:0 0 6px #1e9bff, inset 0 0 8px rgba(30,155,255,.45) !important;
+            display:flex !important; align-items:center !important; justify-content:center !important; }
+        html body [class*="st-key-top_ico_"] button p { margin:0 !important; font-size:18px !important; line-height:1 !important; }
+        html body [class*="st-key-top_ico_"] button:hover { filter:brightness(1.25) !important; box-shadow:0 0 10px #1e9bff, inset 0 0 10px rgba(30,155,255,.6) !important; }
+        </style>""",
+        unsafe_allow_html=True,
+    )
     st.markdown("<style>div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:wrap !important; align-items:center !important; } @media (min-width:1600px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:nowrap !important; } } @media (max-width:1600px){ div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:0 !important; } } @media (max-width:1366px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { width:60vw !important; max-width:60vw !important; } } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) > div[data-testid='stColumn'] { align-self:center !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stElementContainer'] { margin-top:0 !important; margin-bottom:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stVerticalBlock'] { gap:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { transform:translateY(-25px) !important; } div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:-34px !important; } html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button, html body .st-key-btn_tools_pop button { width:auto !important; min-width:0 !important; padding:0 12px 0 56px !important; font-size:10px !important; letter-spacing:.5px !important; } html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { padding:0 12px 0 56px !important; }</style>", unsafe_allow_html=True)
     st.markdown(
         """
@@ -9350,6 +9328,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
