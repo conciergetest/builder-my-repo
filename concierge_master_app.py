@@ -8590,7 +8590,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
     st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
     st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(a.neon-pill) > div[data-testid="stColumn"]:has(a.neon-pill) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
     st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { justify-content:flex-start !important; gap:8px !important; } div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
-    f1, f2, f3, f4, vip_col, guests_col, pending_col, tools_btn_col, occ_btn_col = st.columns([0.8, 0.9, 0.9, 2.2, 1, 1, 1, 1, 1])
+    f1, f2, f3, f4, vip_col, guests_col, pending_col, tools_btn_col, occ_btn_col, ico_host = st.columns([0.8, 0.9, 0.9, 2.2, 1, 1, 1, 1, 1, 2.2])
 
     with f1:
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
@@ -8673,7 +8673,8 @@ def render_dashboard(df: pd.DataFrame) -> None:
         with st.container(key="btn_occ_summary"):
             if st.button("REP. OCC", use_container_width=True, key="do_open_occ_summary"):
                 occ_summary_dialog(df)
-    ico_calc_col, ico_cal_col, ico_cnt_col, ico_notas_col, ico_dir_col, _ico_pad = st.columns([0.6, 0.6, 0.6, 0.6, 0.6, 6])
+    with ico_host:
+        ico_calc_col, ico_cal_col, ico_cnt_col, ico_notas_col, ico_dir_col = st.columns(5, gap="small")
     _top_icons = [
         (ico_calc_col, "🧮", "Calculadora", "top_ico_calc", "open_calculator"),
         (ico_cal_col, "📆", "Almanaque", "top_ico_almanaque", "open_calendar"),
@@ -8690,12 +8691,16 @@ def render_dashboard(df: pd.DataFrame) -> None:
                     st.rerun()
     st.markdown(
         """<style>
+        div[data-testid="stColumn"]:has(div[data-testid="stHorizontalBlock"] [class*="st-key-top_ico_"]) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
+        div[data-testid="stHorizontalBlock"]:has([class*="st-key-top_ico_"]) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
+        div[data-testid="stHorizontalBlock"]:has([class*="st-key-top_ico_"]) { gap:8px !important; }
+        div[data-testid="stHorizontalBlock"]:has(div[data-testid="stColumn"] [class*="st-key-top_ico_"]) { gap:8px !important; flex-wrap:wrap !important; }
         html body [class*="st-key-top_ico_"] button { width:42px !important; min-width:42px !important; height:42px !important; min-height:42px !important;
-            padding:0 !important; border-radius:50% !important; border:2px solid #1e9bff !important; color:#f0faff !important;
-            background:radial-gradient(circle, #0a2a4a 0%, #05080f 85%) !important; box-shadow:0 0 6px #1e9bff, inset 0 0 8px rgba(30,155,255,.45) !important;
+            padding:0 !important; border-radius:0 !important; border:none !important; color:#f0faff !important;
+            background:transparent !important; box-shadow:none !important;
             display:flex !important; align-items:center !important; justify-content:center !important; }
-        html body [class*="st-key-top_ico_"] button p { margin:0 !important; font-size:18px !important; line-height:1 !important; }
-        html body [class*="st-key-top_ico_"] button:hover { filter:brightness(1.25) !important; box-shadow:0 0 10px #1e9bff, inset 0 0 10px rgba(30,155,255,.6) !important; }
+        html body [class*="st-key-top_ico_"] button p { margin:0 !important; font-size:22px !important; line-height:1 !important; }
+        html body [class*="st-key-top_ico_"] button:hover { filter:drop-shadow(0 0 6px #1e9bff) brightness(1.2) !important; background:transparent !important; }
         </style>""",
         unsafe_allow_html=True,
     )
@@ -9328,6 +9333,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
