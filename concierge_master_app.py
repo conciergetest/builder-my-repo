@@ -803,7 +803,7 @@ st.markdown(
         box-shadow: 0 0 8px rgba(0,229,255,.35), 0 0 20px rgba(0,229,255,.10) !important;
     }
     /* Botones de TODOS los popups con el estilo neón de los botones de la app (excepto el MENÚ y el Reporte, que ya tienen su estilo) */
-    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)):not(:has(.st-key-occ_wrap)) [data-testid="stButton"] button {
+    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)):not(:has(.st-key-occ_wrap)):not(:has(.notas-root)) [data-testid="stButton"] button {
         display:flex !important; align-items:center !important; justify-content:center !important;
         min-height:42px !important; padding:0 20px !important; border-radius:999px !important;
         border:2px solid #00e5ff !important;
@@ -815,7 +815,7 @@ st.markdown(
         box-shadow:0 0 3px #00e5ff, 0 0 9px rgba(0,229,255,.3), inset 0 0 8px rgba(0,229,255,.18) !important;
         transition:box-shadow .2s ease !important;
     }
-    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)):not(:has(.st-key-occ_wrap)) [data-testid="stButton"] button:hover {
+    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)):not(:has(.st-key-occ_wrap)):not(:has(.notas-root)) [data-testid="stButton"] button:hover {
         box-shadow:0 0 4px #00e5ff, 0 0 14px rgba(0,229,255,.4), inset 0 0 10px rgba(0,229,255,.25) !important;
         color:#ffffff !important;
     }
@@ -6621,16 +6621,46 @@ NOTAS_SQL = """create table if not exists public.notas (
 
 NOTAS_CSS = """
 <style>
-.nota-card { background:#07141a; border:1px solid #14303a; border-radius:12px; padding:14px 14px 12px 14px; margin-bottom:6px; min-height:150px; }
-.nota-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
-.nota-title { color:#eafaff; font-weight:800; font-size:15px; line-height:1.25; word-break:break-word; }
-.nota-cat { font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; border:1px solid; border-radius:999px; padding:2px 8px; white-space:nowrap; }
-.nota-text { color:#b8c7d4; font-size:12.5px; margin-top:8px; line-height:1.5; word-break:break-word; }
-.nota-links { margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; }
+div[data-testid="stDialog"]:has(.notas-root), div[data-testid="stDialog"]:has(.notas-root) > div, div[data-testid="stDialog"]:has(.notas-root) > div > div, div[role="dialog"]:has(.notas-root) { background:#080D12 !important; }
+.notas-hero { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; border-bottom:1px solid rgba(0,229,255,.16); padding-bottom:12px; margin-bottom:14px; }
+.notes-kicker { color:#00e5ff; font-size:10px; letter-spacing:3px; font-weight:700; }
+.notes-title { color:#ffffff; font-size:24px; font-weight:800; letter-spacing:2px; line-height:1.15; }
+.notes-sub { color:#6b8196; font-size:11px; letter-spacing:.5px; margin-top:2px; }
+.notes-stats { display:flex; gap:22px; }
+.notes-stat b { color:#ffffff; font-size:22px; font-weight:800; display:block; line-height:1; }
+.notes-stat span { color:#6b8196; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; }
+.notes-section { color:#8fa3b5; font-size:11px; font-weight:700; letter-spacing:2px; margin:16px 0 8px 0; display:flex; gap:8px; align-items:center; }
+.notes-section::after { content:""; flex:1; height:1px; background:linear-gradient(90deg, rgba(0,229,255,.28), transparent); }
+.notes-count { color:#4a5a6a; font-size:11px; margin:8px 0 4px 0; }
+html body [class*="st-key-nota_card_"] { background:#0D1821 !important; border:1px solid rgba(0,229,255,.14) !important; border-radius:14px !important; box-shadow:0 0 8px rgba(0,229,255,.05) !important; }
+html body [class*="st-key-nota_card_"] button { min-height:30px !important; padding:2px 6px !important; font-size:11px !important; font-weight:600 !important; letter-spacing:.3px !important; background:transparent !important; border:1px solid rgba(0,229,255,.2) !important; border-radius:8px !important; color:#9fb3c4 !important; box-shadow:none !important; }
+html body [class*="st-key-nota_card_"] button:hover { border-color:rgba(0,229,255,.5) !important; color:#eafaff !important; }
+.nota-card { display:flex; flex-direction:column; gap:6px; }
+.nota-accent { height:2px; border-radius:2px; margin-bottom:2px; opacity:.85; }
+.nota-meta { display:flex; justify-content:space-between; align-items:center; gap:6px; min-height:20px; }
+.nota-cat { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; border:1px solid; border-radius:999px; padding:2px 8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%; }
+.nota-pin { color:#fbbf24; font-size:9px; font-weight:800; letter-spacing:1px; white-space:nowrap; }
+.nota-title { color:#ffffff; font-weight:700; font-size:15px; line-height:1.3; height:39px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; word-break:break-word; }
+.nota-text { color:#8fa3b5; font-size:12px; line-height:1.5; height:72px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; word-break:break-word; }
+.nota-foot { color:#4f6375; font-size:10px; line-height:1.4; }
+.nota-view-text { color:#c9d6e2; font-size:14px; line-height:1.65; white-space:pre-wrap; word-break:break-word; margin:10px 0; }
+.nota-links { margin:8px 0; display:flex; flex-wrap:wrap; gap:6px; }
 .nota-links a { font-size:11px; font-weight:700; color:#38bdf8 !important; text-decoration:none !important; border:1px solid #1e3a4a; background:#06121a; padding:4px 9px; border-radius:7px; }
 .nota-links a:hover { border-color:#00e5ff; }
-.nota-date { color:#4a5a6a; font-size:10px; margin-top:10px; }
-.nota-pin { color:#fbbf24; font-size:12px; font-weight:800; letter-spacing:.8px; }
+div[data-testid="stDialog"]:has(.notas-root) h1, div[data-testid="stDialog"]:has(.notas-root) h2, div[data-testid="stDialog"]:has(.notas-root) h3 { color:#ffffff !important; }
+div[data-testid="stDialog"]:has(.notas-root) [data-baseweb="select"] > div, div[data-testid="stDialog"]:has(.notas-root) [data-baseweb="input"], div[data-testid="stDialog"]:has(.notas-root) [data-baseweb="base-input"] { background:#0D1821 !important; border-color:rgba(0,229,255,.18) !important; color:#e6f1f8 !important; }
+div[data-testid="stDialog"]:has(.notas-root) input { color:#e6f1f8 !important; -webkit-text-fill-color:#e6f1f8 !important; }
+div[data-testid="stDialog"]:has(.notas-root) [data-baseweb="select"] span, div[data-testid="stDialog"]:has(.notas-root) [data-baseweb="select"] svg { color:#c9d6e2 !important; fill:#c9d6e2 !important; }
+html body [class*="st-key-nota_card_"] [data-testid="stHorizontalBlock"] { margin-top:12px !important; }
+div[data-testid="stDialog"]:has(.notas-root) [data-testid="stSelectbox"] div[role="group"] { background:#0D1821 !important; border:1px solid rgba(0,229,255,.18) !important; border-radius:10px !important; }
+div[data-testid="stDialog"]:has(.notas-root) [data-testid="stSelectbox"] input[role="combobox"] { color:#e6f1f8 !important; -webkit-text-fill-color:#e6f1f8 !important; }
+.nota-foot { margin-bottom:12px; }
+div[data-baseweb="popover"]:has([class*="st-key-nota_dup_"]), [data-testid="stPopoverBody"]:has([class*="st-key-nota_dup_"]) { background:#0D1821 !important; border:1px solid rgba(0,229,255,.25) !important; border-radius:12px !important; box-shadow:0 8px 24px rgba(0,0,0,.6) !important; }
+div[data-baseweb="popover"]:has([class*="st-key-nota_dup_"]) p, div[data-baseweb="popover"]:has([class*="st-key-nota_dup_"]) label { color:#8fa3b5 !important; }
+div[data-baseweb="popover"]:has([class*="st-key-nota_dup_"]) [class*="st-key-nota_"] button { background:transparent !important; border:1px solid rgba(0,229,255,.2) !important; border-radius:8px !important; color:#c9d6e2 !important; font-size:12px !important; font-weight:600 !important; min-height:32px !important; box-shadow:none !important; }
+div[data-baseweb="popover"]:has([class*="st-key-nota_dup_"]) [class*="st-key-nota_del_"] button { border-color:rgba(248,113,113,.45) !important; color:#fca5a5 !important; }
+div[data-baseweb="popover"]:has([class*="st-key-nota_dup_"]) [class*="st-key-nota_"] button:hover { border-color:rgba(0,229,255,.5) !important; color:#ffffff !important; }
+div[data-baseweb="popover"]:has([class*="st-key-nota_dup_"]) input { color:#e6f1f8 !important; background:#0D1821 !important; }
 </style>
 """
 
@@ -6674,18 +6704,59 @@ def eliminar_nota(nota_id: object) -> None:
     st.cache_data.clear()
 
 
-def _nota_card_html(nota: dict) -> str:
+def _nota_fecha(valor: object) -> str:
+    try:
+        return datetime.fromisoformat(str(valor).replace("Z", "+00:00")).strftime("%d/%m/%Y")
+    except ValueError:
+        return ""
+
+
+def _nota_fechas_txt(nota: dict) -> str:
+    creada = _nota_fecha(nota.get("created_at"))
+    actualizada = _nota_fecha(nota.get("updated_at"))
+    partes = []
+    if creada:
+        partes.append(f"Creada {creada}")
+    if actualizada:
+        partes.append(f"Actualizada {actualizada}")
+    return " · ".join(partes)
+
+
+def _nota_cat_html(nota: dict) -> str:
     color = nota.get("color") or "#00e5ff"
     categoria = (nota.get("categoria") or "").strip()
-    texto = html.escape(nota.get("texto") or "").replace("\n", "<br>")
+    if not categoria:
+        return ""
+    return (
+        f'<span class="nota-cat" style="color:{color};border-color:{color};">'
+        f"{html.escape(categoria)}</span>"
+    )
+
+
+def _nota_card_html(nota: dict) -> str:
+    color = nota.get("color") or "#00e5ff"
     titulo = html.escape(nota.get("titulo") or "(sin título)")
-    pin = '<span class="nota-pin">📌 FIJADA</span>' if nota.get("fijada") else ""
-    cat = ""
-    if categoria:
-        cat = (
-            f'<span class="nota-cat" style="color:{color};border-color:{color};">'
-            f"{html.escape(categoria)}</span>"
-        )
+    texto = html.escape(nota.get("texto") or "").replace("\n", "<br>")
+    pin = '<span class="nota-pin">📌 PINNED</span>' if nota.get("fijada") else ""
+    n_links = len([lk for lk in (nota.get("links") or []) if _nota_url(lk.get("url", ""))])
+    links_txt = f"🔗 {n_links} link{'s' if n_links != 1 else ''}" if n_links else "&nbsp;"
+    return (
+        '<div class="nota-card">'
+        f'<div class="nota-accent" style="background:{color};"></div>'
+        f'<div class="nota-meta">{_nota_cat_html(nota)}{pin}</div>'
+        f'<div class="nota-title">{titulo}</div>'
+        f'<div class="nota-text">{texto}</div>'
+        f'<div class="nota-foot">{links_txt}</div>'
+        f'<div class="nota-foot">{_nota_fechas_txt(nota)}</div>'
+        "</div>"
+    )
+
+
+def _nota_ver_html(nota: dict) -> str:
+    color = nota.get("color") or "#00e5ff"
+    titulo = html.escape(nota.get("titulo") or "(sin título)")
+    texto = html.escape(nota.get("texto") or "")
+    pin = '<span class="nota-pin">📌 PINNED</span>' if nota.get("fijada") else ""
     links_html = ""
     for lk in nota.get("links") or []:
         url = _nota_url(lk.get("url", ""))
@@ -6696,21 +6767,116 @@ def _nota_card_html(nota: dict) -> str:
             f'<a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">'
             f"🔗 {html.escape(nombre)}</a>"
         )
-    fecha = ""
-    try:
-        dt = datetime.fromisoformat(str(nota.get("created_at", "")).replace("Z", "+00:00"))
-        fecha = f"Creada {dt.strftime('%d/%m/%Y')}"
-    except ValueError:
-        pass
+    fechas = _nota_fechas_txt(nota)
     return (
-        f'<div class="nota-card" style="border-top:3px solid {color};">'
-        f'<div class="nota-head"><div class="nota-title">{titulo}</div>{cat}</div>'
-        + (f'<div class="nota-text">{texto}</div>' if texto else "")
+        f'<div class="nota-accent" style="background:{color};"></div>'
+        f'<div class="nota-meta">{_nota_cat_html(nota)}{pin}</div>'
+        f'<div style="color:#ffffff;font-weight:800;font-size:22px;line-height:1.25;margin-top:6px;">{titulo}</div>'
+        + (f'<div class="nota-view-text">{texto}</div>' if texto else "")
         + (f'<div class="nota-links">{links_html}</div>' if links_html else "")
-        + pin
-        + (f'<div class="nota-date">{fecha}</div>' if fecha else "")
-        + "</div>"
+        + (f'<div class="nota-foot">{fechas}</div>' if fechas else "")
     )
+
+
+def _render_nota_card(nota: dict, confirmar_id: object) -> None:
+    nid = nota["id"]
+    fijada = bool(nota.get("fijada"))
+    with st.container(key=f"nota_card_{nid}", height=300, border=True):
+        st.markdown(_nota_card_html(nota), unsafe_allow_html=True)
+        if confirmar_id == nid:
+            st.markdown(
+                "<div style='color:#f87171;font-size:12px;font-weight:700;margin-top:4px;'>¿Borrar esta nota?</div>",
+                unsafe_allow_html=True,
+            )
+            s1, s2 = st.columns(2)
+            if s1.button("Sí, borrar", key=f"nota_si_{nid}", use_container_width=True):
+                try:
+                    eliminar_nota(nid)
+                except Exception as e:
+                    st.error(f"No se pudo borrar: {e}")
+                st.session_state.pop("notas_confirmar_borrar", None)
+                st.rerun(scope="fragment")
+            if s2.button("No", key=f"nota_no_{nid}", use_container_width=True):
+                st.session_state.pop("notas_confirmar_borrar", None)
+                st.rerun(scope="fragment")
+            return
+        a1, a2, a3, a4 = st.columns([1, 1, 1.25, 0.6], gap="small")
+        if a1.button("Abrir", key=f"nota_ab_{nid}", use_container_width=True):
+            st.session_state["notas_modo"] = "ver"
+            st.session_state["notas_ver_id"] = nid
+            st.rerun(scope="fragment")
+        if a2.button("Editar", key=f"nota_ed_{nid}", use_container_width=True):
+            st.session_state["notas_modo"] = "editar"
+            st.session_state["notas_editando"] = nota
+            st.session_state["notas_nonce"] = st.session_state.get("notas_nonce", 0) + 1
+            st.rerun(scope="fragment")
+        if a3.button("Quitar pin" if fijada else "Fijar", key=f"nota_pin_{nid}", use_container_width=True):
+            try:
+                guardar_nota({"fijada": not fijada}, nid)
+            except Exception as e:
+                st.error(f"No se pudo fijar: {e}")
+            st.rerun(scope="fragment")
+        with a4.popover("⋯", key=f"nota_mas_{nid}", use_container_width=True):
+            if st.button("Duplicar", key=f"nota_dup_{nid}", use_container_width=True):
+                try:
+                    guardar_nota({
+                        "titulo": (nota.get("titulo") or "").strip() + " (copia)",
+                        "texto": nota.get("texto") or "",
+                        "categoria": nota.get("categoria") or "",
+                        "color": nota.get("color") or "#00e5ff",
+                        "links": nota.get("links") or [],
+                        "fijada": False,
+                    })
+                except Exception as e:
+                    st.error(f"No se pudo duplicar: {e}")
+                st.rerun(scope="fragment")
+            nueva_cat = st.text_input(
+                "Categoría", value=nota.get("categoria") or "", max_chars=40,
+                key=f"nota_catchg_{nid}", placeholder="Nueva categoría",
+            )
+            if st.button("Cambiar categoría", key=f"nota_catok_{nid}", use_container_width=True):
+                try:
+                    guardar_nota({"categoria": nueva_cat.strip()}, nid)
+                except Exception as e:
+                    st.error(f"No se pudo cambiar: {e}")
+                st.rerun(scope="fragment")
+            if st.button("Eliminar", key=f"nota_del_{nid}", use_container_width=True):
+                st.session_state["notas_confirmar_borrar"] = nid
+                st.rerun(scope="fragment")
+
+
+def _notas_grid(items: list[dict], confirmar_id: object) -> None:
+    for i in range(0, len(items), 3):
+        cols = st.columns(3, gap="medium")
+        for col, nota in zip(cols, items[i:i + 3]):
+            with col:
+                _render_nota_card(nota, confirmar_id)
+
+
+def _notas_ver(notas: list[dict]) -> None:
+    """Vista ampliada de una nota."""
+    nid = st.session_state.get("notas_ver_id")
+    nota = next((x for x in notas if x.get("id") == nid), None)
+    if nota is None:
+        st.session_state["notas_modo"] = None
+        st.rerun(scope="fragment")
+    if st.button("← Volver a las notas", key=f"nota_volver_v_{nid}"):
+        st.session_state["notas_modo"] = None
+        st.session_state.pop("notas_ver_id", None)
+        st.rerun(scope="fragment")
+    st.markdown(_nota_ver_html(nota), unsafe_allow_html=True)
+    v1, v2 = st.columns(2)
+    if v1.button("✏️ Editar", key=f"nota_ed_v_{nid}", use_container_width=True):
+        st.session_state["notas_modo"] = "editar"
+        st.session_state["notas_editando"] = nota
+        st.session_state["notas_nonce"] = st.session_state.get("notas_nonce", 0) + 1
+        st.rerun(scope="fragment")
+    if v2.button("Quitar pin" if nota.get("fijada") else "📌 Fijar", key=f"nota_pin_v_{nid}", use_container_width=True):
+        try:
+            guardar_nota({"fijada": not bool(nota.get("fijada"))}, nid)
+        except Exception as e:
+            st.error(f"No se pudo fijar: {e}")
+        st.rerun(scope="fragment")
 
 
 def _notas_editor() -> None:
@@ -6809,10 +6975,11 @@ def _notas_editor() -> None:
         st.rerun(scope="fragment")
 
 
-@st.dialog("📝 Notas", width="large")
+@st.dialog("📝 Notes Center", width="large")
 def notas_dialog() -> None:
-    """Bloc de notas con links: crear, editar, fijar, borrar y buscar."""
+    """Notes Center: crear, editar, fijar, duplicar, cambiar categoría, borrar y buscar."""
     st.markdown(NOTAS_CSS, unsafe_allow_html=True)
+    st.markdown('<div class="notas-root"></div>', unsafe_allow_html=True)
 
     if st.session_state.get("notas_modo") in ("nueva", "editar"):
         _notas_editor()
@@ -6828,17 +6995,44 @@ def notas_dialog() -> None:
         st.code(NOTAS_SQL, language="sql")
         return
 
-    top1, top2, top3 = st.columns([3, 2, 1.4])
-    busqueda = top1.text_input(
+    if st.session_state.get("notas_modo") == "ver":
+        _notas_ver(notas)
+        return
+
+    total = len(notas)
+    pinned_n = sum(1 for x in notas if x.get("fijada"))
+    categorias = sorted({(x.get("categoria") or "").strip() for x in notas} - {""})
+
+    st.markdown(
+        '<div class="notas-hero">'
+        "<div>"
+        '<div class="notes-kicker">CONCIERGE MASTER · LUXURY EDITION</div>'
+        '<div class="notes-title">NOTES CENTER</div>'
+        '<div class="notes-sub">Intelligent Knowledge &amp; Information Management · '
+        '<span style="color:#00e5ff;">● ACTIVE</span> · Your Knowledge Center</div>'
+        "</div>"
+        '<div class="notes-stats">'
+        f'<div class="notes-stat"><b>{total:02d}</b><span>All Notes</span></div>'
+        f'<div class="notes-stat"><b>{pinned_n:02d}</b><span>Pinned</span></div>'
+        f'<div class="notes-stat"><b>{len(categorias):02d}</b><span>Categories</span></div>'
+        "</div></div>",
+        unsafe_allow_html=True,
+    )
+
+    todas = "Todas las categorías"
+    t1, t2, t3, t4, t5 = st.columns([3.2, 1.9, 1.7, 1.1, 1.5], gap="small", vertical_alignment="center")
+    busqueda = t1.text_input(
         "Buscar", placeholder="Buscar por título, texto, categoría o link...",
         key="notas_busqueda", label_visibility="collapsed",
     )
-    categorias = sorted({(x.get("categoria") or "").strip() for x in notas} - {""})
-    todas = "Todas las categorías"
-    filtro_cat = top2.selectbox(
+    filtro_cat = t2.selectbox(
         "Categoría", [todas] + categorias, key="notas_filtro_cat", label_visibility="collapsed",
     )
-    if top3.button("➕ NUEVA NOTA", use_container_width=True, key="notas_btn_nueva"):
+    orden = t3.selectbox(
+        "Ordenar", ["Más reciente", "Título A-Z", "Categoría"], key="notas_orden", label_visibility="collapsed",
+    )
+    solo_fijadas = t4.toggle("Fijadas", key="notas_solo_fijadas")
+    if t5.button("➕ NUEVA NOTA", use_container_width=True, key="notas_btn_nueva"):
         st.session_state["notas_modo"] = "nueva"
         st.session_state["notas_editando"] = None
         st.session_state["notas_nonce"] = st.session_state.get("notas_nonce", 0) + 1
@@ -6847,6 +7041,8 @@ def notas_dialog() -> None:
     q = busqueda.strip().lower()
     visibles = []
     for nota in notas:
+        if solo_fijadas and not nota.get("fijada"):
+            continue
         if filtro_cat != todas and (nota.get("categoria") or "").strip() != filtro_cat:
             continue
         if q:
@@ -6857,55 +7053,25 @@ def notas_dialog() -> None:
             if q not in bolsa:
                 continue
         visibles.append(nota)
-    visibles.sort(key=lambda x: not x.get("fijada"))  # fijadas primero (orden estable)
+    if orden == "Título A-Z":
+        visibles.sort(key=lambda x: (x.get("titulo") or "").lower())
+    elif orden == "Categoría":
+        visibles.sort(key=lambda x: ((x.get("categoria") or "").lower(), (x.get("titulo") or "").lower()))
 
-    st.markdown(
-        f"<div style='color:#4a5a6a;font-size:11px;margin:6px 0 10px 0;'>{len(visibles)} de {len(notas)} notas</div>",
-        unsafe_allow_html=True,
-    )
+    st.markdown(f'<div class="notes-count">{len(visibles)} de {total} notas</div>', unsafe_allow_html=True)
     if not visibles:
-        st.info("No hay notas todavía. Usa ➕ NUEVA NOTA para crear la primera.")
+        st.info("No hay notas con este filtro. Usa ➕ NUEVA NOTA para crear una.")
         return
 
     confirmar_id = st.session_state.get("notas_confirmar_borrar")
-    cols = st.columns(3)
-    for i, nota in enumerate(visibles):
-        nid = nota["id"]
-        with cols[i % 3]:
-            st.markdown(_nota_card_html(nota), unsafe_allow_html=True)
-            if confirmar_id == nid:
-                st.markdown(
-                    "<div style='color:#f87171;font-size:12px;font-weight:700;'>¿Borrar esta nota?</div>",
-                    unsafe_allow_html=True,
-                )
-                s1, s2 = st.columns(2)
-                if s1.button("Sí, borrar", key=f"nota_si_{nid}", use_container_width=True):
-                    try:
-                        eliminar_nota(nid)
-                    except Exception as e:
-                        st.error(f"No se pudo borrar: {e}")
-                    st.session_state.pop("notas_confirmar_borrar", None)
-                    st.rerun(scope="fragment")
-                if s2.button("No", key=f"nota_no_{nid}", use_container_width=True):
-                    st.session_state.pop("notas_confirmar_borrar", None)
-                    st.rerun(scope="fragment")
-            else:
-                a1, a2, a3 = st.columns(3)
-                etiqueta_pin = "📍 Quitar pin" if nota.get("fijada") else "📌 Fijar"
-                if a1.button(etiqueta_pin, key=f"nota_pin_{nid}", use_container_width=True):
-                    try:
-                        guardar_nota({"fijada": not bool(nota.get("fijada"))}, nid)
-                    except Exception as e:
-                        st.error(f"No se pudo fijar: {e}")
-                    st.rerun(scope="fragment")
-                if a2.button("✏️ Editar", key=f"nota_ed_{nid}", use_container_width=True):
-                    st.session_state["notas_modo"] = "editar"
-                    st.session_state["notas_editando"] = nota
-                    st.session_state["notas_nonce"] = st.session_state.get("notas_nonce", 0) + 1
-                    st.rerun(scope="fragment")
-                if a3.button("🗑️", key=f"nota_del_{nid}", use_container_width=True, help="Borrar nota"):
-                    st.session_state["notas_confirmar_borrar"] = nid
-                    st.rerun(scope="fragment")
+    fijadas = [x for x in visibles if x.get("fijada")]
+    resto = [x for x in visibles if not x.get("fijada")]
+    if fijadas:
+        st.markdown(f'<div class="notes-section">📌 PINNED · {len(fijadas):02d}</div>', unsafe_allow_html=True)
+        _notas_grid(fijadas, confirmar_id)
+    if resto:
+        st.markdown(f'<div class="notes-section">ALL NOTES · {len(resto):02d}</div>', unsafe_allow_html=True)
+        _notas_grid(resto, confirmar_id)
 
 
 @st.dialog("📇 Directorio Telefónico", width="large")
