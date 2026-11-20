@@ -2274,11 +2274,27 @@ def show_header() -> None:
 .wa-info { position:relative; z-index:5; display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; margin-left:12px; vertical-align:middle; border-radius:50%; text-decoration:none !important; cursor:pointer; transition:transform .2s, filter .2s; filter:drop-shadow(0 0 4px rgba(212,175,55,.6)); }
 .wa-info svg { width:30px; height:30px; display:block; }
 .wa-info:hover { transform:scale(1.12); filter:drop-shadow(0 0 8px #f3e3a1) drop-shadow(0 0 3px #d4af37); }
+.wa-glass { width:80px; margin:14px 0 14px 2px; padding:10px 0; border-radius:22px; background:rgba(255,255,255,.12); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px); border:1px solid rgba(255,255,255,.3); box-shadow:0 8px 24px rgba(0,0,0,.25); display:flex; flex-direction:column; align-items:center; gap:4px; }
+.wa-glass svg { width:22px; height:22px; fill:none; stroke:#e9f3ff; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; display:block; }
+.wa-glass .wa-glass-sep { width:40px; height:1px; background:rgba(255,255,255,.25); }
+.wa-glass .wa-glass-ico { width:44px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:14px; }
 </style>
 <div class="wa-brand">
   <img class="wa-logo" alt="Waldorf Astoria" src="data:image/png;base64,""" + _logo_b64 + """" />
   <span class="wa-div"></span>
   <div class="wa-prod"><span class="wa-fire">Concierge Master</span> <span>v6.0</span><a class="wa-info" href="#" title="Foto Fred Wayne"><svg viewBox="0 0 100 100"><defs><linearGradient id="waGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5e6b0"/><stop offset=".5" stop-color="#d4af37"/><stop offset="1" stop-color="#8a6f22"/></linearGradient></defs><circle cx="50" cy="50" r="44" fill="none" stroke="url(#waGold)" stroke-width="8"/><rect x="28" y="32" width="44" height="7" fill="url(#waGold)"/><rect x="28" y="46.5" width="44" height="7" fill="url(#waGold)"/><rect x="28" y="61" width="44" height="7" fill="url(#waGold)"/></svg></a></div>
+</div>
+<div class="wa-glass">
+<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></span>
+<span class="wa-glass-sep"></span>
+<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span>
+<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></span>
+<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg></span>
+<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg></span>
+<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg></span>
+<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="3 3"/></svg></span>
+<span class="wa-glass-sep"></span>
+<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"/></svg></span>
 </div>
                 """,
                 unsafe_allow_html=True,
@@ -9514,6 +9530,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
