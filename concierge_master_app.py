@@ -2252,6 +2252,66 @@ def render_main_spin_logo() -> None:
     )
 
 
+GLASS_CSS = """
+<style>
+div[class*="st-key-glass_btn"] { width:fit-content !important; margin:14px 0 14px 2px !important; }
+div[class*="st-key-glass_btn"] button {
+  width:80px !important; height:56px !important; min-height:56px !important; padding:0 !important;
+  border-radius:22px !important; background:rgba(255,255,255,.12) !important;
+  backdrop-filter:blur(30px) !important; -webkit-backdrop-filter:blur(30px) !important;
+  border:1px solid rgba(255,255,255,.3) !important; box-shadow:0 8px 24px rgba(0,0,0,.25) !important;
+  display:flex !important; align-items:center !important; justify-content:center !important;
+  transition:border-color .2s, box-shadow .2s !important; outline:none !important;
+}
+div[class*="st-key-glass_btn"] button p { font-size:0 !important; margin:0 !important; }
+div[class*="st-key-glass_btn"] button::before {
+  content:""; width:22px; height:16px; display:block;
+  background:linear-gradient(#e9f3ff,#e9f3ff) top / 100% 2px no-repeat,
+             linear-gradient(#e9f3ff,#e9f3ff) center / 100% 2px no-repeat,
+             linear-gradient(#e9f3ff,#e9f3ff) bottom / 100% 2px no-repeat;
+}
+div[class*="st-key-glass_btn"] button:hover { border-color:rgba(255,255,255,.6) !important; box-shadow:0 0 14px rgba(0,229,255,.35) !important; }
+div[class*="st-key-glass_backdrop"] { position:static !important; }
+div[class*="st-key-glass_backdrop"] button {
+  position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important;
+  min-height:0 !important; opacity:0 !important; z-index:9999 !important; background:transparent !important;
+  border:0 !important; border-radius:0 !important; padding:0 !important; box-shadow:none !important;
+}
+div[class*="st-key-glass_panel"] {
+  position:fixed !important; top:170px !important; left:14px !important; width:330px !important;
+  height:calc(100vh - 190px) !important; z-index:10000 !important; box-sizing:border-box !important;
+  padding:18px 16px !important; border-radius:22px !important; overflow-y:auto !important;
+  background:rgba(255,255,255,.12) !important; backdrop-filter:blur(30px) !important; -webkit-backdrop-filter:blur(30px) !important;
+  border:1px solid rgba(255,255,255,.3) !important; box-shadow:0 8px 24px rgba(0,0,0,.35) !important;
+}
+.gp-title { color:#e9f3ff; font:700 18px 'Segoe UI',Arial,sans-serif; letter-spacing:.5px; margin:4px 0 14px 8px; }
+.gp-item { display:flex; align-items:center; gap:14px; padding:10px 12px; border-radius:14px; color:#e9f3ff; font:600 14px 'Segoe UI',Arial,sans-serif; }
+.gp-item:hover { background:rgba(255,255,255,.12); }
+.gp-item svg { width:20px; height:20px; flex:0 0 20px; fill:none; stroke:#e9f3ff; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; display:block; }
+.gp-sep { height:1px; background:rgba(255,255,255,.25); margin:8px 4px; }
+</style>
+"""
+
+GLASS_PANEL_HTML = """
+<div class="gp-title">User Panel</div>
+<div class="gp-item"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Dashboard</span></div>
+<div class="gp-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span>My Profile</span></div>
+<div class="gp-item"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg><span>Projects</span></div>
+<div class="gp-item"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg><span>Analytics</span></div>
+<div class="gp-item"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></svg><span>Message</span></div>
+<div class="gp-item"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg><span>Notifications</span></div>
+<div class="gp-sep"></div>
+<div class="gp-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="3 3"/></svg><span>Settings</span></div>
+<div class="gp-sep"></div>
+<div class="gp-item"><svg viewBox="0 0 24 24"><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"/></svg><span>Logout</span></div>
+"""
+
+
+def _toggle_glass() -> None:
+    """Abre/cierra el panel User Panel bajo el logo. Estado en session_state."""
+    st.session_state["glass_open"] = not st.session_state.get("glass_open", False)
+
+
 def show_header() -> None:
     import streamlit.components.v1 as components
 
@@ -2274,27 +2334,11 @@ def show_header() -> None:
 .wa-info { position:relative; z-index:5; display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; margin-left:12px; vertical-align:middle; border-radius:50%; text-decoration:none !important; cursor:pointer; transition:transform .2s, filter .2s; filter:drop-shadow(0 0 4px rgba(212,175,55,.6)); }
 .wa-info svg { width:30px; height:30px; display:block; }
 .wa-info:hover { transform:scale(1.12); filter:drop-shadow(0 0 8px #f3e3a1) drop-shadow(0 0 3px #d4af37); }
-.wa-glass { width:80px; margin:14px 0 14px 2px; padding:10px 0; border-radius:22px; background:rgba(255,255,255,.12); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px); border:1px solid rgba(255,255,255,.3); box-shadow:0 8px 24px rgba(0,0,0,.25); display:flex; flex-direction:column; align-items:center; gap:4px; }
-.wa-glass svg { width:22px; height:22px; fill:none; stroke:#e9f3ff; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; display:block; }
-.wa-glass .wa-glass-sep { width:40px; height:1px; background:rgba(255,255,255,.25); }
-.wa-glass .wa-glass-ico { width:44px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:14px; }
 </style>
 <div class="wa-brand">
   <img class="wa-logo" alt="Waldorf Astoria" src="data:image/png;base64,""" + _logo_b64 + """" />
   <span class="wa-div"></span>
   <div class="wa-prod"><span class="wa-fire">Concierge Master</span> <span>v6.0</span><a class="wa-info" href="#" title="Foto Fred Wayne"><svg viewBox="0 0 100 100"><defs><linearGradient id="waGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5e6b0"/><stop offset=".5" stop-color="#d4af37"/><stop offset="1" stop-color="#8a6f22"/></linearGradient></defs><circle cx="50" cy="50" r="44" fill="none" stroke="url(#waGold)" stroke-width="8"/><rect x="28" y="32" width="44" height="7" fill="url(#waGold)"/><rect x="28" y="46.5" width="44" height="7" fill="url(#waGold)"/><rect x="28" y="61" width="44" height="7" fill="url(#waGold)"/></svg></a></div>
-</div>
-<div class="wa-glass">
-<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></span>
-<span class="wa-glass-sep"></span>
-<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span>
-<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></span>
-<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg></span>
-<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg></span>
-<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg></span>
-<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="3 3"/></svg></span>
-<span class="wa-glass-sep"></span>
-<span class="wa-glass-ico"><svg viewBox="0 0 24 24"><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"/></svg></span>
 </div>
                 """,
                 unsafe_allow_html=True,
@@ -2315,6 +2359,14 @@ def show_header() -> None:
                 """,
                 unsafe_allow_html=True,
             )
+        st.session_state.setdefault("glass_open", False)
+        st.markdown(GLASS_CSS, unsafe_allow_html=True)
+        st.button("Abrir panel", key="glass_btn", on_click=_toggle_glass)
+        if st.session_state["glass_open"]:
+            with st.container(key="glass_backdrop"):
+                st.button("Cerrar panel", key="glass_close_btn", on_click=_toggle_glass)
+            with st.container(key="glass_panel"):
+                st.markdown(GLASS_PANEL_HTML, unsafe_allow_html=True)
     st.markdown(
         "<style>.st-key-wa_info_box { display:none !important; }</style>",
         unsafe_allow_html=True,
@@ -9530,6 +9582,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
