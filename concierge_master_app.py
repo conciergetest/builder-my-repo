@@ -803,7 +803,7 @@ st.markdown(
         box-shadow: 0 0 8px rgba(0,229,255,.35), 0 0 20px rgba(0,229,255,.10) !important;
     }
     /* Botones de TODOS los popups con el estilo neón de los botones de la app (excepto el MENÚ y el Reporte, que ya tienen su estilo) */
-    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)):not(:has(.st-key-occ_wrap)):not(:has(.notas-root)) [data-testid="stButton"] button {
+    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)):not(:has(.st-key-occ_wrap)):not(:has(.notas-root)):not(:has(.st-key-guest_mini_panel)) [data-testid="stButton"] button {
         display:flex !important; align-items:center !important; justify-content:center !important;
         min-height:42px !important; padding:0 20px !important; border-radius:999px !important;
         border:2px solid #00e5ff !important;
@@ -815,7 +815,7 @@ st.markdown(
         box-shadow:0 0 3px #00e5ff, 0 0 9px rgba(0,229,255,.3), inset 0 0 8px rgba(0,229,255,.18) !important;
         transition:box-shadow .2s ease !important;
     }
-    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)):not(:has(.st-key-occ_wrap)):not(:has(.notas-root)) [data-testid="stButton"] button:hover {
+    div[data-testid="stDialog"]:not(:has(.st-key-menu_pop)):not(:has(.occ-detail-title)):not(:has(.st-key-occ_wrap)):not(:has(.notas-root)):not(:has(.st-key-guest_mini_panel)) [data-testid="stButton"] button:hover {
         box-shadow:0 0 4px #00e5ff, 0 0 14px rgba(0,229,255,.4), inset 0 0 10px rgba(0,229,255,.25) !important;
         color:#ffffff !important;
     }
@@ -3384,6 +3384,52 @@ def concierge_services_dialog() -> None:
             if s2.button("CHECK-IN DEL DÍA", use_container_width=True, key="pop_open_checkin_dia"):
                 st.query_params["skip_splash"] = "1"
                 _menu_go(open_checkin_dia=True)
+
+
+GUEST_MINI_ACTIONS = GLASS_ACTIONS[:6]  # NUEVA, IMPORTAR, EXPORTAR, REPORTE, AGENDA, P. DINNING
+
+GUEST_MINI_CSS = (
+    "<style>"
+    + "".join(
+        'html body div[class*="st-key-guest_mini_' + k + '"] button::before { background-image:url("' + _glass_icon_uri(p) + '") !important; }\n'
+        for k, _lbl, _flag, p in GUEST_MINI_ACTIONS
+    )
+    + """
+html body div[data-testid="stDialog"] div[class*="st-key-guest_mini_panel"] > div {
+  background:url("__GLASS_BG__") center / cover no-repeat !important;
+  border:1px solid rgba(255,255,255,.3) !important; border-radius:22px !important; padding:14px !important;
+  box-shadow:0 8px 24px rgba(0,0,0,.35) !important;
+}
+html body div[data-testid="stDialog"] div[class*="st-key-guest_mini_panel"] div[class*="st-key-guest_mini_"] { margin:0 0 4px 0 !important; }
+html body div[data-testid="stDialog"] div[class*="st-key-guest_mini_panel"] button {
+  background:transparent !important; background-image:none !important; border:0 !important; box-shadow:none !important;
+  min-height:44px !important; height:auto !important; padding:8px 12px !important; border-radius:14px !important;
+  justify-content:flex-start !important; color:#e9f3ff !important; filter:none !important;
+}
+html body div[data-testid="stDialog"] div[class*="st-key-guest_mini_panel"] button:hover { background:rgba(255,255,255,.12) !important; filter:none !important; box-shadow:none !important; }
+html body div[data-testid="stDialog"] div[class*="st-key-guest_mini_panel"] button > div { justify-content:flex-start !important; width:100% !important; text-align:left !important; }
+html body div[data-testid="stDialog"] div[class*="st-key-guest_mini_panel"] button p {
+  margin:0 !important; font:700 14px 'Segoe UI',Arial,sans-serif !important; color:#e9f3ff !important; text-align:left !important; letter-spacing:.3px !important;
+}
+html body div[data-testid="stDialog"] div[class*="st-key-guest_mini_"] button::before {
+  content:"" !important; display:inline-block !important; width:20px !important; height:20px !important; flex:0 0 20px !important; margin-right:14px !important;
+  vertical-align:middle !important; background-size:contain !important; background-repeat:no-repeat !important; background-position:center !important;
+}
+</style>
+""".replace("__GLASS_BG__", GLASS_BG_URL)
+)
+
+
+@st.dialog("🛎 Guest Services", width="small")
+def guest_services_mini_dialog() -> None:
+    """Popup pequeño con solo las funciones de Guest Services (mismo look que el User Panel)."""
+    st.markdown(GUEST_MINI_CSS, unsafe_allow_html=True)
+    with st.container(key="guest_mini_panel"):
+        for _gk, _glabel, _gflag, _gpath in GUEST_MINI_ACTIONS:
+            with st.container(key="guest_mini_" + _gk):
+                if st.button(_glabel, key="guest_mini_btn_" + _gk, use_container_width=True):
+                    st.query_params["skip_splash"] = "1"
+                    _menu_go(**{_gflag: True})
 
 
 @st.dialog("⚡ QUICK ACCESS", width="large")
@@ -9082,13 +9128,14 @@ def render_dashboard(df: pd.DataFrame) -> None:
             if st.button("REP. OCC", use_container_width=True, key="do_open_occ_summary"):
                 occ_summary_dialog(df)
     with ico_host:
-        ico_calc_col, ico_cal_col, ico_cnt_col, ico_notas_col, ico_dir_col = st.columns(5, gap="small")
+        ico_calc_col, ico_cal_col, ico_cnt_col, ico_notas_col, ico_dir_col, ico_guest_col = st.columns(6, gap="small")
     _top_icons = [
         (ico_calc_col, "🧮", "Calculadora", "top_ico_calc", "open_calculator"),
         (ico_cal_col, "📆", "Almanaque", "top_ico_almanaque", "open_calendar"),
         (ico_cnt_col, "🔢", "Contador", "top_ico_contador", "open_shared_counter"),
         (ico_notas_col, "📝", "Notas", "top_ico_notas", "open_notas"),
         (ico_dir_col, "📇", "Directorio", "top_ico_directorio", "open_directorio"),
+        (ico_guest_col, "🛎", "Guest Services", "top_ico_guest", "open_guest_mini"),
     ]
     _top_ico_css = ""
     _app_dir = os.path.dirname(os.path.abspath(__file__))
@@ -9460,6 +9507,10 @@ if st.session_state.pop("open_reminders_edit", False):
 # Auto-abrir los popups del directorio telefónico
 if st.session_state.pop("open_directorio", False):
     directorio_dialog()
+
+# Auto-abrir el popup pequeño de Guest Services (icono junto a Directorio)
+if st.session_state.pop("open_guest_mini", False):
+    guest_services_mini_dialog()
 
 if st.session_state.pop("open_directorio_new", False):
     directorio_new_dialog()
@@ -9852,6 +9903,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
