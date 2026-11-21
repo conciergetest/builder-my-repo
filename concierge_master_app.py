@@ -9707,11 +9707,58 @@ def _analytics_level(n: int) -> str:
     return "91+"
 
 
+def _analytics_chart_html(counts: list[int]) -> str:
+    """Grafico de barras en SVG dentro de un componente aislado (iframe).
+
+    Vega/Altair deja su tooltip flotando en la pagina al cerrar el popup; un iframe
+    se elimina con el popup, asi que no queda nada en la pantalla.
+    """
+    W, H, PL, PR, PT, PB = 760, 280, 44, 8, 16, 70
+    ymax = max(10, ((max(counts) + 9) // 10) * 10)
+    plot_w = W - PL - PR
+    plot_h = H - PT - PB
+    slot = plot_w / 12
+    bw = slot * 0.66
+    parts = []
+    for i in range(5):
+        v = ymax * i / 4
+        y = PT + plot_h - plot_h * i / 4
+        parts.append(f'<line x1="{PL}" x2="{W - PR}" y1="{y:.1f}" y2="{y:.1f}" stroke="rgba(255,255,255,.2)"/>')
+        parts.append(f'<text x="{PL - 6}" y="{y + 4:.1f}" text-anchor="end" class="ax">{v:.0f}</text>')
+    for i, (name, n) in enumerate(zip(MONTHS_EN, counts)):
+        color = ANALYTICS_COLORS[ANALYTICS_LEVELS.index(_analytics_level(n))]
+        h = plot_h * n / ymax
+        x = PL + i * slot + (slot - bw) / 2
+        y = PT + plot_h - h
+        cx = x + bw / 2
+        parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{bw:.1f}" height="{h:.1f}" rx="3" fill="{color}">'
+                     f'<title>{name}: {n} reservations</title></rect>')
+        if n:
+            parts.append(f'<text x="{cx:.1f}" y="{y - 4:.1f}" text-anchor="middle" class="val">{n}</text>')
+        ly = PT + plot_h + 14
+        parts.append(f'<text x="{cx:.1f}" y="{ly}" transform="rotate(-45 {cx:.1f} {ly})" '
+                     f'text-anchor="end" class="ax">{name}</text>')
+    legend = "".join(
+        f'<span class="lg"><i style="background:{c}"></i>{lvl}</span>'
+        for lvl, c in zip(ANALYTICS_LEVELS, ANALYTICS_COLORS)
+    )
+    return (
+        "<!doctype html><html><head><style>"
+        "html,body{margin:0;background:transparent;font-family:'Segoe UI',Arial,sans-serif;color:#e9f3ff;}"
+        ".ax{font-size:12px;fill:#e9f3ff;}"
+        ".val{font-size:12px;fill:#e9f3ff;font-weight:600;}"
+        ".legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:13px;margin:6px 4px 0;}"
+        ".lg i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px;}"
+        "</style></head><body>"
+        f'<svg viewBox="0 0 {W} {H}" width="100%" height="300" preserveAspectRatio="xMidYMid meet" style="display:block">' + "".join(parts) + "</svg>"
+        '<div class="legend"><b>Reservations per month:</b>' + legend + "</div>"
+        "</body></html>"
+    )
+
+
 @st.dialog("📊 Analytics", width="large")
 def analytics_dialog() -> None:
     """Popup Analytics (English): reservations per month by arrival date, year selector, colored chart and table."""
-    import altair as alt
-
     summary = _arrival_dates_summary()
     current_year = date.today().year
     years = sorted({d.year for d, _lbl, _c in summary} | {current_year})
@@ -9726,27 +9773,7 @@ def analytics_dialog() -> None:
         "Range": [_analytics_level(n) for n in counts],
     })
     st.markdown(f"**Total {year}: {sum(counts)} reservations**")
-    chart = (
-        alt.Chart(df)
-        .mark_bar()
-        .encode(
-            x=alt.X("Month:N", sort=MONTHS_EN, title=None, axis=alt.Axis(labelAngle=-45)),
-            y=alt.Y("Reservations:Q", title=None, axis=alt.Axis(tickMinStep=1, format="d")),
-            color=alt.Color(
-                "Range:N",
-                sort=ANALYTICS_LEVELS,
-                scale=alt.Scale(domain=ANALYTICS_LEVELS, range=ANALYTICS_COLORS),
-                legend=alt.Legend(title="Reservations per month"),
-            ),
-        )
-        .properties(height=320)
-        .configure_axis(labelColor="#e9f3ff", labelFontSize=12, tickColor="#e9f3ff",
-                        domainColor="#e9f3ff", gridColor="rgba(255,255,255,.2)")
-        .configure_legend(labelColor="#e9f3ff", titleColor="#e9f3ff")
-        .configure_view(strokeWidth=0, fill="transparent")
-        .configure(background="transparent")
-    )
-    st.altair_chart(chart, use_container_width=True)
+    st.components.v1.html(_analytics_chart_html(counts), height=390)
     st.markdown(
         "<style>.st-key-analytics_tbl table, .st-key-analytics_tbl th, .st-key-analytics_tbl td "
         "{ color:#e9f3ff !important; border-color:rgba(255,255,255,.25) !important; }</style>",
