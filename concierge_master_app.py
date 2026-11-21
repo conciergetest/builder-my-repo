@@ -9738,7 +9738,6 @@ def analytics_dialog() -> None:
                 scale=alt.Scale(domain=ANALYTICS_LEVELS, range=ANALYTICS_COLORS),
                 legend=alt.Legend(title="Reservations per month"),
             ),
-            tooltip=["Month", "Reservations"],
         )
         .properties(height=320)
         .configure_axis(labelColor="#e9f3ff", labelFontSize=12, tickColor="#e9f3ff",
