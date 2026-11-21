@@ -9693,19 +9693,18 @@ def wayne_photo_dialog() -> None:
 
 MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August",
              "September", "October", "November", "December"]
-ANALYTICS_LEVELS = ["0-29", "30-59", "60-89", "90+"]
-ANALYTICS_COLORS = ["#3a86ff", "#00e5ff", "#ffd60a", "#ff4d6d"]
+ANALYTICS_LEVELS = ["0-15", "16-26", "27-40", "41-56", "57-72", "73-90", "91+"]
+ANALYTICS_COLORS = ["#3a86ff", "#00e5ff", "#2ecc71", "#c6f36b", "#ffd60a", "#ff8c00", "#ff4d6d"]
 
 
 def _analytics_level(n: int) -> str:
     """Rango de color segun la cantidad de reservas del mes."""
-    if n >= 90:
-        return "90+"
-    if n >= 60:
-        return "60-89"
-    if n >= 30:
-        return "30-59"
-    return "0-29"
+    for upper, label in (
+        (15, "0-15"), (26, "16-26"), (40, "27-40"), (56, "41-56"), (72, "57-72"), (90, "73-90"),
+    ):
+        if n <= upper:
+            return label
+    return "91+"
 
 
 @st.dialog("📊 Analytics", width="large")
@@ -9827,7 +9826,6 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
 
 
 
