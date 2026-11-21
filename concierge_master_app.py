@@ -9724,7 +9724,13 @@ def analytics_dialog() -> None:
         .configure(background="transparent")
     )
     st.altair_chart(chart, use_container_width=True)
-    st.dataframe(df, hide_index=True, use_container_width=True)
+    st.markdown(
+        "<style>.st-key-analytics_tbl table, .st-key-analytics_tbl th, .st-key-analytics_tbl td "
+        "{ color:#e9f3ff !important; border-color:rgba(255,255,255,.25) !important; }</style>",
+        unsafe_allow_html=True,
+    )
+    with st.container(key="analytics_tbl"):
+        st.table(df.set_index("Mes"))
 
 
 if st.session_state.pop("analytics_open", False):
@@ -9796,14 +9802,6 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
-
-
-
-
-
-
-
 
 
 
