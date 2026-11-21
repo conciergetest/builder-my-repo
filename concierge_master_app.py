@@ -2337,6 +2337,9 @@ html body div[data-testid="stDialog"]:has(.notas-root) > div:first-child:not(#_p
 html body .st-key-menu_back:not(#_pop_bg_x) {
     background: url("__GLASS_BG__") center / cover no-repeat !important;
 }
+html body .st-key-card_arrivals_back:not(#_pop_bg_x), html body .st-key-card_reminders_back:not(#_pop_bg_x), html body .st-key-card_qrcode_back:not(#_pop_bg_x) {
+    background: url("__GLASS_BG__") center / cover no-repeat !important;
+}
 </style>
 """.replace("__GLASS_BG__", GLASS_BG_URL)
 st.markdown(POPUP_BG_CSS, unsafe_allow_html=True)
@@ -9719,6 +9722,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
