@@ -2347,9 +2347,16 @@ st.markdown(POPUP_BG_CSS, unsafe_allow_html=True)
 # Fondo bg.avif detras de TODA la app (en vez del negro)
 APP_BG_CSS = """
 <style>
-html, body, .stApp, [data-testid="stApp"], [data-testid="stAppViewContainer"], [data-testid="stMain"],
-[data-testid="stMainBlockContainer"], .main, .block-container, [data-testid="stHeader"] {
-  background: url("__GLASS_BG__") center / cover fixed no-repeat !important;
+/* Fondo negro original en toda la app */
+html { background:#000 !important; }
+html body, html body .stApp, html body [data-testid="stApp"], html body [data-testid="stAppViewContainer"], html body [data-testid="stMain"],
+html body [data-testid="stMainBlockContainer"], html body .main, html body .block-container, html body [data-testid="stHeader"] {
+  background: transparent !important;
+}
+/* bg.avif solo hasta la linea roja (530px); debajo queda negro */
+html::before {
+  content:""; position:fixed; top:0; left:0; width:100vw; height:530px; z-index:-1; pointer-events:none;
+  background: url("__GLASS_BG__") center / cover no-repeat;
 }
 </style>
 """.replace("__GLASS_BG__", GLASS_BG_URL)
@@ -9733,6 +9740,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
