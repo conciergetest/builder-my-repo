@@ -2342,6 +2342,7 @@ GLASS_ACTIONS = [
     ("agenda", "AGENDA", "open_agenda", "M3 5h18v16H3zM3 10h18M8 3v4M16 3v4"),
     ("pdinning", "P. DINNING", "open_pdinning", "M7 3v7a2 2 0 0 0 4 0V3M9 10v11M17 21V3c-2 1-3 3-3 6h3"),
     ("checkin", "CHECK-IN DEL DÍA", "open_checkin_dia", "M5 12l5 5L20 7"),
+    ("recognition", "RECOGNITION", "open_recognition", "M12 3l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.5 6.7 19.1l1-5.8-4.2-4.1 5.9-.9z"),
 ]
 
 GLASS_CSS = GLASS_CSS.replace(
@@ -2352,13 +2353,33 @@ GLASS_CSS = GLASS_CSS.replace(
     ) + "</style>",
 )
 
+GLASS_BOX_LINK_HTML = (
+    '<a class="gp-item" href="' + BOX_FOLDER_URL + '" target="_blank" rel="noopener noreferrer" '
+    'style="margin-left:10px;text-decoration:none;color:#e9f3ff;font:600 14px \'Segoe UI\',Arial,sans-serif;">'
+    '<svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'
+    '<span>BOX FILES</span></a>'
+)
+
+GLASS_TOOLS_CSS = """
+<style>
+div[class*="st-key-glass_tools_toggle"] { margin:0 0 2px 0 !important; }
+div[class*="st-key-glass_tools_toggle"] button { background:transparent !important; border:0 !important; box-shadow:none !important; min-height:40px !important; padding:8px 12px !important; border-radius:14px !important; }
+div[class*="st-key-glass_tools_toggle"] button > div { justify-content:flex-start !important; width:100% !important; text-align:left !important; }
+div[class*="st-key-glass_tools_toggle"] button p { margin:0 !important; font:700 15px 'Segoe UI',Arial,sans-serif !important; color:#e9f3ff !important; text-align:left !important; }
+div[class*="st-key-glass_tools_toggle"] button:hover { background:rgba(255,255,255,.12) !important; }
+div[class*="st-key-glass_tools_toggle"] button::before {
+  content:""; display:inline-block; width:20px; height:20px; flex:0 0 20px; margin-right:14px; vertical-align:middle;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e9f3ff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+</style>
+"""
+
 GLASS_PANEL_TOP_HTML = """
 <div class="gp-title">User Panel</div>
 """
 
 GLASS_PANEL_BOTTOM_HTML = """
 <div class="gp-sep"></div>
-<div class="gp-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span>My Profile</span></div>
 <div class="gp-item"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg><span>Projects</span></div>
 <div class="gp-item"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg><span>Analytics</span></div>
 <div class="gp-item"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></svg><span>Message</span></div>
@@ -2374,6 +2395,27 @@ def _toggle_glass() -> None:
     """Abre/cierra el panel User Panel bajo el logo. Estado en session_state."""
     st.session_state["glass_open"] = not st.session_state.get("glass_open", False)
     st.session_state["glass_guest_open"] = False
+    st.session_state["glass_tools_open"] = False
+
+
+def _toggle_tools() -> None:
+    """Despliega o pliega Herramientas (antes My Profile) dentro del panel."""
+    st.session_state["glass_tools_open"] = not st.session_state.get("glass_tools_open", False)
+
+
+def _tool_bonus() -> None:
+    st.session_state["glass_open"] = False
+    st.session_state["glass_guest_open"] = False
+    st.session_state["glass_tools_open"] = False
+    st.query_params["skip_splash"] = "1"
+    st.query_params["action"] = "bonus"
+
+
+def _tool_wayne() -> None:
+    st.session_state["glass_open"] = False
+    st.session_state["glass_guest_open"] = False
+    st.session_state["glass_tools_open"] = False
+    st.session_state["wa_info_open"] = True
 
 
 def _toggle_guest_list() -> None:
@@ -2430,6 +2472,7 @@ def show_header() -> None:
             )
         st.session_state.setdefault("glass_open", False)
         st.session_state.setdefault("glass_guest_open", False)
+        st.session_state.setdefault("glass_tools_open", False)
         st.markdown(GLASS_CSS, unsafe_allow_html=True)
         st.button("Abrir panel", key="glass_btn", on_click=_toggle_glass)
         if st.session_state["glass_open"]:
@@ -2451,6 +2494,18 @@ def show_header() -> None:
                             st.session_state["glass_guest_open"] = False
                             st.query_params["skip_splash"] = "1"
                             _menu_go(**{_gflag: True})
+                st.markdown(GLASS_TOOLS_CSS, unsafe_allow_html=True)
+                _tools_open = st.session_state.get("glass_tools_open", False)
+                st.button(
+                    "Herramientas  " + ("▾" if _tools_open else "▸"),
+                    key="glass_tools_toggle",
+                    use_container_width=True,
+                    on_click=_toggle_tools,
+                )
+                if _tools_open:
+                    st.button("BONUS", key="glass_act_tool_bonus", use_container_width=True, on_click=_tool_bonus)
+                    st.button("FRED WAYNE", key="glass_act_tool_wayne", use_container_width=True, on_click=_tool_wayne)
+                    st.markdown(GLASS_BOX_LINK_HTML, unsafe_allow_html=True)
                 st.markdown(GLASS_PANEL_BOTTOM_HTML, unsafe_allow_html=True)
     st.markdown(
         "<style>.st-key-wa_info_box { display:none !important; }</style>",
@@ -9667,6 +9722,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
