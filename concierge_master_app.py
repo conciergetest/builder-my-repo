@@ -2344,6 +2344,17 @@ html body .st-key-card_arrivals_back:not(#_pop_bg_x), html body .st-key-card_rem
 """.replace("__GLASS_BG__", GLASS_BG_URL)
 st.markdown(POPUP_BG_CSS, unsafe_allow_html=True)
 
+# Fondo bg.avif detras de TODA la app (en vez del negro)
+APP_BG_CSS = """
+<style>
+html, body, .stApp, [data-testid="stApp"], [data-testid="stAppViewContainer"], [data-testid="stMain"],
+[data-testid="stMainBlockContainer"], .main, .block-container, [data-testid="stHeader"] {
+  background: url("__GLASS_BG__") center / cover fixed no-repeat !important;
+}
+</style>
+""".replace("__GLASS_BG__", GLASS_BG_URL)
+st.markdown(APP_BG_CSS, unsafe_allow_html=True)
+
 
 def _glass_icon_uri(path: str) -> str:
     return ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' "
@@ -9722,6 +9733,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
