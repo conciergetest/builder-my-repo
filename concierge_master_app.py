@@ -9691,35 +9691,60 @@ def wayne_photo_dialog() -> None:
         st.warning("No se encontro la foto. Sube `Wayne Foto.png` a tu repositorio junto a este archivo.")
 
 
-MESES_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto",
-            "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August",
+             "September", "October", "November", "December"]
+ANALYTICS_LEVELS = ["0-29", "30-59", "60-89", "90+"]
+ANALYTICS_COLORS = ["#3a86ff", "#00e5ff", "#ffd60a", "#ff4d6d"]
+
+
+def _analytics_level(n: int) -> str:
+    """Rango de color segun la cantidad de reservas del mes."""
+    if n >= 90:
+        return "90+"
+    if n >= 60:
+        return "60-89"
+    if n >= 30:
+        return "30-59"
+    return "0-29"
 
 
 @st.dialog("📊 Analytics", width="large")
 def analytics_dialog() -> None:
-    """Popup Analytics: reservas por mes (fecha de llegada) con selector de año, grafico y tabla."""
+    """Popup Analytics (English): reservations per month by arrival date, year selector, colored chart and table."""
     import altair as alt
 
     summary = _arrival_dates_summary()
     current_year = date.today().year
     years = sorted({d.year for d, _lbl, _c in summary} | {current_year})
-    year = st.selectbox("Año", years, index=years.index(current_year), key="analytics_year")
+    year = st.selectbox("Year", years, index=years.index(current_year), key="analytics_year")
     counts = [0] * 12
     for d, _lbl, c in summary:
         if d.year == year:
             counts[d.month - 1] += c
-    df = pd.DataFrame({"Mes": MESES_ES, "Reservas": counts})
-    st.markdown(f"**Total {year}: {sum(counts)} reservas**")
+    df = pd.DataFrame({
+        "Month": MONTHS_EN,
+        "Reservations": counts,
+        "Range": [_analytics_level(n) for n in counts],
+    })
+    st.markdown(f"**Total {year}: {sum(counts)} reservations**")
     chart = (
         alt.Chart(df)
-        .mark_bar(color="#00e5ff")
+        .mark_bar()
         .encode(
-            x=alt.X("Mes:N", sort=MESES_ES, title=None, axis=alt.Axis(labelAngle=-45)),
-            y=alt.Y("Reservas:Q", title=None, axis=alt.Axis(tickMinStep=1, format="d")),
-            tooltip=["Mes", "Reservas"],
+            x=alt.X("Month:N", sort=MONTHS_EN, title=None, axis=alt.Axis(labelAngle=-45)),
+            y=alt.Y("Reservations:Q", title=None, axis=alt.Axis(tickMinStep=1, format="d")),
+            color=alt.Color(
+                "Range:N",
+                sort=ANALYTICS_LEVELS,
+                scale=alt.Scale(domain=ANALYTICS_LEVELS, range=ANALYTICS_COLORS),
+                legend=alt.Legend(title="Reservations per month"),
+            ),
+            tooltip=["Month", "Reservations"],
         )
         .properties(height=320)
-        .configure_axis(labelColor="#e9f3ff", labelFontSize=12, tickColor="#e9f3ff", domainColor="#e9f3ff", gridColor="rgba(255,255,255,.2)")
+        .configure_axis(labelColor="#e9f3ff", labelFontSize=12, tickColor="#e9f3ff",
+                        domainColor="#e9f3ff", gridColor="rgba(255,255,255,.2)")
+        .configure_legend(labelColor="#e9f3ff", titleColor="#e9f3ff")
         .configure_view(strokeWidth=0, fill="transparent")
         .configure(background="transparent")
     )
@@ -9730,7 +9755,7 @@ def analytics_dialog() -> None:
         unsafe_allow_html=True,
     )
     with st.container(key="analytics_tbl"):
-        st.table(df.set_index("Mes"))
+        st.table(df[["Month", "Reservations"]].set_index("Month"))
 
 
 if st.session_state.pop("analytics_open", False):
