@@ -2287,7 +2287,21 @@ div[class*="st-key-glass_panel"] {
 .gp-item:hover { background:rgba(255,255,255,.12); }
 .gp-item svg { width:20px; height:20px; flex:0 0 20px; fill:none; stroke:#e9f3ff; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; display:block; }
 .gp-sep { height:1px; background:rgba(255,255,255,.25); margin:8px 4px; }
-.gp-head:hover { background:transparent; }
+div[class*="st-key-glass_guest_toggle"] { margin:0 0 2px 0 !important; }
+div[class*="st-key-glass_guest_toggle"] button {
+  position:relative !important; width:100% !important; height:auto !important; min-height:0 !important;
+  justify-content:flex-start !important; text-align:left !important; padding:9px 12px 9px 44px !important;
+  background:transparent !important; border:0 !important; border-radius:14px !important; box-shadow:none !important;
+  outline:none !important; color:#e9f3ff !important;
+}
+div[class*="st-key-glass_guest_toggle"] button > div { justify-content:flex-start !important; width:100% !important; text-align:left !important; }
+div[class*="st-key-glass_guest_toggle"] button p { margin:0 !important; font:700 15px 'Segoe UI',Arial,sans-serif !important; color:#e9f3ff !important; text-align:left !important; }
+div[class*="st-key-glass_guest_toggle"] button:hover { background:rgba(255,255,255,.12) !important; border:0 !important; }
+div[class*="st-key-glass_guest_toggle"] button:focus, div[class*="st-key-glass_guest_toggle"] button:active { box-shadow:none !important; }
+div[class*="st-key-glass_guest_toggle"] button::before {
+  content:""; position:absolute; left:14px; top:50%; transform:translateY(-50%); width:20px; height:20px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e9f3ff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6'/%3E%3Ccircle cx='17' cy='9' r='2.6'/%3E%3Cpath d='M16 14.2c3 .1 5.5 1.9 5.5 5.3'/%3E%3C/svg%3E") center / contain no-repeat;
+}
 div[class*="st-key-glass_act_"] { margin:0 0 2px 10px !important; }
 div[class*="st-key-glass_act_"] button {
   position:relative !important; width:100% !important; height:auto !important; min-height:0 !important;
@@ -2340,7 +2354,6 @@ GLASS_CSS = GLASS_CSS.replace(
 
 GLASS_PANEL_TOP_HTML = """
 <div class="gp-title">User Panel</div>
-<div class="gp-item gp-head">""" + GUESTS_ICON_SVG + """<span>Guest Services</span></div>
 """
 
 GLASS_PANEL_BOTTOM_HTML = """
@@ -2360,6 +2373,12 @@ GLASS_PANEL_BOTTOM_HTML = """
 def _toggle_glass() -> None:
     """Abre/cierra el panel User Panel bajo el logo. Estado en session_state."""
     st.session_state["glass_open"] = not st.session_state.get("glass_open", False)
+    st.session_state["glass_guest_open"] = False
+
+
+def _toggle_guest_list() -> None:
+    """Despliega o pliega las acciones de Guest Services dentro del panel."""
+    st.session_state["glass_guest_open"] = not st.session_state.get("glass_guest_open", False)
 
 
 def show_header() -> None:
@@ -2410,6 +2429,7 @@ def show_header() -> None:
                 unsafe_allow_html=True,
             )
         st.session_state.setdefault("glass_open", False)
+        st.session_state.setdefault("glass_guest_open", False)
         st.markdown(GLASS_CSS, unsafe_allow_html=True)
         st.button("Abrir panel", key="glass_btn", on_click=_toggle_glass)
         if st.session_state["glass_open"]:
@@ -2417,11 +2437,20 @@ def show_header() -> None:
                 st.button("Cerrar panel", key="glass_close_btn", on_click=_toggle_glass)
             with st.container(key="glass_panel"):
                 st.markdown(GLASS_PANEL_TOP_HTML, unsafe_allow_html=True)
-                for _gk, _glabel, _gflag, _gpath in GLASS_ACTIONS:
-                    if st.button(_glabel, key="glass_act_" + _gk, use_container_width=True):
-                        st.session_state["glass_open"] = False
-                        st.query_params["skip_splash"] = "1"
-                        _menu_go(**{_gflag: True})
+                _guest_open = st.session_state.get("glass_guest_open", False)
+                st.button(
+                    "Guest Services  " + ("▾" if _guest_open else "▸"),
+                    key="glass_guest_toggle",
+                    use_container_width=True,
+                    on_click=_toggle_guest_list,
+                )
+                if _guest_open:
+                    for _gk, _glabel, _gflag, _gpath in GLASS_ACTIONS:
+                        if st.button(_glabel, key="glass_act_" + _gk, use_container_width=True):
+                            st.session_state["glass_open"] = False
+                            st.session_state["glass_guest_open"] = False
+                            st.query_params["skip_splash"] = "1"
+                            _menu_go(**{_gflag: True})
                 st.markdown(GLASS_PANEL_BOTTOM_HTML, unsafe_allow_html=True)
     st.markdown(
         "<style>.st-key-wa_info_box { display:none !important; }</style>",
@@ -9638,6 +9667,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
