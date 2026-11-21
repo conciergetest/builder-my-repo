@@ -2598,15 +2598,16 @@ def show_header() -> None:
 <script>
 (function () {
   var P = window.parent;
-  if (!P || !P.document || P.__waInfoBound) return;
-  P.__waInfoBound = true;
-  P.document.addEventListener('click', function (e) {
-    var a = e.target && e.target.closest ? e.target.closest('a.wa-info') : null;
-    if (!a) return;
-    e.preventDefault();
-    var b = P.document.querySelector('.st-key-wa_info_box button');
-    if (b) b.click();
-  }, true);
+  if (!P || !P.document) return;
+  var code = "(function(){var d=document;if(d.__waInfoBound)return;d.__waInfoBound=true;"
+    + "d.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('a.wa-info'):null;"
+    + "if(!a)return;e.preventDefault();var b=d.querySelector('.st-key-wa_info_box button');if(b)b.click();},true);})();";
+  try {
+    var s = P.document.createElement('script');
+    s.textContent = code;
+    P.document.head.appendChild(s);
+    s.remove();
+  } catch (err) {}
 })();
 </script>
         """,
