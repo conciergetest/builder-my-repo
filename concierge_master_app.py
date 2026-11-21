@@ -2324,6 +2324,24 @@ GLASS_BG_URL = "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BM
 GLASS_CSS = GLASS_CSS.replace("__GLASS_BG__", GLASS_BG_URL)
 
 
+# Fondo bg.avif en TODOS los popups (st.dialog). Selectores con mas peso que los
+# overrides de fondo de cada popup (menu, occ, notas) para que el fondo gane.
+POPUP_BG_CSS = """
+<style>
+html body div[data-testid="stDialog"] > div:first-child:not(#_pop_bg_x) {
+    background: url("__GLASS_BG__") center / cover no-repeat !important;
+}
+html body div[data-testid="stDialog"]:has(.notas-root) > div:first-child:not(#_pop_bg_x) {
+    background: url("__GLASS_BG__") center / cover no-repeat !important;
+}
+html body .st-key-menu_back:not(#_pop_bg_x) {
+    background: url("__GLASS_BG__") center / cover no-repeat !important;
+}
+</style>
+""".replace("__GLASS_BG__", GLASS_BG_URL)
+st.markdown(POPUP_BG_CSS, unsafe_allow_html=True)
+
+
 def _glass_icon_uri(path: str) -> str:
     return ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' "
             "stroke='%23e9f3ff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E"
@@ -9701,6 +9719,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
