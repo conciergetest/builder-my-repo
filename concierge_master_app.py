@@ -2449,7 +2449,7 @@ GLASS_PANEL_BOTTOM_HTML = """
 <div class="gp-sep"></div>
 <div class="gp-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="3 3"/></svg><span>Settings</span></div>
 <div class="gp-sep"></div>
-<div class="gp-item"><svg viewBox="0 0 24 24"><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"/></svg><span>Logout</span></div>
+<a class="gp-item" href="./" target="_self" title="Cerrar sesión" style="text-decoration:none;"><svg viewBox="0 0 24 24"><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"/></svg><span>Logout</span></a>
 """
 
 
