@@ -2442,8 +2442,6 @@ GLASS_PANEL_TOP_HTML = """
 """
 
 GLASS_PANEL_BOTTOM_HTML = """
-<div class="gp-sep"></div>
-<div class="gp-item"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg><span>Analytics</span></div>
 <div class="gp-item"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></svg><span>Message</span></div>
 <div class="gp-item"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg><span>Notifications</span></div>
 <div class="gp-sep"></div>
@@ -2484,6 +2482,20 @@ def _tool_wayne() -> None:
     st.session_state["glass_guest_open"] = False
     st.session_state["glass_tools_open"] = False
     st.session_state["wa_info_open"] = True
+
+
+def _tool_analytics() -> None:
+    st.session_state["glass_open"] = False
+    st.session_state["glass_guest_open"] = False
+    st.session_state["glass_tools_open"] = False
+    st.session_state["analytics_open"] = True
+
+
+ANALYTICS_ICON_CSS = (
+    "<style>div[class*=\"st-key-glass_act_tool_analytics\"] button::before { background-image:url(\""
+    + _glass_icon_uri("M4 20V10M10 20V4M16 20v-8M22 20H2")
+    + "\"); }</style>"
+)
 
 
 def _toggle_guest_list() -> None:
@@ -2585,6 +2597,9 @@ def show_header() -> None:
                 )
                 if _qa_open:
                     st.markdown(GLASS_QA_LINKS_HTML, unsafe_allow_html=True)
+                st.markdown('<div class="gp-sep"></div>', unsafe_allow_html=True)
+                st.markdown(ANALYTICS_ICON_CSS, unsafe_allow_html=True)
+                st.button("Analytics", key="glass_act_tool_analytics", use_container_width=True, on_click=_tool_analytics)
                 st.markdown(GLASS_PANEL_BOTTOM_HTML, unsafe_allow_html=True)
     st.markdown(
         "<style>.st-key-wa_info_box { display:none !important; }</style>",
@@ -9674,6 +9689,46 @@ def wayne_photo_dialog() -> None:
         st.components.v1.html(WAYNE_ACTIVE_HTML.replace("__WAYNE_IMG__", encoded), height=690, scrolling=False)
     else:
         st.warning("No se encontro la foto. Sube `Wayne Foto.png` a tu repositorio junto a este archivo.")
+
+
+MESES_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto",
+            "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+
+
+@st.dialog("📊 Analytics", width="large")
+def analytics_dialog() -> None:
+    """Popup Analytics: reservas por mes (fecha de llegada) con selector de año, grafico y tabla."""
+    import altair as alt
+
+    summary = _arrival_dates_summary()
+    current_year = date.today().year
+    years = sorted({d.year for d, _lbl, _c in summary} | {current_year})
+    year = st.selectbox("Año", years, index=years.index(current_year), key="analytics_year")
+    counts = [0] * 12
+    for d, _lbl, c in summary:
+        if d.year == year:
+            counts[d.month - 1] += c
+    df = pd.DataFrame({"Mes": MESES_ES, "Reservas": counts})
+    st.markdown(f"**Total {year}: {sum(counts)} reservas**")
+    chart = (
+        alt.Chart(df)
+        .mark_bar(color="#00e5ff")
+        .encode(
+            x=alt.X("Mes:N", sort=MESES_ES, title=None, axis=alt.Axis(labelAngle=-45)),
+            y=alt.Y("Reservas:Q", title=None, axis=alt.Axis(tickMinStep=1, format="d")),
+            tooltip=["Mes", "Reservas"],
+        )
+        .properties(height=320)
+        .configure_axis(labelColor="#e9f3ff", labelFontSize=12, tickColor="#e9f3ff", domainColor="#e9f3ff", gridColor="rgba(255,255,255,.2)")
+        .configure_view(strokeWidth=0, fill="transparent")
+        .configure(background="transparent")
+    )
+    st.altair_chart(chart, use_container_width=True)
+    st.dataframe(df, hide_index=True, use_container_width=True)
+
+
+if st.session_state.pop("analytics_open", False):
+    analytics_dialog()
 
 
 if st.session_state.pop("wa_info_open", False):
