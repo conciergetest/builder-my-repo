@@ -3192,67 +3192,6 @@ def _menu_card_body() -> None:
     )
     _mn_bar()
 
-    # ── Operaciones ──
-    with st.container(key="card_mn_ops"):
-        _mn_sec("Operaciones", "⚙")
-        c1, c2, c3, c4, c5, c6 = st.columns(6)
-        if c1.button("NUEVA", use_container_width=True, key="card_mn_nueva"):
-            # Abre el popup sobre el dashboard en vez de navegar a otra pagina.
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_nueva=True)
-        if c2.button("IMPORTAR", use_container_width=True, key="card_mn_importar"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_importar=True)
-        if c3.button("EXPORTAR", use_container_width=True, key="card_mn_exportar"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_exportar=True)
-        if c4.button("REPORTE", use_container_width=True, key="card_mn_reporte"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_reporte=True)
-        if c5.button("AGENDA", use_container_width=True, key="card_mn_agenda"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_agenda=True)
-        if c6.button("BONUS", use_container_width=True, key="card_mn_bonus"):
-            st.query_params["action"] = "bonus"
-            _menu_go()
-
-    # ── Herramientas ──
-    with st.container(key="card_mn_tools"):
-        _mn_sec("Herramientas", "🛠")
-        if st.button("FRED WAYNE", use_container_width=True, key="card_mn_fred"):
-            _menu_go(open_logo=True)
-
-    # ── Concierge Services ──
-    with st.container(key="card_mn_services"):
-        _mn_sec("Concierge Services", "🛎")
-        s1, s2 = st.columns(2)
-        if s1.button("P. DINNING", use_container_width=True, key="card_menu_open_pdinning"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_pdinning=True)
-        if s2.button("CHECK-IN DEL DÍA", use_container_width=True, key="card_menu_open_checkin_dia"):
-            st.query_params["skip_splash"] = "1"
-            _menu_go(open_checkin_dia=True)
-
-    # ── Quick Access (enlaces rápidos) ──
-    with st.container(key="card_mn_quick"):
-        _mn_sec("Quick Access", "⚡")
-        qa, qb, qc = st.columns(3)
-        with qa:
-            st.markdown(_mn_link("ALICE", QUICK_LINKS[1][1]), unsafe_allow_html=True)
-            st.markdown(_mn_link("OPEN TABLE", QUICK_LINKS[5][1]), unsafe_allow_html=True)
-            st.markdown(_mn_link("OUTLOOK-RES", QUICK_LINKS[8][1]), unsafe_allow_html=True)
-            st.link_button("BOX FILES", BOX_FOLDER_URL, use_container_width=True, key="card_mn_box")
-        with qb:
-            st.markdown(_mn_link("LA CERNIA", QUICK_LINKS[3][1]), unsafe_allow_html=True)
-            st.markdown(_mn_link("OUTLOOK-FW", QUICK_LINKS[6][1]), unsafe_allow_html=True)
-            st.markdown(_mn_link("RELAXURY", QUICK_LINKS[9][1]), unsafe_allow_html=True)
-        with qc:
-            st.markdown(_mn_link("NO LIMIT", QUICK_LINKS[4][1]), unsafe_allow_html=True)
-            st.markdown(_mn_link("OUTLOOK-PC", QUICK_LINKS[7][1]), unsafe_allow_html=True)
-            if st.button("Recognition", use_container_width=True, key="card_menu_open_recognition"):
-                st.query_params["skip_splash"] = "1"
-                _menu_go(open_recognition=True)
-
     st.markdown(
         "<div class='mn-foot'>Waldorf Astoria Costa Rica · Concierge Master v6.0</div>",
         unsafe_allow_html=True,
@@ -9762,6 +9701,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
