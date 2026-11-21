@@ -2374,13 +2374,36 @@ div[class*="st-key-glass_tools_toggle"] button::before {
 </style>
 """
 
+_QA_LINK_DICT = {name: url for name, url, _c in QUICK_LINKS}
+GLASS_QA_NAMES = ["ALICE", "OPEN TABLE", "OUTLOOK-RES", "LA CERNIA", "OUTLOOK-FW", "RELAXURY", "NO LIMIT", "OUTLOOK-PC"]
+GLASS_QA_LINKS_HTML = "".join(
+    '<a class="gp-item" href="' + html.escape(_QA_LINK_DICT[_n], quote=True) + '" target="_blank" rel="noopener noreferrer" '
+    'style="margin-left:10px;text-decoration:none;color:#e9f3ff;font:600 14px \'Segoe UI\',Arial,sans-serif;">'
+    '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"/></svg>'
+    '<span>' + html.escape(_n) + '</span></a>'
+    for _n in GLASS_QA_NAMES
+)
+
+GLASS_QA_CSS = """
+<style>
+div[class*="st-key-glass_qa_toggle"] { margin:0 0 2px 0 !important; }
+div[class*="st-key-glass_qa_toggle"] button { background:transparent !important; border:0 !important; box-shadow:none !important; min-height:40px !important; padding:8px 12px !important; border-radius:14px !important; }
+div[class*="st-key-glass_qa_toggle"] button > div { justify-content:flex-start !important; width:100% !important; text-align:left !important; }
+div[class*="st-key-glass_qa_toggle"] button p { margin:0 !important; font:700 15px 'Segoe UI',Arial,sans-serif !important; color:#e9f3ff !important; text-align:left !important; }
+div[class*="st-key-glass_qa_toggle"] button:hover { background:rgba(255,255,255,.12) !important; }
+div[class*="st-key-glass_qa_toggle"] button::before {
+  content:""; display:inline-block; width:20px; height:20px; flex:0 0 20px; margin-right:14px; vertical-align:middle;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e9f3ff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+</style>
+"""
+
 GLASS_PANEL_TOP_HTML = """
 <div class="gp-title">User Panel</div>
 """
 
 GLASS_PANEL_BOTTOM_HTML = """
 <div class="gp-sep"></div>
-<div class="gp-item"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg><span>Projects</span></div>
 <div class="gp-item"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg><span>Analytics</span></div>
 <div class="gp-item"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></svg><span>Message</span></div>
 <div class="gp-item"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg><span>Notifications</span></div>
@@ -2396,6 +2419,12 @@ def _toggle_glass() -> None:
     st.session_state["glass_open"] = not st.session_state.get("glass_open", False)
     st.session_state["glass_guest_open"] = False
     st.session_state["glass_tools_open"] = False
+    st.session_state["glass_qa_open"] = False
+
+
+def _toggle_qa() -> None:
+    """Despliega o pliega Quick Access (antes Projects) dentro del panel."""
+    st.session_state["glass_qa_open"] = not st.session_state.get("glass_qa_open", False)
 
 
 def _toggle_tools() -> None:
@@ -2473,6 +2502,7 @@ def show_header() -> None:
         st.session_state.setdefault("glass_open", False)
         st.session_state.setdefault("glass_guest_open", False)
         st.session_state.setdefault("glass_tools_open", False)
+        st.session_state.setdefault("glass_qa_open", False)
         st.markdown(GLASS_CSS, unsafe_allow_html=True)
         st.button("Abrir panel", key="glass_btn", on_click=_toggle_glass)
         if st.session_state["glass_open"]:
@@ -2506,6 +2536,16 @@ def show_header() -> None:
                     st.button("BONUS", key="glass_act_tool_bonus", use_container_width=True, on_click=_tool_bonus)
                     st.button("FRED WAYNE", key="glass_act_tool_wayne", use_container_width=True, on_click=_tool_wayne)
                     st.markdown(GLASS_BOX_LINK_HTML, unsafe_allow_html=True)
+                st.markdown(GLASS_QA_CSS, unsafe_allow_html=True)
+                _qa_open = st.session_state.get("glass_qa_open", False)
+                st.button(
+                    "Quick Access  " + ("▾" if _qa_open else "▸"),
+                    key="glass_qa_toggle",
+                    use_container_width=True,
+                    on_click=_toggle_qa,
+                )
+                if _qa_open:
+                    st.markdown(GLASS_QA_LINKS_HTML, unsafe_allow_html=True)
                 st.markdown(GLASS_PANEL_BOTTOM_HTML, unsafe_allow_html=True)
     st.markdown(
         "<style>.st-key-wa_info_box { display:none !important; }</style>",
