@@ -313,7 +313,7 @@ def _glow_nav_bar() -> None:
            ".st-key-glow_nav [data-testid='stButton'] button::after { content:''; position:absolute; left:50%; top:50%;"
            " width:18px; height:18px; margin:-9px 0 0 -9px; background-size:contain; background-repeat:no-repeat;"
            " background-position:center; transition:transform .45s cubic-bezier(.3,1.4,.5,1); }",
-           ".st-key-glow_nav [data-testid='stButton'] button:hover::after { transform:scale(1.12); }",
+           ".st-key-glow_nav [data-testid='stButton'] button:hover::after { transform:scale(1.35); }",
            ]
     for idx, (key, clr, path, _lbl) in enumerate(GLOW_NAV_ITEMS):
         sel = ".st-key-glow_nav .st-key-glow_nav_" + key + " button"
@@ -321,11 +321,10 @@ def _glow_nav_bar() -> None:
         css.append(sel + "::after { content:'" + emo + "'; background-image:none; font-size:22px; line-height:24px;"
                    " text-align:center; color:#ffffff; width:24px; height:24px; margin:-12px 0 0 -12px; }")
         if idx == activo:
-            css.append(sel + "::after { transform:translateY(-18px); }")
-            css.append(sel + "::before { background:" + clr + "; transform:translateY(-18px);"
+            css.append(sel + "::before { background:" + clr + ";"
                        " box-shadow:0 0 5px " + clr + ", 0 0 16px " + clr + ", 0 0 28px " + clr + "66; }")
         else:
-            css.append(sel + ":hover::before { background:rgba(255,200,60,.12);"
+            css.append(sel + ":hover::before { background:rgba(255,200,60,.22);"
                        " box-shadow:0 0 6px #ffd54a, 0 0 16px #f5b82e, 0 0 28px #d4a01766; }")
     css.append("</style>")
     st.markdown("".join(css), unsafe_allow_html=True)
@@ -10131,6 +10130,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
