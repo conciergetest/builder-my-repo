@@ -291,13 +291,14 @@ def _glow_nav_select(i: int) -> None:
         st.session_state.glow_nav_open = key
 
 
-def _glow_nav_preview() -> None:
-    """Vista previa del menú flotante brillante (solo con ?nav_preview=1)."""
+def _glow_nav_bar() -> None:
+    """Barra brillante de 5 iconos, en línea dentro de la fila de filtros."""
     activo = int(st.session_state.get("glow_nav_active", 0))
     css = ["<style>",
-           ".st-key-glow_nav { position:fixed !important; top:12vh; left:13vw;"
-           " width:236px; height:44px; background:linear-gradient(120deg,#1c0a57 0%,#2e006e 45%,#14006b 75%,#08022c 100%); border:1px solid rgba(160,120,255,.28); border-radius:14px; z-index:999;"
+           ".st-key-glow_nav { position:relative !important; width:100% !important; height:44px;"
+           "  background:linear-gradient(120deg,#1c0a57 0%,#2e006e 45%,#14006b 75%,#08022c 100%); border:1px solid rgba(160,120,255,.28); border-radius:14px;"
            " box-shadow:0 12px 34px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); }",
+           'html body div[data-testid="stHorizontalBlock"]:has(.st-key-glow_nav) > div[data-testid="stColumn"]:has(.st-key-glow_nav) { flex:0 0 520px !important; width:520px !important; max-width:520px !important; min-width:0 !important; }',
            ".st-key-glow_nav > div { width:100% !important; height:100%; }",
            ".st-key-glow_nav [data-testid='stHorizontalBlock'] { gap:0 !important; height:100%; align-items:center; }",
            ".st-key-glow_nav [data-testid='stColumn'] { padding:0 !important; min-width:0 !important; }",
@@ -616,7 +617,6 @@ def _vigilar_inactividad():
 if not check_password():
     st.stop()
 _vigilar_inactividad()
-_glow_nav_preview()
 
 
 # -----------------------------------------------------------------------------
@@ -9281,7 +9281,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
     st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
     st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(a.neon-pill) > div[data-testid="stColumn"]:has(a.neon-pill) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
     st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { justify-content:flex-start !important; gap:8px !important; } div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
-    f1, f2, f3, f4, vip_col, guests_col, pending_col, tools_btn_col, occ_btn_col, ico_host = st.columns([0.8, 0.9, 0.9, 2.2, 1, 1, 1, 1, 1, 2.2])
+    f1, f2, f3, f4, nav_col, ico_host = st.columns([0.8, 0.9, 0.9, 2.2, 5, 2.2])
 
     with f1:
         filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
@@ -9353,35 +9353,8 @@ def render_dashboard(df: pd.DataFrame) -> None:
             """,
             unsafe_allow_html=True,
         )
-    # VIP / Huespedes / Pending ahora viven en la fila de filtros (columnas f5-f7)
-    with vip_col:
-        with st.container(key="btn_vip_candidates"):
-            if st.button("POSIBLES VIP", use_container_width=True, key="do_open_vip_candidates"):
-                st.session_state["open_vip_candidates"] = True
-                st.query_params["skip_splash"] = "1"
-                st.rerun()
-    with guests_col:
-        with st.container(key="btn_guests_directory"):
-            if st.button("HUÉSPEDES", use_container_width=True, key="do_open_guests_directory"):
-                st.session_state["open_guests"] = True
-                st.query_params["skip_splash"] = "1"
-                st.rerun()
-    with pending_col:
-        with st.container(key="btn_pending"):
-            _pending_count = pending_contar_lineas()
-            _pending_label = f"PENDING  {_pending_count}" if _pending_count > 0 else "PENDING"
-            if st.button(_pending_label, use_container_width=True, key="do_open_pending"):
-                st.session_state["open_pending"] = True
-                st.query_params["skip_splash"] = "1"
-                st.rerun()
-    with tools_btn_col:
-        with st.container(key="btn_tools_pop"):
-            if st.button("TOOLS", use_container_width=True, key="do_open_tools"):
-                tools_dialog()
-    with occ_btn_col:
-        with st.container(key="btn_occ_summary"):
-            if st.button("REP. OCC", use_container_width=True, key="do_open_occ_summary"):
-                occ_summary_dialog(df)
+    with nav_col:
+        _glow_nav_bar()
     with ico_host:
         ico_calc_col, ico_cal_col, ico_cnt_col, ico_notas_col, ico_dir_col, ico_guest_col = st.columns(6, gap="small")
     _top_icons = [
@@ -10158,6 +10131,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
