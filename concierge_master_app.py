@@ -4145,6 +4145,7 @@ CATEGORY_CHART_ICONS = {
     "ANNIVERSARY": "📅",
     "TEAM MEMBER": "👥",
     "LEISURE": "🌴",
+    "RELAXURY": "🧘",
 }
 
 
@@ -4192,9 +4193,8 @@ def render_relaxury_card(count: int, max_count: int) -> None:
 
 
 def render_category_chart(df: pd.DataFrame) -> None:
-    # Categorías que se muestran en el grid (RELAXURY se excluye de aquí;
-    # tiene su propia barra debajo).
-    chart_categories = {k: v for k, v in CATEGORY_CHART_COLORS.items() if k != "RELAXURY"}
+    # Todas las categorías del grid (8 tarjetas iguales, 2 filas de 4).
+    chart_categories = dict(CATEGORY_CHART_COLORS)
 
     with st.container(key="category_chart_panel"):
         st.markdown('<div class="category-chart-title">Guest Categories</div>', unsafe_allow_html=True)
@@ -4205,10 +4205,9 @@ def render_category_chart(df: pd.DataFrame) -> None:
         max_count = max(counts.values()) if counts and max(counts.values()) > 0 else 1
 
         items = list(chart_categories.items())
-        # La primera fila usa cuatro columnas iguales. En la segunda,
-        # LEISURE ocupa el ancho de dos columnas, como en el diseño aprobado.
+        # Dos filas de cuatro columnas iguales.
         row1 = st.columns(4, gap="small")
-        row2 = st.columns([1, 1, 2], gap="small")
+        row2 = st.columns(4, gap="small")
         slots = list(row1) + list(row2)
 
         style_rules = []
@@ -9270,9 +9269,6 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
     with right:
         render_category_chart(filtered)
-        relaxury = int(category_match_mask(filtered, "RELAXURY").sum())
-        max_cat = max([int(category_match_mask(filtered, c).sum()) for c in CATEGORY_CHART_COLORS] + [1])
-        render_relaxury_card(relaxury, max_cat)
 
 
     # Fila horizontal: filtros + menú
