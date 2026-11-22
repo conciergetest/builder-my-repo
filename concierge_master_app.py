@@ -298,7 +298,7 @@ def _glow_nav_bar() -> None:
            ".st-key-glow_nav { position:relative !important; width:100% !important; height:44px;"
            "  background:linear-gradient(120deg,#1c0a57 0%,#2e006e 45%,#14006b 75%,#08022c 100%); border:1px solid rgba(160,120,255,.28); border-radius:14px;"
            " box-shadow:0 12px 34px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); }",
-           'html body div[data-testid="stHorizontalBlock"]:has(.st-key-glow_nav) > div[data-testid="stColumn"]:has(.st-key-glow_nav) { flex:0 0 520px !important; width:520px !important; max-width:520px !important; min-width:0 !important; }',
+           'html body div[data-testid="stHorizontalBlock"]:has(.st-key-glow_nav) > div[data-testid="stColumn"]:has(.st-key-glow_nav) { flex:0 0 290px !important; width:290px !important; max-width:290px !important; min-width:0 !important; }',
            ".st-key-glow_nav > div { width:100% !important; height:100%; }",
            ".st-key-glow_nav [data-testid='stHorizontalBlock'] { gap:0 !important; height:100%; align-items:center; }",
            ".st-key-glow_nav [data-testid='stColumn'] { padding:0 !important; min-width:0 !important; }",
@@ -318,8 +318,8 @@ def _glow_nav_bar() -> None:
     for idx, (key, clr, path, _lbl) in enumerate(GLOW_NAV_ITEMS):
         sel = ".st-key-glow_nav .st-key-glow_nav_" + key + " button"
         emo = path.replace("'", "")
-        css.append(sel + "::after { content:'" + emo + "'; background-image:none; font-size:14px; line-height:18px;"
-                   " text-align:center; color:#ffffff; width:18px; height:18px; margin:-9px 0 0 -9px; }")
+        css.append(sel + "::after { content:'" + emo + "'; background-image:none; font-size:22px; line-height:24px;"
+                   " text-align:center; color:#ffffff; width:24px; height:24px; margin:-12px 0 0 -12px; }")
         if idx == activo:
             css.append(sel + "::after { transform:translateY(-18px); }")
             css.append(sel + "::before { background:" + clr + "; transform:translateY(-18px);"
@@ -10131,6 +10131,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
