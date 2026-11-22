@@ -298,7 +298,7 @@ def _glow_nav_bar() -> None:
            ".st-key-glow_nav { position:relative !important; width:100% !important; height:44px;"
            "  background:linear-gradient(120deg,#1c0a57 0%,#2e006e 45%,#14006b 75%,#08022c 100%); border:1px solid rgba(160,120,255,.28); border-radius:14px;"
            " box-shadow:0 12px 34px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); }",
-           'html body div[data-testid="stHorizontalBlock"]:has(.st-key-glow_nav) > div[data-testid="stColumn"]:has(.st-key-glow_nav) { flex:0 0 290px !important; width:290px !important; max-width:290px !important; min-width:0 !important; }',
+           'html body div[data-testid="stHorizontalBlock"]:has(.st-key-glow_nav) > div[data-testid="stColumn"]:has(.st-key-glow_nav):not(:has(.st-key-category_chart_panel)) { flex:0 0 290px !important; width:290px !important; max-width:290px !important; min-width:0 !important; }',
            ".st-key-glow_nav > div { width:100% !important; height:100%; }",
            ".st-key-glow_nav [data-testid='stHorizontalBlock'] { gap:0 !important; height:100%; align-items:center; }",
            ".st-key-glow_nav [data-testid='stColumn'] { padding:0 !important; min-width:0 !important; }",
@@ -9270,206 +9270,207 @@ def render_dashboard(df: pd.DataFrame) -> None:
     with right:
         render_category_chart(filtered)
 
+        # Fila horizontal: filtros + menú
+        st.markdown("<div style='height:0px'></div>", unsafe_allow_html=True)
+        st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
+        st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(a.neon-pill) > div[data-testid="stColumn"]:has(a.neon-pill):not(:has(.st-key-category_chart_panel)) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
+        st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) { justify-content:flex-start !important; gap:8px !important; } div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
+        f1, f2, f3, f4, nav_col, ico_host = st.columns([0.8, 0.9, 0.9, 2.2, 5, 2.2])
 
-    # Fila horizontal: filtros + menú
-    st.markdown("<div style='height:0px'></div>", unsafe_allow_html=True)
-    st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
-    st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(a.neon-pill) > div[data-testid="stColumn"]:has(a.neon-pill) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
-    st.markdown('<style>div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { justify-content:flex-start !important; gap:8px !important; } div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }</style>', unsafe_allow_html=True)
-    f1, f2, f3, f4, nav_col, ico_host = st.columns([0.8, 0.9, 0.9, 2.2, 5, 2.2])
+        with f1:
+            filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
+            with st.container(key="checkin_date_wrap"):
+                selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or ahora_cr()).date())
+            st.markdown("<style>.st-key-checkin_date_wrap { width:200px !important; max-width:100% !important; } .st-key-checkin_date_wrap [data-testid='stDateInput'] { width:100% !important; }</style>", unsafe_allow_html=True)
 
-    with f1:
-        filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
-        with st.container(key="checkin_date_wrap"):
-            selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or ahora_cr()).date())
-        st.markdown("<style>.st-key-checkin_date_wrap { width:200px !important; max-width:100% !important; } .st-key-checkin_date_wrap [data-testid='stDateInput'] { width:100% !important; }</style>", unsafe_allow_html=True)
+        with f2:
+            date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
+            st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;--ico:&quot;↻&quot;;height:40px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 10px 0 54px">APLICAR FECHA</a>', unsafe_allow_html=True)
 
-    with f2:
-        date_link = url_with(fecha_date=selected_date.strftime("%Y-%m-%d"))
-        st.markdown(f'<a class="neon-pill" href="{date_link}" target="_self" style="--c:#1e9bff;--ico:&quot;↻&quot;;height:40px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 10px 0 54px">APLICAR FECHA</a>', unsafe_allow_html=True)
+        with f3:
+            st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;--ico:&quot;✖&quot;;height:40px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 10px 0 54px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
 
-    with f3:
-        st.markdown(f'<a class="neon-pill" href="{url_with(fecha_date="", checkout_filtro="", skip_splash="1")}" target="_self" style="--c:#1e9bff;--ico:&quot;✖&quot;;height:40px;position:relative;top:25px;width:fit-content;margin-left:0;margin-right:0;padding:0 10px 0 54px">LIMPIAR FILTROS</a>', unsafe_allow_html=True)
+        with f4:
+            render_menu()
 
-    with f4:
-        render_menu()
-
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-    st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
-    st.markdown(
-        """
-        <style>
-        .st-key-btn_vip_candidates button { --c:#1e9bff; }
-        .st-key-btn_guests_directory button { --c:#1e9bff; }
-        .st-key-btn_pending button { --c:#1e9bff; }
-        div[data-testid="stHorizontalBlock"]:has(.st-key-btn_pending) { justify-content:flex-start !important; gap:12px !important; }
-        div[data-testid="stHorizontalBlock"]:has(.st-key-btn_pending) [data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    if reminders_tiene_contenido():
-        st.markdown(_reminders_red_css(), unsafe_allow_html=True)
-    if pending_tiene_contenido():
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        st.markdown(NEON_PILL_CSS, unsafe_allow_html=True)
         st.markdown(
             """
             <style>
-            .st-key-btn_pending button {
-                --c:#FF1744;
-                background: linear-gradient(135deg,#B91C1C,#FF1744) !important;
-                color:#ffffff !important;
-                border:1px solid rgba(255,23,68,.7) !important;
-                box-shadow:0 0 14px rgba(255,23,68,.55) !important;
-                animation: pendingPulse 1.6s ease-in-out infinite;
-            }
-            @keyframes pendingPulse {
-                0%, 100% { box-shadow:0 0 10px rgba(255,23,68,.45); }
-                50% { box-shadow:0 0 20px rgba(255,23,68,.85); }
-            }
+            .st-key-btn_vip_candidates button { --c:#1e9bff; }
+            .st-key-btn_guests_directory button { --c:#1e9bff; }
+            .st-key-btn_pending button { --c:#1e9bff; }
+            div[data-testid="stHorizontalBlock"]:has(.st-key-btn_pending) { justify-content:flex-start !important; gap:12px !important; }
+            div[data-testid="stHorizontalBlock"]:has(.st-key-btn_pending) [data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
             </style>
             """,
             unsafe_allow_html=True,
         )
-    if pending_tiene_contenido():
-        # Menú brillante: el icono PENDING también se pone rojo con texto
-        st.markdown(
-            """
-            <style>
-            .st-key-glow_nav .st-key-glow_nav_pending button::before {
-                background:#FF1744 !important;
-                box-shadow:0 0 6px #FF1744, 0 0 18px rgba(255,23,68,.7), 0 0 28px rgba(255,23,68,.45) !important;
-                animation: glowNavPendingPulse 1.6s ease-in-out infinite;
-            }
-            @keyframes glowNavPendingPulse {
-                0%, 100% { box-shadow:0 0 6px #FF1744, 0 0 14px rgba(255,23,68,.5); }
-                50% { box-shadow:0 0 10px #FF1744, 0 0 24px rgba(255,23,68,.9); }
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-    with nav_col:
-        _glow_nav_bar()
-    with ico_host:
-        ico_calc_col, ico_cal_col, ico_cnt_col, ico_notas_col, ico_dir_col, ico_guest_col = st.columns(6, gap="small")
-    _top_icons = [
-        (ico_calc_col, "🧮", "Calculadora", "top_ico_calc", "open_calculator"),
-        (ico_cal_col, "📆", "Almanaque", "top_ico_almanaque", "open_calendar"),
-        (ico_cnt_col, "🔢", "Contador", "top_ico_contador", "open_shared_counter"),
-        (ico_notas_col, "📝", "Notas", "top_ico_notas", "open_notas"),
-        (ico_dir_col, "📇", "Directorio", "top_ico_directorio", "open_directorio"),
-        (ico_guest_col, "🛎", "Guest Services", "top_ico_guest", "open_guest_mini"),
-    ]
-    _top_ico_css = ""
-    _app_dir = os.path.dirname(os.path.abspath(__file__))
-    for _col, _ico, _tip, _key, _flag in _top_icons:
-        _png_name = _tip.split(" ")[0] + ".png"
-        _png_path = os.path.join(_app_dir, _png_name)
-        if os.path.exists(_png_path):
-            with open(_png_path, "rb") as _fh:
-                _png_b64 = base64.b64encode(_fh.read()).decode("utf-8")
-            _top_ico_css += (
-                'html body [class*="st-key-' + _key + '"] button[class] { background-image:url("data:image/png;base64,'
-                + _png_b64 + '") !important; background-size:34px 34px !important; background-repeat:no-repeat !important; background-position:center !important; }'
-                'html body [class*="st-key-' + _key + '"] button[class] p { font-size:0 !important; }'
+        if reminders_tiene_contenido():
+            st.markdown(_reminders_red_css(), unsafe_allow_html=True)
+        if pending_tiene_contenido():
+            st.markdown(
+                """
+                <style>
+                .st-key-btn_pending button {
+                    --c:#FF1744;
+                    background: linear-gradient(135deg,#B91C1C,#FF1744) !important;
+                    color:#ffffff !important;
+                    border:1px solid rgba(255,23,68,.7) !important;
+                    box-shadow:0 0 14px rgba(255,23,68,.55) !important;
+                    animation: pendingPulse 1.6s ease-in-out infinite;
+                }
+                @keyframes pendingPulse {
+                    0%, 100% { box-shadow:0 0 10px rgba(255,23,68,.45); }
+                    50% { box-shadow:0 0 20px rgba(255,23,68,.85); }
+                }
+                </style>
+                """,
+                unsafe_allow_html=True,
             )
-            _ico = " "
-        with _col:
-            with st.container(key=_key):
-                if st.button(_ico, help=_tip, key="do_" + _key):
-                    st.session_state[_flag] = True
-                    st.query_params["skip_splash"] = "1"
-                    st.rerun()
-    if _top_ico_css:
-        st.markdown("<style>" + _top_ico_css + "</style>", unsafe_allow_html=True)
-    st.markdown(
-        """<style>
-        div[data-testid="stColumn"]:has(div[data-testid="stHorizontalBlock"] [class*="st-key-top_ico_"]) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
-        div[data-testid="stHorizontalBlock"]:has([class*="st-key-top_ico_"]) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
-        div[data-testid="stHorizontalBlock"]:has([class*="st-key-top_ico_"]) { gap:8px !important; }
-        div[data-testid="stHorizontalBlock"]:has(div[data-testid="stColumn"] [class*="st-key-top_ico_"]) { gap:8px !important; flex-wrap:wrap !important; }
-        html body [class*="st-key-top_ico_"] button { width:42px !important; min-width:42px !important; height:42px !important; min-height:42px !important;
-            padding:0 !important; border-radius:0 !important; border:none !important; color:#f0faff !important;
-            background:transparent !important; box-shadow:none !important;
-            display:flex !important; align-items:center !important; justify-content:center !important; }
-        html body [class*="st-key-top_ico_"] button p { margin:0 !important; font-size:22px !important; line-height:1 !important; }
-        html body [class*="st-key-top_ico_"] button:hover { filter:drop-shadow(0 0 6px #1e9bff) brightness(1.2) !important; background-color:transparent !important; }
-        </style>""",
-        unsafe_allow_html=True,
-    )
-    st.markdown("<style>div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:wrap !important; align-items:center !important; } @media (min-width:1600px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { flex-wrap:nowrap !important; } } @media (max-width:1600px){ div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:0 !important; } } @media (max-width:1366px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) { width:60vw !important; max-width:60vw !important; } } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) > div[data-testid='stColumn'] { align-self:center !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stElementContainer'] { margin-top:0 !important; margin-bottom:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) div[data-testid='stVerticalBlock'] { gap:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { transform:translateY(-25px) !important; } div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:-34px !important; } html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button, html body .st-key-btn_tools_pop button { width:auto !important; min-width:0 !important; padding:0 12px 0 56px !important; font-size:10px !important; letter-spacing:.5px !important; } html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap) a.neon-pill { padding:0 12px 0 56px !important; }</style>", unsafe_allow_html=True)
-    st.markdown(
-        """
-        <style>
-        /* Compactar la fila de filtros y subirla justo debajo del bloque superior */
-        html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button,
-        html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button,
-        html body .st-key-btn_tools_pop button, html body div[class*="st-key-main_menu_btn"] button,
-        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill {
-            height:46px !important; min-height:46px !important; font-size:12px !important;
-            letter-spacing:.4px !important; padding:0 8px 0 58px !important; top:0 !important;
-        }
-        html body div[class*="st-key-main_menu_btn"] button { font-size:12px !important; padding:0 8px 0 58px !important; }
-        html body div[class*="st-key-main_menu_btn"] { margin-top:0 !important; }
-        html body .st-key-btn_vip_candidates button p, html body .st-key-btn_guests_directory button p,
-        html body .st-key-btn_pending button p, html body .st-key-btn_occ_summary button p,
-        html body .st-key-btn_tools_pop button p, html body div[class*="st-key-main_menu_btn"] button p,
-        html body .st-key-btn_vip_candidates button > div, html body .st-key-btn_guests_directory button > div,
-        html body .st-key-btn_pending button > div, html body .st-key-btn_occ_summary button > div,
-        html body .st-key-btn_tools_pop button > div, html body div[class*="st-key-main_menu_btn"] button > div,
-        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill * { font-size:12px !important; line-height:1.1 !important; }
-        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill { transform:none !important; }
-        html body .st-key-checkin_date_wrap { width:128px !important; max-width:128px !important; }
-        html body .st-key-checkin_date_wrap label p { font-size:7px !important; letter-spacing:.3px !important; margin-bottom:0 !important; }
-        html body .st-key-checkin_date_wrap input { height:46px !important; min-height:46px !important; font-size:11px !important; padding:0 8px !important; }
-        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) div[data-testid="stVerticalBlock"] { gap:0 !important; }
-        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { margin-top:0 !important; } html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) { flex-wrap:nowrap !important; } html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; }
-                /* Circulos de iconos mas grandes */
-        html body .st-key-btn_vip_candidates button::before, html body .st-key-btn_guests_directory button::before, html body .st-key-btn_pending button::before, html body .st-key-btn_occ_summary button::before, html body .st-key-btn_tools_pop button::before, html body div[class*="st-key-main_menu_btn"] button::before, html body a.neon-pill::before {
-            width:42px !important; height:42px !important; left:5px !important; font-size:21px !important;
-        }
-        html body .st-key-btn_vip_candidates button::after, html body .st-key-btn_guests_directory button::after, html body .st-key-btn_pending button::after, html body .st-key-btn_occ_summary button::after, html body .st-key-btn_tools_pop button::after, html body div[class*="st-key-main_menu_btn"] button::after, html body a.neon-pill::after {
-            left:54px !important; height:32px !important;
-        }
-/* Chips de checkout mas bajos */
-        html body div[class*="st-key-main_menu_btn"] button, html body div[class*="st-key-main_menu_btn"] button * { font-size:13px !important; line-height:1.1 !important; }
-        html body .chip-day { min-height:24px !important; padding:2px 18px !important; font-size:10.5px !important; }
-        html body .st-key-bulk_row button { height:28px !important; min-height:28px !important; }
-        /* Quitar el espacio de los bloques que solo llevan CSS */
-        html body div[data-testid="stLayoutWrapper"]:has(.chip-day) ~ div[data-testid="stElementContainer"]:has(style):not(:has(a)):not(:has(button)):not(:has(input)):not(:has(.total-badge)):not(:has([data-testid="stDataFrame"])) { display:none !important; }
-        html body div[data-testid="stLayoutWrapper"]:has(.chip-day) ~ div[data-testid="stElementContainer"]:not(:has(a,button,input,.total-badge,canvas,iframe,img,svg,p,span,table,[role="grid"],[role="table"],[class*="dataframe" i],[class*="DataFrame"],[data-testid*="Frame"],[data-testid*="Table"])):not(:has(*:not(style):not(div):not(hr)))  { display:none !important; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        """
-        <style>
-        /* Botones de la barra (filtros, VIP, Huéspedes, Pending, Tools, Rep. Occ): más chicos y rojo al hover, igual que LOGOUT */
-        html body .st-key-btn_vip_candidates button,
-        html body .st-key-btn_guests_directory button,
-        html body .st-key-btn_pending button,
-        html body .st-key-btn_occ_summary button,
-        html body .st-key-btn_tools_pop button,
-        html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill {
-            height:40px !important; min-height:40px !important; font-size:12px !important;
-            padding:0 10px 0 54px !important; top:0 !important;
-        }
-        html body .st-key-btn_vip_candidates button::before, html body .st-key-btn_guests_directory button::before, html body .st-key-btn_pending button::before, html body .st-key-btn_occ_summary button::before, html body .st-key-btn_tools_pop button::before, html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill::before {
-            width:30px !important; height:30px !important; left:5px !important; font-size:15px !important;
-        }
-        html body .st-key-btn_vip_candidates button::after, html body .st-key-btn_guests_directory button::after, html body .st-key-btn_pending button::after, html body .st-key-btn_occ_summary button::after, html body .st-key-btn_tools_pop button::after, html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill::after {
-            left:42px !important; height:22px !important;
-        }
-        html body .st-key-btn_vip_candidates button:hover, html body .st-key-btn_guests_directory button:hover, html body .st-key-btn_pending button:hover, html body .st-key-btn_occ_summary button:hover, html body .st-key-btn_tools_pop button:hover, html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap) a.neon-pill:hover {
-            --c:#ff2d3d !important; background:#7a0b14 !important; border-color:#ff2d3d !important; color:#ffffff !important;
-            box-shadow:0 0 10px #ff3b4a, 0 0 28px rgba(255,30,50,.85), inset 0 0 18px rgba(255,30,50,.55) !important;
-            filter:none !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+        if pending_tiene_contenido():
+            # Menú brillante: el icono PENDING también se pone rojo con texto
+            st.markdown(
+                """
+                <style>
+                .st-key-glow_nav .st-key-glow_nav_pending button::before {
+                    background:#FF1744 !important;
+                    box-shadow:0 0 6px #FF1744, 0 0 18px rgba(255,23,68,.7), 0 0 28px rgba(255,23,68,.45) !important;
+                    animation: glowNavPendingPulse 1.6s ease-in-out infinite;
+                }
+                @keyframes glowNavPendingPulse {
+                    0%, 100% { box-shadow:0 0 6px #FF1744, 0 0 14px rgba(255,23,68,.5); }
+                    50% { box-shadow:0 0 10px #FF1744, 0 0 24px rgba(255,23,68,.9); }
+                }
+                </style>
+                """,
+                unsafe_allow_html=True,
+            )
+        with nav_col:
+            _glow_nav_bar()
+        with ico_host:
+            ico_calc_col, ico_cal_col, ico_cnt_col, ico_notas_col, ico_dir_col, ico_guest_col = st.columns(6, gap="small")
+        _top_icons = [
+            (ico_calc_col, "🧮", "Calculadora", "top_ico_calc", "open_calculator"),
+            (ico_cal_col, "📆", "Almanaque", "top_ico_almanaque", "open_calendar"),
+            (ico_cnt_col, "🔢", "Contador", "top_ico_contador", "open_shared_counter"),
+            (ico_notas_col, "📝", "Notas", "top_ico_notas", "open_notas"),
+            (ico_dir_col, "📇", "Directorio", "top_ico_directorio", "open_directorio"),
+            (ico_guest_col, "🛎", "Guest Services", "top_ico_guest", "open_guest_mini"),
+        ]
+        _top_ico_css = ""
+        _app_dir = os.path.dirname(os.path.abspath(__file__))
+        for _col, _ico, _tip, _key, _flag in _top_icons:
+            _png_name = _tip.split(" ")[0] + ".png"
+            _png_path = os.path.join(_app_dir, _png_name)
+            if os.path.exists(_png_path):
+                with open(_png_path, "rb") as _fh:
+                    _png_b64 = base64.b64encode(_fh.read()).decode("utf-8")
+                _top_ico_css += (
+                    'html body [class*="st-key-' + _key + '"] button[class] { background-image:url("data:image/png;base64,'
+                    + _png_b64 + '") !important; background-size:34px 34px !important; background-repeat:no-repeat !important; background-position:center !important; }'
+                    'html body [class*="st-key-' + _key + '"] button[class] p { font-size:0 !important; }'
+                )
+                _ico = " "
+            with _col:
+                with st.container(key=_key):
+                    if st.button(_ico, help=_tip, key="do_" + _key):
+                        st.session_state[_flag] = True
+                        st.query_params["skip_splash"] = "1"
+                        st.rerun()
+        if _top_ico_css:
+            st.markdown("<style>" + _top_ico_css + "</style>", unsafe_allow_html=True)
+        st.markdown(
+            """<style>
+            div[data-testid="stColumn"]:has(div[data-testid="stHorizontalBlock"] [class*="st-key-top_ico_"]) { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
+            div[data-testid="stHorizontalBlock"]:has([class*="st-key-top_ico_"]) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; min-width:0 !important; }
+            div[data-testid="stHorizontalBlock"]:has([class*="st-key-top_ico_"]) { gap:8px !important; }
+            div[data-testid="stHorizontalBlock"]:has(div[data-testid="stColumn"] [class*="st-key-top_ico_"]) { gap:8px !important; flex-wrap:wrap !important; }
+            html body [class*="st-key-top_ico_"] button { width:42px !important; min-width:42px !important; height:42px !important; min-height:42px !important;
+                padding:0 !important; border-radius:0 !important; border:none !important; color:#f0faff !important;
+                background:transparent !important; box-shadow:none !important;
+                display:flex !important; align-items:center !important; justify-content:center !important; }
+            html body [class*="st-key-top_ico_"] button p { margin:0 !important; font-size:22px !important; line-height:1 !important; }
+            html body [class*="st-key-top_ico_"] button:hover { filter:drop-shadow(0 0 6px #1e9bff) brightness(1.2) !important; background-color:transparent !important; }
+            </style>""",
+            unsafe_allow_html=True,
+        )
+        st.markdown("<style>div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) { flex-wrap:wrap !important; align-items:center !important; } @media (min-width:1600px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) { flex-wrap:nowrap !important; } } @media (max-width:1600px){ div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:0 !important; } } @media (max-width:1366px){ div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) { width:60vw !important; max-width:60vw !important; } } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) > div[data-testid='stColumn'] { align-self:center !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) div[data-testid='stElementContainer'] { margin-top:0 !important; margin-bottom:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) div[data-testid='stVerticalBlock'] { gap:0 !important; } div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) a.neon-pill { transform:translateY(-25px) !important; } div[data-testid='stHorizontalBlock']:has(.chip-day) { margin-top:-34px !important; } html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button, html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button, html body .st-key-btn_tools_pop button { width:auto !important; min-width:0 !important; padding:0 12px 0 56px !important; font-size:10px !important; letter-spacing:.5px !important; } html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) a.neon-pill { padding:0 12px 0 56px !important; }</style>", unsafe_allow_html=True)
+        st.markdown(
+            """
+            <style>
+            /* Compactar la fila de filtros y subirla justo debajo del bloque superior */
+            html body .st-key-btn_vip_candidates button, html body .st-key-btn_guests_directory button,
+            html body .st-key-btn_pending button, html body .st-key-btn_occ_summary button,
+            html body .st-key-btn_tools_pop button, html body div[class*="st-key-main_menu_btn"] button,
+            html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) a.neon-pill {
+                height:46px !important; min-height:46px !important; font-size:12px !important;
+                letter-spacing:.4px !important; padding:0 8px 0 58px !important; top:0 !important;
+            }
+            html body div[class*="st-key-main_menu_btn"] button { font-size:12px !important; padding:0 8px 0 58px !important; }
+            html body div[class*="st-key-main_menu_btn"] { margin-top:0 !important; }
+            html body .st-key-btn_vip_candidates button p, html body .st-key-btn_guests_directory button p,
+            html body .st-key-btn_pending button p, html body .st-key-btn_occ_summary button p,
+            html body .st-key-btn_tools_pop button p, html body div[class*="st-key-main_menu_btn"] button p,
+            html body .st-key-btn_vip_candidates button > div, html body .st-key-btn_guests_directory button > div,
+            html body .st-key-btn_pending button > div, html body .st-key-btn_occ_summary button > div,
+            html body .st-key-btn_tools_pop button > div, html body div[class*="st-key-main_menu_btn"] button > div,
+            html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) a.neon-pill * { font-size:12px !important; line-height:1.1 !important; }
+            html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) a.neon-pill { transform:none !important; }
+            html body .st-key-checkin_date_wrap { width:128px !important; max-width:128px !important; }
+            html body .st-key-checkin_date_wrap label p { font-size:7px !important; letter-spacing:.3px !important; margin-bottom:0 !important; }
+            html body .st-key-checkin_date_wrap input { height:46px !important; min-height:46px !important; font-size:11px !important; padding:0 8px !important; }
+            html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) div[data-testid="stVerticalBlock"] { gap:0 !important; }
+            html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) { margin-top:0 !important; } html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) { flex-wrap:nowrap !important; } html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) > div[data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; }
+                    /* Circulos de iconos mas grandes */
+            html body .st-key-btn_vip_candidates button::before, html body .st-key-btn_guests_directory button::before, html body .st-key-btn_pending button::before, html body .st-key-btn_occ_summary button::before, html body .st-key-btn_tools_pop button::before, html body div[class*="st-key-main_menu_btn"] button::before, html body a.neon-pill::before {
+                width:42px !important; height:42px !important; left:5px !important; font-size:21px !important;
+            }
+            html body .st-key-btn_vip_candidates button::after, html body .st-key-btn_guests_directory button::after, html body .st-key-btn_pending button::after, html body .st-key-btn_occ_summary button::after, html body .st-key-btn_tools_pop button::after, html body div[class*="st-key-main_menu_btn"] button::after, html body a.neon-pill::after {
+                left:54px !important; height:32px !important;
+            }
+    /* Chips de checkout mas bajos */
+            html body div[class*="st-key-main_menu_btn"] button, html body div[class*="st-key-main_menu_btn"] button * { font-size:13px !important; line-height:1.1 !important; }
+            html body .chip-day { min-height:24px !important; padding:2px 18px !important; font-size:10.5px !important; }
+            html body .st-key-bulk_row button { height:28px !important; min-height:28px !important; }
+            /* Quitar el espacio de los bloques que solo llevan CSS */
+            html body div[data-testid="stLayoutWrapper"]:has(.chip-day) ~ div[data-testid="stElementContainer"]:has(style):not(:has(a)):not(:has(button)):not(:has(input)):not(:has(.total-badge)):not(:has([data-testid="stDataFrame"])) { display:none !important; }
+            html body div[data-testid="stLayoutWrapper"]:has(.chip-day) ~ div[data-testid="stElementContainer"]:not(:has(a,button,input,.total-badge,canvas,iframe,img,svg,p,span,table,[role="grid"],[role="table"],[class*="dataframe" i],[class*="DataFrame"],[data-testid*="Frame"],[data-testid*="Table"])):not(:has(*:not(style):not(div):not(hr)))  { display:none !important; }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            """
+            <style>
+            /* Botones de la barra (filtros, VIP, Huéspedes, Pending, Tools, Rep. Occ): más chicos y rojo al hover, igual que LOGOUT */
+            html body .st-key-btn_vip_candidates button,
+            html body .st-key-btn_guests_directory button,
+            html body .st-key-btn_pending button,
+            html body .st-key-btn_occ_summary button,
+            html body .st-key-btn_tools_pop button,
+            html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) a.neon-pill {
+                height:40px !important; min-height:40px !important; font-size:12px !important;
+                padding:0 10px 0 54px !important; top:0 !important;
+            }
+            html body .st-key-btn_vip_candidates button::before, html body .st-key-btn_guests_directory button::before, html body .st-key-btn_pending button::before, html body .st-key-btn_occ_summary button::before, html body .st-key-btn_tools_pop button::before, html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) a.neon-pill::before {
+                width:30px !important; height:30px !important; left:5px !important; font-size:15px !important;
+            }
+            html body .st-key-btn_vip_candidates button::after, html body .st-key-btn_guests_directory button::after, html body .st-key-btn_pending button::after, html body .st-key-btn_occ_summary button::after, html body .st-key-btn_tools_pop button::after, html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) a.neon-pill::after {
+                left:42px !important; height:22px !important;
+            }
+            html body .st-key-btn_vip_candidates button:hover, html body .st-key-btn_guests_directory button:hover, html body .st-key-btn_pending button:hover, html body .st-key-btn_occ_summary button:hover, html body .st-key-btn_tools_pop button:hover, html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) a.neon-pill:hover {
+                --c:#ff2d3d !important; background:#7a0b14 !important; border-color:#ff2d3d !important; color:#ffffff !important;
+                box-shadow:0 0 10px #ff3b4a, 0 0 28px rgba(255,30,50,.85), inset 0 0 18px rgba(255,30,50,.55) !important;
+                filter:none !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
@@ -10126,6 +10127,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
