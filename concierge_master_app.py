@@ -199,9 +199,9 @@ def _li_card(label: str, value: str, color: str) -> str:
 
 
 LOGIN_INFO_CSS = """<style>
-.st-key-login_info_panel { position:fixed !important; top:7vh; left:calc(50% + 272px); width:340px; z-index:60; }
+.st-key-login_info_panel { position:fixed !important; top:calc(7vh + 128px); left:calc(50% + 272px); width:340px; z-index:60; }
 .st-key-login_info_panel > div { width:100%; }
-.li-root { font-family:'Cinzel',Georgia,serif; background:radial-gradient(ellipse at 50% 30%, #1d2630 0%, #0d1219 70%);
+.li-root { box-sizing:border-box; min-height:430px; font-family:'Cinzel',Georgia,serif; background:radial-gradient(ellipse at 50% 30%, #1d2630 0%, #0d1219 70%);
   border:1px solid rgba(0,229,255,.55); border-radius:10px; box-shadow:0 0 24px rgba(0,229,255,.22), inset 0 0 30px rgba(0,0,0,.6);
   padding:14px 14px 16px 14px; color:#e8dcc0; }
 .li-title { color:#00e5ff; font-size:15px; letter-spacing:1px; text-shadow:0 0 6px rgba(0,229,255,.5);
@@ -10061,3 +10061,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
