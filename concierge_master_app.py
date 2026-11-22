@@ -264,6 +264,69 @@ def _login_info_toggle() -> None:
     st.session_state.login_info_open = not st.session_state.get("login_info_open", False)
 
 
+GLOW_NAV_ITEMS = [
+    ("home", "#f44336", "M3 10.5L12 3l9 7.5V21h-6v-6H9v6H3z"),
+    ("user", "#ffa117", "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"),
+    ("chat", "#0fc70f", "M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"),
+    ("cam", "#2196f3", "M4 7h3l2-3h6l2 3h3v13H4zM12 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"),
+    ("gear", "#b145e9", "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4 0a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"),
+]
+
+
+def _glow_icon_uri(path: str, color: str) -> str:
+    return ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' "
+            "stroke='" + color + "' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E"
+            "%3Cpath d='" + path + "'/%3E%3C/svg%3E")
+
+
+def _glow_nav_select(i: int) -> None:
+    st.session_state.glow_nav_active = i
+
+
+def _glow_nav_preview() -> None:
+    """Vista previa del menú flotante brillante (solo con ?nav_preview=1)."""
+    activo = int(st.session_state.get("glow_nav_active", 0))
+    css = ["<style>",
+           ".st-key-glow_nav { position:fixed !important; top:12vh; left:13vw;"
+           " width:370px; height:62px; background:#fff; border-radius:16px; z-index:999;"
+           " box-shadow:0 12px 34px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); }",
+           ".st-key-glow_nav > div { width:100% !important; height:100%; }",
+           ".st-key-glow_nav [data-testid='stHorizontalBlock'] { gap:0 !important; height:100%; align-items:center; }",
+           ".st-key-glow_nav [data-testid='stColumn'] { padding:0 !important; min-width:0 !important; }",
+           ".st-key-glow_nav [data-testid='stButton'] { width:100% !important; }",
+           ".st-key-glow_nav [data-testid='stButton'] button { position:relative; width:100% !important; height:62px !important;"
+           " min-height:0 !important; background:transparent !important; border:none !important; box-shadow:none !important;"
+           " padding:0 !important; font-size:0 !important; color:transparent !important; overflow:visible !important; }",
+           ".st-key-glow_nav [data-testid='stButton'] button p { display:none !important; }",
+           ".st-key-glow_nav [data-testid='stButton'] button::before { content:''; position:absolute; left:50%; top:50%;"
+           " width:54px; height:54px; margin:-27px 0 0 -27px; border-radius:50%; background:transparent;"
+           " transition:transform .45s cubic-bezier(.3,1.4,.5,1), background .3s, box-shadow .3s; }",
+           ".st-key-glow_nav [data-testid='stButton'] button::after { content:''; position:absolute; left:50%; top:50%;"
+           " width:24px; height:24px; margin:-12px 0 0 -12px; background-size:contain; background-repeat:no-repeat;"
+           " background-position:center; transition:transform .45s cubic-bezier(.3,1.4,.5,1); }",
+           ".st-key-glow_nav [data-testid='stButton'] button:hover::after { transform:scale(1.12); }",
+           ]
+    for idx, (key, clr, path) in enumerate(GLOW_NAV_ITEMS):
+        sel = ".st-key-glow_nav .st-key-glow_nav_" + key + " button"
+        dark = _glow_icon_uri(path, "%23222327")
+        white = _glow_icon_uri(path, "%23ffffff")
+        if idx == activo:
+            css.append(sel + "::before { background:" + clr + " url(\"" + white + "\") center/24px no-repeat; transform:translateY(-30px);"
+                       " box-shadow:0 0 6px " + clr + ", 0 0 22px " + clr + ", 0 0 40px " + clr + "66; }")
+            css.append(sel + "::after { background-image:none; }")
+        else:
+            css.append(sel + "::after { background-image:url(\"" + dark + "\"); }")
+    css.append("</style>")
+    st.markdown("".join(css), unsafe_allow_html=True)
+    with st.container(key="glow_nav"):
+        cols = st.columns(len(GLOW_NAV_ITEMS), gap="small")
+        for idx, (key, clr, path) in enumerate(GLOW_NAV_ITEMS):
+            with cols[idx]:
+                with st.container(key="glow_nav_" + key):
+                    st.button(" ", key="glow_nav_btn_" + key, on_click=_glow_nav_select, args=(idx,),
+                              use_container_width=True)
+
+
 def check_password() -> bool:
     """Muestra el login y devuelve True solo si la clave APP_PASSWORD es correcta."""
     import hmac
@@ -543,6 +606,7 @@ def _vigilar_inactividad():
 if not check_password():
     st.stop()
 _vigilar_inactividad()
+_glow_nav_preview()
 
 
 # -----------------------------------------------------------------------------
@@ -10061,4 +10125,5 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
