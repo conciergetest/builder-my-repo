@@ -296,7 +296,7 @@ def _glow_nav_preview() -> None:
     activo = int(st.session_state.get("glow_nav_active", 0))
     css = ["<style>",
            ".st-key-glow_nav { position:fixed !important; top:12vh; left:13vw;"
-           " width:236px; height:44px; background:#fff; border-radius:14px; z-index:999;"
+           " width:236px; height:44px; background:linear-gradient(120deg,#1c0a57 0%,#2e006e 45%,#14006b 75%,#08022c 100%); border:1px solid rgba(160,120,255,.28); border-radius:14px; z-index:999;"
            " box-shadow:0 12px 34px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); }",
            ".st-key-glow_nav > div { width:100% !important; height:100%; }",
            ".st-key-glow_nav [data-testid='stHorizontalBlock'] { gap:0 !important; height:100%; align-items:center; }",
@@ -316,7 +316,8 @@ def _glow_nav_preview() -> None:
            ]
     for idx, (key, clr, path, _lbl) in enumerate(GLOW_NAV_ITEMS):
         sel = ".st-key-glow_nav .st-key-glow_nav_" + key + " button"
-        dark = _glow_icon_uri(path, "%23222327")
+        dark = _glow_icon_uri(path, "%23d9d2ff")
+        gold = _glow_icon_uri(path, "%23ffd54a")
         white = _glow_icon_uri(path, "%23ffffff")
         if idx == activo:
             css.append(sel + "::before { background:" + clr + " url(\"" + white + "\") center/24px no-repeat; transform:translateY(-18px);"
@@ -324,6 +325,9 @@ def _glow_nav_preview() -> None:
             css.append(sel + "::after { background-image:none; }")
         else:
             css.append(sel + "::after { background-image:url(\"" + dark + "\"); }")
+            css.append(sel + ":hover::before { background:rgba(255,200,60,.12);"
+                       " box-shadow:0 0 6px #ffd54a, 0 0 16px #f5b82e, 0 0 28px #d4a01766; }")
+            css.append(sel + ":hover::after { background-image:url(\"" + gold + "\"); }")
     css.append("</style>")
     st.markdown("".join(css), unsafe_allow_html=True)
     with st.container(key="glow_nav"):
@@ -10138,6 +10142,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
