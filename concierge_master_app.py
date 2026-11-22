@@ -265,11 +265,11 @@ def _login_info_toggle() -> None:
 
 
 GLOW_NAV_ITEMS = [
-    ("vip", "#ffc107", "M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.6 1-5.8-4.2-4.1 5.8-.8z", "POSIBLES VIP"),
-    ("guests", "#ffa117", "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4.4 3.6-7 8-7s8 2.6 8 7", "HUÉSPEDES"),
-    ("pending", "#0fc70f", "M9 4h6a1 1 0 0 1 1 1v1h2v14H6V6h2V5a1 1 0 0 1 1-1zM9 12h6M9 16h6", "PENDING"),
-    ("tools", "#1e9bff", "M14.5 5.5a4.5 4.5 0 0 0 4 6.3l-7.8 7.8a2 2 0 0 1-2.8-2.8l7.8-7.8a4.5 4.5 0 0 0-1.2-3.5z", "TOOLS"),
-    ("occ", "#b145e9", "M4 20h16M7 17v-6M12 17V5M17 17v-9", "REP. OCC"),
+    ("vip", "#ffc107", "🌟", "POSIBLES VIP"),
+    ("guests", "#ffa117", "👥", "HUÉSPEDES"),
+    ("pending", "#0fc70f", "📌", "PENDING"),
+    ("tools", "#1e9bff", "🛠", "TOOLS"),
+    ("occ", "#b145e9", "📊", "REP. OCC"),
 ]
 
 
@@ -316,18 +316,16 @@ def _glow_nav_preview() -> None:
            ]
     for idx, (key, clr, path, _lbl) in enumerate(GLOW_NAV_ITEMS):
         sel = ".st-key-glow_nav .st-key-glow_nav_" + key + " button"
-        dark = _glow_icon_uri(path, "%23d9d2ff")
-        gold = _glow_icon_uri(path, "%23ffd54a")
-        white = _glow_icon_uri(path, "%23ffffff")
+        emo = path.replace("'", "")
+        css.append(sel + "::after { content:'" + emo + "'; background-image:none; font-size:14px; line-height:18px;"
+                   " text-align:center; color:#ffffff; width:18px; height:18px; margin:-9px 0 0 -9px; }")
         if idx == activo:
-            css.append(sel + "::before { background:" + clr + " url(\"" + white + "\") center/24px no-repeat; transform:translateY(-18px);"
+            css.append(sel + "::after { transform:translateY(-18px); }")
+            css.append(sel + "::before { background:" + clr + "; transform:translateY(-18px);"
                        " box-shadow:0 0 5px " + clr + ", 0 0 16px " + clr + ", 0 0 28px " + clr + "66; }")
-            css.append(sel + "::after { background-image:none; }")
         else:
-            css.append(sel + "::after { background-image:url(\"" + dark + "\"); }")
             css.append(sel + ":hover::before { background:rgba(255,200,60,.12);"
                        " box-shadow:0 0 6px #ffd54a, 0 0 16px #f5b82e, 0 0 28px #d4a01766; }")
-            css.append(sel + ":hover::after { background-image:url(\"" + gold + "\"); }")
     css.append("</style>")
     st.markdown("".join(css), unsafe_allow_html=True)
     with st.container(key="glow_nav"):
@@ -10142,6 +10140,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
