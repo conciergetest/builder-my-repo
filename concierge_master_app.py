@@ -265,11 +265,11 @@ def _login_info_toggle() -> None:
 
 
 GLOW_NAV_ITEMS = [
-    ("home", "#f44336", "M3 10.5L12 3l9 7.5V21h-6v-6H9v6H3z"),
-    ("user", "#ffa117", "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"),
-    ("chat", "#0fc70f", "M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"),
-    ("cam", "#2196f3", "M4 7h3l2-3h6l2 3h3v13H4zM12 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"),
-    ("gear", "#b145e9", "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4 0a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"),
+    ("vip", "#ffc107", "M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.6 1-5.8-4.2-4.1 5.8-.8z", "POSIBLES VIP"),
+    ("guests", "#ffa117", "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4.4 3.6-7 8-7s8 2.6 8 7", "HUÉSPEDES"),
+    ("pending", "#0fc70f", "M9 4h6a1 1 0 0 1 1 1v1h2v14H6V6h2V5a1 1 0 0 1 1-1zM9 12h6M9 16h6", "PENDING"),
+    ("tools", "#1e9bff", "M14.5 5.5a4.5 4.5 0 0 0 4 6.3l-7.8 7.8a2 2 0 0 1-2.8-2.8l7.8-7.8a4.5 4.5 0 0 0-1.2-3.5z", "TOOLS"),
+    ("occ", "#b145e9", "M4 20h16M7 17v-6M12 17V5M17 17v-9", "REP. OCC"),
 ]
 
 
@@ -279,8 +279,16 @@ def _glow_icon_uri(path: str, color: str) -> str:
             "%3Cpath d='" + path + "'/%3E%3C/svg%3E")
 
 
+_GLOW_NAV_FLAG = {"vip": "open_vip_candidates", "guests": "open_guests", "pending": "open_pending"}
+
+
 def _glow_nav_select(i: int) -> None:
+    key = GLOW_NAV_ITEMS[i][0]
     st.session_state.glow_nav_active = i
+    if key in _GLOW_NAV_FLAG:
+        st.session_state[_GLOW_NAV_FLAG[key]] = True
+    else:
+        st.session_state.glow_nav_open = key
 
 
 def _glow_nav_preview() -> None:
@@ -288,31 +296,31 @@ def _glow_nav_preview() -> None:
     activo = int(st.session_state.get("glow_nav_active", 0))
     css = ["<style>",
            ".st-key-glow_nav { position:fixed !important; top:12vh; left:13vw;"
-           " width:370px; height:62px; background:#fff; border-radius:16px; z-index:999;"
+           " width:236px; height:44px; background:#fff; border-radius:14px; z-index:999;"
            " box-shadow:0 12px 34px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); }",
            ".st-key-glow_nav > div { width:100% !important; height:100%; }",
            ".st-key-glow_nav [data-testid='stHorizontalBlock'] { gap:0 !important; height:100%; align-items:center; }",
            ".st-key-glow_nav [data-testid='stColumn'] { padding:0 !important; min-width:0 !important; }",
            ".st-key-glow_nav [data-testid='stButton'] { width:100% !important; }",
-           ".st-key-glow_nav [data-testid='stButton'] button { position:relative; width:100% !important; height:62px !important;"
+           ".st-key-glow_nav [data-testid='stButton'] button { position:relative; width:100% !important; height:44px !important;"
            " min-height:0 !important; background:transparent !important; border:none !important; box-shadow:none !important;"
            " padding:0 !important; font-size:0 !important; color:transparent !important; overflow:visible !important; }",
            ".st-key-glow_nav [data-testid='stButton'] button p { display:none !important; }",
            ".st-key-glow_nav [data-testid='stButton'] button::before { content:''; position:absolute; left:50%; top:50%;"
-           " width:54px; height:54px; margin:-27px 0 0 -27px; border-radius:50%; background:transparent;"
+           " width:36px; height:36px; margin:-18px 0 0 -18px; border-radius:50%; background:transparent;"
            " transition:transform .45s cubic-bezier(.3,1.4,.5,1), background .3s, box-shadow .3s; }",
            ".st-key-glow_nav [data-testid='stButton'] button::after { content:''; position:absolute; left:50%; top:50%;"
-           " width:24px; height:24px; margin:-12px 0 0 -12px; background-size:contain; background-repeat:no-repeat;"
+           " width:18px; height:18px; margin:-9px 0 0 -9px; background-size:contain; background-repeat:no-repeat;"
            " background-position:center; transition:transform .45s cubic-bezier(.3,1.4,.5,1); }",
            ".st-key-glow_nav [data-testid='stButton'] button:hover::after { transform:scale(1.12); }",
            ]
-    for idx, (key, clr, path) in enumerate(GLOW_NAV_ITEMS):
+    for idx, (key, clr, path, _lbl) in enumerate(GLOW_NAV_ITEMS):
         sel = ".st-key-glow_nav .st-key-glow_nav_" + key + " button"
         dark = _glow_icon_uri(path, "%23222327")
         white = _glow_icon_uri(path, "%23ffffff")
         if idx == activo:
-            css.append(sel + "::before { background:" + clr + " url(\"" + white + "\") center/24px no-repeat; transform:translateY(-30px);"
-                       " box-shadow:0 0 6px " + clr + ", 0 0 22px " + clr + ", 0 0 40px " + clr + "66; }")
+            css.append(sel + "::before { background:" + clr + " url(\"" + white + "\") center/24px no-repeat; transform:translateY(-18px);"
+                       " box-shadow:0 0 5px " + clr + ", 0 0 16px " + clr + ", 0 0 28px " + clr + "66; }")
             css.append(sel + "::after { background-image:none; }")
         else:
             css.append(sel + "::after { background-image:url(\"" + dark + "\"); }")
@@ -320,11 +328,11 @@ def _glow_nav_preview() -> None:
     st.markdown("".join(css), unsafe_allow_html=True)
     with st.container(key="glow_nav"):
         cols = st.columns(len(GLOW_NAV_ITEMS), gap="small")
-        for idx, (key, clr, path) in enumerate(GLOW_NAV_ITEMS):
+        for idx, (key, clr, path, lbl) in enumerate(GLOW_NAV_ITEMS):
             with cols[idx]:
                 with st.container(key="glow_nav_" + key):
                     st.button(" ", key="glow_nav_btn_" + key, on_click=_glow_nav_select, args=(idx,),
-                              use_container_width=True)
+                              use_container_width=True, help=lbl)
 
 
 def check_password() -> bool:
@@ -9198,6 +9206,11 @@ def category_detail_dialog() -> None:
 
 
 def render_dashboard(df: pd.DataFrame) -> None:
+    _gn_open = st.session_state.pop("glow_nav_open", None)
+    if _gn_open == "tools":
+        tools_dialog()
+    elif _gn_open == "occ":
+        occ_summary_dialog(df)
     # Borra automáticamente los reminders cuyo Due Date ya pasó (una vez por
     # día por sesión, para no golpear Supabase en cada rerun).
     _hoy_iso = ahora_cr().date().isoformat()
@@ -10125,5 +10138,6 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
