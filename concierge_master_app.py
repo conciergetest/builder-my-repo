@@ -125,6 +125,145 @@ def _fire_gif_b64() -> str | None:
     return None
 
 
+LOGIN_EVENTS_TABLE = "login_events"
+LOGIN_USER_NAME = "Fred Wayne"
+LOGIN_TZ = timezone(timedelta(hours=-6))
+LOGIN_ICON_NAME = "Login Verified.webp"
+
+
+def _login_icon_uri() -> str:
+    _pth = os.path.join(os.path.dirname(os.path.abspath(__file__)), LOGIN_ICON_NAME)
+    if not os.path.isfile(_pth):
+        return ""
+    with open(_pth, "rb") as _fh:
+        return "data:image/webp;base64," + base64.b64encode(_fh.read()).decode("utf-8")
+
+
+def _login_db():
+    return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
+
+
+def _login_registrar(evento: str) -> None:
+    """Guarda un intento de login ('success' o 'failed'). Nunca bloquea el login si falla."""
+    try:
+        hd = {str(k).lower(): str(v) for k, v in dict(st.context.headers).items()}
+        ip = hd.get("x-forwarded-for", "").split(",")[0].strip() or hd.get("x-real-ip", "") or "desconocida"
+        _login_db().table(LOGIN_EVENTS_TABLE).insert({
+            "evento": evento,
+            "usuario": LOGIN_USER_NAME,
+            "ip": ip[:64],
+            "dispositivo": hd.get("user-agent", "")[:200],
+        }).execute()
+    except Exception:
+        pass
+
+
+def _login_datos():
+    """Devuelve (contadores, eventos recientes) o None si la tabla no responde."""
+    try:
+        def _cuenta(evento=None):
+            q = _login_db().table(LOGIN_EVENTS_TABLE).select("id", count="exact")
+            if evento:
+                q = q.eq("evento", evento)
+            return q.execute().count or 0
+
+        ult = (_login_db().table(LOGIN_EVENTS_TABLE).select("created_at")
+               .eq("evento", "success").order("created_at", desc=True).limit(1).execute().data or [])
+        recientes = (_login_db().table(LOGIN_EVENTS_TABLE).select("evento,ip,created_at")
+                     .order("created_at", desc=True).limit(8).execute().data or [])
+        cont = {
+            "total": _cuenta(),
+            "ok": _cuenta("success"),
+            "fail": _cuenta("failed"),
+            "last": ult[0]["created_at"] if ult else None,
+        }
+        return cont, recientes
+    except Exception:
+        return None
+
+
+def _li_hora(ts, con_fecha: bool = False) -> str:
+    try:
+        d = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+        if d.tzinfo is None:
+            d = d.replace(tzinfo=timezone.utc)
+        fmt = "%b %d, %I:%M %p" if con_fecha else "%I:%M:%S %p"
+        return d.astimezone(LOGIN_TZ).strftime(fmt).replace(" 0", " ").lstrip("0")
+    except Exception:
+        return "--:--"
+
+
+def _li_card(label: str, value: str, color: str) -> str:
+    return ('<div class="li-card" style="--c:' + color + '"><div class="li-lbl">' + label
+            + '</div><div class="li-val">' + value + '</div></div>')
+
+
+LOGIN_INFO_CSS = """<style>
+.st-key-login_info_panel { position:fixed !important; top:7vh; left:calc(50% + 272px); width:340px; z-index:60; }
+.st-key-login_info_panel > div { width:100%; }
+.li-root { font-family:'Cinzel',Georgia,serif; background:radial-gradient(ellipse at 50% 30%, #1d2630 0%, #0d1219 70%);
+  border:1px solid rgba(0,229,255,.55); border-radius:10px; box-shadow:0 0 24px rgba(0,229,255,.22), inset 0 0 30px rgba(0,0,0,.6);
+  padding:14px 14px 16px 14px; color:#e8dcc0; }
+.li-title { color:#00e5ff; font-size:15px; letter-spacing:1px; text-shadow:0 0 6px rgba(0,229,255,.5);
+  border-bottom:1px solid rgba(0,229,255,.3); padding-bottom:8px; margin-bottom:12px; }
+.li-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.li-card { border:1px solid rgba(255,255,255,.12); border-left:3px solid var(--c); border-radius:6px; padding:8px 10px; background:rgba(0,0,0,.35); }
+.li-lbl { font-size:11px; color:#c9c2ad; letter-spacing:.4px; }
+.li-val { font-size:20px; font-weight:700; color:var(--c); text-shadow:0 0 8px var(--c); font-family:'Segoe UI',sans-serif; margin-top:2px; }
+.li-sub { color:#ffd84a; font-size:12px; letter-spacing:.8px; margin:14px 0 6px 0; }
+.li-list { display:flex; flex-direction:column; gap:6px; max-height:260px; overflow:auto; }
+.li-ev { display:grid; grid-template-columns:22px 92px 1fr; align-items:center; gap:6px; font-family:'Segoe UI',sans-serif;
+  font-size:12px; background:rgba(0,0,0,.3); border-radius:5px; padding:6px 8px; }
+.li-ico { width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; color:#fff; }
+.li-ico.ok { background:#1f9d55; box-shadow:0 0 6px #3ddc84; }
+.li-ico.bad { background:#c0202e; box-shadow:0 0 6px #ff5a66; }
+.li-time { color:#7ff6ff; font-family:'Courier New',monospace; font-size:11px; }
+.li-txt { color:#e8dcc0; line-height:1.3; }
+.li-txt small { color:#9fb3c8; }
+.li-empty { color:#9fb3c8; font-family:'Segoe UI',sans-serif; font-size:12px; padding:8px; }
+@media (max-width:1100px) { .st-key-login_info_panel { position:static !important; width:min(520px,92vw) !important; margin:14px auto 0 auto !important; } }
+</style>"""
+
+
+def _login_info_panel() -> None:
+    """Pantallita junto al login: intentos, exitosos, fallidos y eventos recientes."""
+    datos = _login_datos()
+    if datos is None:
+        st.markdown('<div class="li-root"><div class="li-empty">No se pudo leer la tabla login_events en Supabase.</div></div>'
+                    + LOGIN_INFO_CSS, unsafe_allow_html=True)
+        return
+    cont, recientes = datos
+    cards = (
+        _li_card("Login Attempts", str(cont["total"]), "#00e5ff")
+        + _li_card("Successful Logins", str(cont["ok"]), "#3ddc84")
+        + _li_card("Failed Attempts", str(cont["fail"]), "#ff5a66")
+        + _li_card("Last Login", _li_hora(cont["last"], con_fecha=True) if cont["last"] else "—", "#ffd84a")
+    )
+    filas = ""
+    for ev in recientes:
+        ok = ev.get("evento") == "success"
+        ip = html.escape(str(ev.get("ip") or "desconocida"))
+        txt = ("User '" + html.escape(LOGIN_USER_NAME) + "' logged in") if ok else "Failed login attempt"
+        filas += ('<div class="li-ev"><span class="li-ico ' + ("ok" if ok else "bad") + '">'
+                  + ("&#10003;" if ok else "&#10005;") + '</span><span class="li-time">'
+                  + _li_hora(ev.get("created_at")) + '</span><span class="li-txt">' + txt
+                  + '<br><small>from ' + ip + '</small></span></div>')
+    if not filas:
+        filas = '<div class="li-empty">Sin eventos todavía.</div>'
+    st.markdown(
+        '<div class="li-root"><div class="li-title">Security Monitor</div>'
+        '<div class="li-grid">' + cards + '</div>'
+        '<div class="li-sub">Recent Security Events</div>'
+        '<div class="li-list">' + filas + '</div></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(LOGIN_INFO_CSS, unsafe_allow_html=True)
+
+
+def _login_info_toggle() -> None:
+    st.session_state.login_info_open = not st.session_state.get("login_info_open", False)
+
+
 def check_password() -> bool:
     """Muestra el login y devuelve True solo si la clave APP_PASSWORD es correcta."""
     import hmac
@@ -309,21 +448,40 @@ def check_password() -> bool:
         """,
         unsafe_allow_html=True,
         )
+        _uri_icono = _login_icon_uri()
+        if _uri_icono:
+            st.markdown(
+                '<style>.st-key-login_info_btn { position:absolute !important; top:14px !important; right:16px !important; width:auto !important; z-index:5; }'
+                '.st-key-login_info_btn button { width:52px !important; height:52px !important; min-height:0 !important; padding:0 !important; '
+                'border:none !important; border-radius:8px !important; box-shadow:none !important; font-size:0 !important; color:transparent !important; '
+                'background:url("' + _uri_icono + '") center/contain no-repeat !important; }'
+                '.st-key-login_info_btn button:hover, .st-key-login_info_btn button:focus { background-color:transparent !important; box-shadow:none !important; '
+                'filter:drop-shadow(0 0 8px rgba(212,175,55,.95)) !important; }'
+                '.st-key-login_info_btn button p { display:none !important; }</style>',
+                unsafe_allow_html=True,
+            )
+        st.button("Login info", key="login_info_btn", on_click=_login_info_toggle)
         with st.form("login_form_inner", clear_on_submit=False, border=False):
             pwd = st.text_input("Password", type="password", key="login_pwd")
             submitted = st.form_submit_button("SIGN IN", use_container_width=True)
 
     if submitted:
         if hmac.compare_digest(str(pwd), str(expected)):
+            _login_registrar("success")
+            st.session_state.pop("login_info_open", None)
             st.session_state.auth_ok = True
             st.session_state.last_activity = _time.time()
             st.session_state.login_expired = False
             st.session_state.pop("login_pwd", None)
             st.rerun()
         else:
+            _login_registrar("failed")
             st.markdown('<div class="login-err">Clave incorrecta</div>', unsafe_allow_html=True)
     elif st.session_state.get("login_expired"):
         st.markdown('<div class="login-err">Sesión cerrada por inactividad</div>', unsafe_allow_html=True)
+    if st.session_state.get("login_info_open"):
+        with st.container(key="login_info_panel"):
+            _login_info_panel()
     import streamlit.components.v1 as components
     with st.container(key="login_clock"):
         components.html(
@@ -9903,33 +10061,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
