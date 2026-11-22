@@ -9335,6 +9335,24 @@ def render_dashboard(df: pd.DataFrame) -> None:
             """,
             unsafe_allow_html=True,
         )
+    if pending_tiene_contenido():
+        # Menú brillante: el icono PENDING también se pone rojo con texto
+        st.markdown(
+            """
+            <style>
+            .st-key-glow_nav .st-key-glow_nav_pending button::before {
+                background:#FF1744 !important;
+                box-shadow:0 0 6px #FF1744, 0 0 18px rgba(255,23,68,.7), 0 0 28px rgba(255,23,68,.45) !important;
+                animation: glowNavPendingPulse 1.6s ease-in-out infinite;
+            }
+            @keyframes glowNavPendingPulse {
+                0%, 100% { box-shadow:0 0 6px #FF1744, 0 0 14px rgba(255,23,68,.5); }
+                50% { box-shadow:0 0 10px #FF1744, 0 0 24px rgba(255,23,68,.9); }
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
     # VIP / Huespedes / Pending ahora viven en la fila de filtros (columnas f5-f7)
     with vip_col:
         with st.container(key="btn_vip_candidates"):
@@ -10140,6 +10158,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
