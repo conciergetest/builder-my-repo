@@ -9471,6 +9471,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         )
 
 
+    st.markdown("<style>html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) { margin-top:-40px !important; }</style>", unsafe_allow_html=True)
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
