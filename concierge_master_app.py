@@ -9441,6 +9441,29 @@ def render_dashboard(df: pd.DataFrame) -> None:
             """,
             unsafe_allow_html=True,
         )
+        # Celular: la fila de filtros se acomoda en varias lineas en vez de salirse por los lados
+        st.markdown(
+            """
+            <style>
+            @media (max-width:768px) {
+                html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) {
+                    width:100% !important; max-width:100% !important; flex-wrap:wrap !important;
+                    justify-content:flex-start !important; gap:6px !important; margin-left:0 !important; margin-right:0 !important;
+                }
+                html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) > div[data-testid="stColumn"] {
+                    flex:0 1 auto !important; width:auto !important; min-width:0 !important; max-width:100% !important;
+                }
+                html body div[data-testid="stHorizontalBlock"]:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) a.neon-pill {
+                    white-space:nowrap !important;
+                }
+                html body div[data-testid="stColumn"]:has(.st-key-checkin_date_wrap) {
+                    width:100% !important; max-width:100% !important; flex:1 1 100% !important; min-width:0 !important;
+                }
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
         st.markdown(
             """
             <style>
