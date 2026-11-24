@@ -9280,7 +9280,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         with f1:
             filter_default = date_from_filter(str(st.query_params.get("fecha_date", "")))
             with st.container(key="checkin_date_wrap"):
-                selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or ahora_cr()).date())
+                selected_date = st.date_input("CHECK-IN DATE", value=(filter_default or ahora_cr()).date(), label_visibility="collapsed")
             st.markdown("<style>.st-key-checkin_date_wrap { width:200px !important; max-width:100% !important; } .st-key-checkin_date_wrap [data-testid='stDateInput'] { width:100% !important; }</style>", unsafe_allow_html=True)
 
         with f2:
@@ -9472,7 +9472,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
 
     st.markdown("<style>html body div[data-testid='stHorizontalBlock']:has(.st-key-checkin_date_wrap):not(:has(.chip-day)) { margin-top:-40px !important; }</style>", unsafe_allow_html=True)
-    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:0px'></div>", unsafe_allow_html=True)
     st.markdown(
         """
         <style>
@@ -9491,11 +9491,13 @@ def render_dashboard(df: pd.DataFrame) -> None:
     # "TOTAL RESERVAS" (o "RESERVAS FILTRADAS" si hay filtros activos) se
     # muestra aquí, justo encima del buscador rápido: primero la etiqueta,
     # luego el número — a pedido del usuario.
-    st.markdown(
-        f'<div class="total-badge"><div class="summary-label">{total_label}</div>'
-        f'<div class="summary-value">{total_display}</div></div>',
-        unsafe_allow_html=True,
-    )
+    with st.container(key="total_badge_wrap"):
+        st.markdown(
+            f'<div class="total-badge"><div class="summary-label">{total_label}</div>'
+            f'<div class="summary-value">{total_display}</div></div>',
+            unsafe_allow_html=True,
+        )
+    st.markdown("<style>.st-key-total_badge_wrap { margin-top:-30px !important; }</style>", unsafe_allow_html=True)
     st.text_input(
         "Búsqueda rápida",
         key="global_search",
