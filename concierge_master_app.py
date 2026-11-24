@@ -9497,7 +9497,15 @@ def render_dashboard(df: pd.DataFrame) -> None:
             f'<div class="summary-value">{total_display}</div></div>',
             unsafe_allow_html=True,
         )
-    st.markdown("<style>.st-key-total_badge_wrap { margin-top:-30px !important; }</style>", unsafe_allow_html=True)
+    st.markdown(
+        "<style>"
+        ".st-key-total_badge_wrap { margin-top:-30px !important; }"
+        ".total-badge .summary-label { color:#FFD700 !important; text-shadow:0 0 6px rgba(255,215,0,.65); }"
+        "input[placeholder*='Buscar por nombre'], input[placeholder*='Buscar por nombre']::placeholder { color:#FFD700 !important; opacity:1 !important; text-shadow:0 0 6px rgba(255,215,0,.55); }"
+        ".st-key-main_filter_caption, .st-key-main_filter_caption * { color:#FFD700 !important; text-shadow:0 0 6px rgba(255,215,0,.55); }"
+        "</style>",
+        unsafe_allow_html=True,
+    )
     st.text_input(
         "Búsqueda rápida",
         key="global_search",
@@ -9515,7 +9523,8 @@ def render_dashboard(df: pd.DataFrame) -> None:
             captions.append("Check-in: " + safe_text(filters["arrival"]))
         if "search" in filters:
             captions.append("Búsqueda: " + safe_text(filters["search"]))
-        st.caption(" | ".join(captions))
+        with st.container(key="main_filter_caption"):
+            st.caption(" | ".join(captions))
 
     st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True)
 
@@ -10130,6 +10139,7 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
 
 
