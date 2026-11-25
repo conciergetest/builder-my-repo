@@ -343,12 +343,12 @@ def _menu_arco_css() -> str:
     css = [
         ".st-key-menu_front { position:relative !important; overflow:visible !important; z-index:2000 !important; }",
         'div[data-testid="stColumn"]:has(.st-key-menu_front), div[data-testid="stHorizontalBlock"]:has(.st-key-menu_front), div[data-testid="stElementContainer"]:has(.st-key-menu_front) { position:relative !important; z-index:2000 !important; overflow:visible !important; }',
-        ".st-key-menu_front .st-key-arco_overlay { position:absolute !important; top:100%; left:50%; transform:translateX(-50%); z-index:1000 !important; width:400px !important; max-width:400px !important; box-sizing:border-box !important; margin:6px 0 0 0 !important; padding:16px 14px 14px 14px !important; border-radius:18px !important; background:linear-gradient(160deg,rgba(20,20,28,.94),rgba(8,8,12,.96)) !important; border:1px solid rgba(255,215,0,.45) !important; box-shadow:0 0 22px rgba(255,215,0,.18) !important; }",
-        'div[class*="st-key-arco_btn_"] button { min-height:46px !important; border-radius:999px !important; border:2px solid rgba(255,255,255,.85) !important; color:#ffffff !important; background:var(--arco-c) !important; box-shadow:0 0 12px var(--arco-c) !important; padding:6px 16px !important; }',
+        ".st-key-menu_front .st-key-arco_overlay { position:absolute !important; top:100%; left:50%; transform:translateX(-50%); z-index:1000 !important; width:400px !important; max-width:400px !important; box-sizing:border-box !important; margin:6px 0 0 0 !important; padding:16px 14px 14px 14px !important; border-radius:18px !important; background:url('__ARCO_BG__') center / cover no-repeat !important; border:1px solid rgba(255,215,0,.45) !important; box-shadow:0 0 22px rgba(255,215,0,.18) !important; }",
+        'div[class*="st-key-arco_btn_"] button { min-height:46px !important; border-radius:999px !important; border:1.5px solid rgba(255,255,255,.45) !important; color:#ffffff !important; background:color-mix(in srgb, var(--arco-c) 38%, #0a0e16) !important; box-shadow:0 0 5px color-mix(in srgb, var(--arco-c) 28%, transparent) !important; padding:6px 16px !important; }',
         'div[class*="st-key-arco_btn_"] button > div { justify-content:flex-start !important; width:100% !important; }',
         "div[class*=\"st-key-arco_btn_\"] button p { margin:0 !important; font:800 13px 'Segoe UI',Arial,sans-serif !important; letter-spacing:.6px !important; color:#ffffff !important; text-shadow:0 1px 3px #000 !important; text-align:left !important; }",
-        'div[class*="st-key-arco_btn_"] button:hover { filter:brightness(1.12); }',
-        'div[class*="st-key-arco_btn_"] button:focus, div[class*="st-key-arco_btn_"] button:active { box-shadow:0 0 12px var(--arco-c) !important; }',
+        'div[class*="st-key-arco_btn_"] button:hover { filter:brightness(1.08); }',
+        'div[class*="st-key-arco_btn_"] button:focus, div[class*="st-key-arco_btn_"] button:active { box-shadow:0 0 5px color-mix(in srgb, var(--arco-c) 28%, transparent) !important; }',
     ]
     for key, _label, color, off in ARCO_FUNC_ROWS:
         css.append('div[class*="st-key-arco_btn_' + key + '"] { --arco-c:' + color + '; margin-left:' + str(off) + 'px !important; width:calc(100% - ' + str(off) + 'px) !important; }')
@@ -367,6 +367,7 @@ def _menu_arco_css() -> str:
         'div[class*="st-key-arco_btn_close"] button > div { justify-content:center !important; }',
         "div[class*=\"st-key-arco_btn_close\"] button p { font:900 24px 'Segoe UI',Arial,sans-serif !important; color:#e5e7eb !important; text-align:center !important; text-shadow:none !important; }",
     ]
+    css = [c.replace("__ARCO_BG__", GLASS_BG_URL) for c in css]
     return "<style>" + "\n".join(css) + "</style>"
 
 
