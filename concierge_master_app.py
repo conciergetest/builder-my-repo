@@ -291,6 +291,44 @@ def _glow_nav_select(i: int) -> None:
         st.session_state.glow_nav_open = key
 
 
+MENU_ARCO_ITEMS = [
+    ("#ffc107", "🌟", "POSIBLES VIP", 0),
+    ("#ffa117", "👥", "HUÉSPEDES", 50),
+    ("#0fc70f", "📌", "PENDING", 72),
+    ("#1e9bff", "🔧", "HERRAMIENTAS", 86),
+    ("#a78bfa", "📊", "REPORTES", 94),
+    ("#ff2d3d", "📝", "NOTAS", 100),
+]
+
+
+def _menu_arco_preview() -> None:
+    """Vista previa visual de un menu tipo arco (solo diseno, sin funciones todavia)."""
+    filas = []
+    for color, icono, texto, desplaza in MENU_ARCO_ITEMS:
+        filas.append(
+            '<div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;'
+            f'margin-left:{desplaza}px;margin-bottom:6px;">'
+            f'<span style="color:#ffffff;font-size:13px;font-weight:800;letter-spacing:.6px;'
+            f'text-shadow:0 1px 3px #000;white-space:nowrap;">{texto}</span>'
+            f'<span style="width:50px;height:50px;border-radius:50%;flex:0 0 50px;display:flex;'
+            f'align-items:center;justify-content:center;font-size:22px;background:{color};'
+            f'border:2px solid rgba(255,255,255,.85);box-shadow:0 0 12px {color};">{icono}</span>'
+            '</div>'
+        )
+    html = (
+        '<div style="position:relative;width:100%;max-width:340px;margin:10px auto;padding:18px 14px 14px 14px;'
+        'border-radius:18px;background:linear-gradient(160deg,rgba(20,20,28,.92),rgba(8,8,12,.94));'
+        'border:1px solid rgba(255,215,0,.45);box-shadow:0 0 22px rgba(255,215,0,.18);box-sizing:border-box;">'
+        + "".join(filas)
+        + '<div style="display:flex;justify-content:flex-end;margin-top:8px;margin-right:4px;">'
+        '<span style="width:50px;height:50px;border-radius:50%;display:flex;align-items:center;'
+        'justify-content:center;font-size:24px;font-weight:900;color:#e5e7eb;background:#3a3f4a;'
+        'border:2px solid rgba(255,255,255,.7);box-shadow:0 0 10px rgba(255,255,255,.25);">✕</span>'
+        '</div></div>'
+    )
+    st.markdown(html, unsafe_allow_html=True)
+
+
 def _glow_nav_bar() -> None:
     """Barra brillante de 5 iconos, en línea dentro de la fila de filtros."""
     activo = int(st.session_state.get("glow_nav_active", 0))
@@ -3553,7 +3591,7 @@ def render_menu() -> None:
         unsafe_allow_html=True,
     )
     with st.container(key="menu_front"):
-        st.button("MENÚ »", key="main_menu_btn", on_click=_toggle_menu_flip)
+        _menu_arco_preview()
     with st.container(key="menu_back"):
         _menu_card_body()
 
