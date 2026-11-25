@@ -9522,7 +9522,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
         )
     st.markdown(
         "<style>"
-        ".st-key-total_badge_wrap { margin-top:-30px !important; }"
+        ".st-key-total_badge_wrap { margin-top:-30px !important; width:500px !important; max-width:100% !important; }"
+        ".st-key-total_badge_wrap .total-badge { width:100% !important; box-sizing:border-box !important; }"
+        "div[data-testid='stTextInput']:has(input[placeholder*='Buscar por nombre']) { width:500px !important; max-width:100% !important; }"
         ".total-badge .summary-label { color:#FFD700 !important; text-shadow:0 0 6px rgba(255,215,0,.65); }"
         "input[placeholder*='Buscar por nombre'], input[placeholder*='Buscar por nombre']::placeholder { color:#FFD700 !important; opacity:1 !important; text-shadow:0 0 6px rgba(255,215,0,.55); }"
         ".st-key-main_filter_caption, .st-key-main_filter_caption * { color:#FFD700 !important; text-shadow:0 0 6px rgba(255,215,0,.55); }"
@@ -10162,15 +10164,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
-
-
-
-
-
-
-
-
-
-
-
