@@ -301,6 +301,10 @@ MENU_ARCO_ITEMS = [
 ]
 
 
+def _toggle_menu_arco() -> None:
+    st.session_state.menu_arco_open = not st.session_state.get("menu_arco_open", False)
+
+
 def _menu_arco_preview() -> None:
     """Vista previa visual de un menu tipo arco (solo diseno, sin funciones todavia)."""
     filas = []
@@ -3591,7 +3595,9 @@ def render_menu() -> None:
         unsafe_allow_html=True,
     )
     with st.container(key="menu_front"):
-        _menu_arco_preview()
+        st.button("MENÚ »", key="main_menu_btn", on_click=_toggle_menu_arco)
+        if st.session_state.get("menu_arco_open", False):
+            _menu_arco_preview()
     with st.container(key="menu_back"):
         _menu_card_body()
 
