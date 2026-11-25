@@ -320,7 +320,7 @@ def _menu_arco_preview() -> None:
             '</div>'
         )
     html = (
-        '<div class="menu-arco-overlay" style="position:relative;width:100%;max-width:340px;margin:10px auto;padding:18px 14px 14px 14px;'
+        '<div class="menu-arco-overlay" style="position:relative;width:400px;max-width:400px;margin:10px auto;padding:18px 14px 14px 14px;'
         'border-radius:18px;background:linear-gradient(160deg,rgba(20,20,28,.92),rgba(8,8,12,.94));'
         'border:1px solid rgba(255,215,0,.45);box-shadow:0 0 22px rgba(255,215,0,.18);box-sizing:border-box;">'
         + "".join(filas)
@@ -336,7 +336,10 @@ def _menu_arco_preview() -> None:
         'div[data-testid="stColumn"]:has(.st-key-menu_front), div[data-testid="stHorizontalBlock"]:has(.st-key-menu_front), div[data-testid="stElementContainer"]:has(.st-key-menu_front) { position:relative !important; z-index:2000 !important; overflow:visible !important; }'
         '.st-key-menu_front [data-testid="stElementContainer"]:has(.menu-arco-overlay) {'
         '  position:absolute !important; top:100%; left:50%; transform:translateX(-50%);'
-        '  width:340px !important; z-index:1000 !important; margin:0 !important; }'
+        '  width:400px !important; max-width:400px !important; z-index:1000 !important; margin:0 !important; }'
+        '.menu-arco-overlay { width:400px !important; max-width:400px !important; box-sizing:border-box !important; }'
+        '.st-key-menu_front [data-testid="stMarkdownContainer"]:has(.menu-arco-overlay), .st-key-menu_front [data-testid="stMarkdown"]:has(.menu-arco-overlay) { width:400px !important; }'
+        '.menu-arco-overlay span { white-space:nowrap !important; flex:0 0 auto !important; }'
         '.menu-arco-overlay { margin:6px 0 0 0 !important; }'
         '</style>'
     )
