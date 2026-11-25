@@ -599,7 +599,7 @@ def check_password() -> bool:
     return False
 
 
-INACTIVITY_MINUTES = 10
+INACTIVITY_MINUTES = 20
 
 
 @st.fragment(run_every=60)
