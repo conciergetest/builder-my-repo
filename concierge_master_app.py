@@ -307,14 +307,6 @@ ARCO_FUNC_ROWS = [
     ("qa", "QUICK ACCESS", "#a3e635", 24),
     ("analytics", "ANALYTICS", "#7c3aed", 36),
 ]
-# Visual only, no function yet.
-ARCO_STATIC_ROWS = [
-    ("#ffc107", "🌟", "POSIBLES VIP", 56),
-    ("#ffa117", "👥", "HUÉSPEDES", 68),
-    ("#0fc70f", "📌", "PENDING", 80),
-    ("#a78bfa", "📊", "REPORTES", 90),
-    ("#ff2d3d", "📝", "NOTAS", 98),
-]
 
 
 def _toggle_menu_arco() -> None:
@@ -378,15 +370,6 @@ def _menu_arco_css() -> str:
     return "<style>" + "\n".join(css) + "</style>"
 
 
-def _arco_static_html(color: str, emoji: str, texto: str, off: int) -> str:
-    return (
-        '<div style="margin:0 0 6px ' + str(off) + 'px;width:calc(100% - ' + str(off) + 'px);box-sizing:border-box;min-height:46px;'
-        'border-radius:999px;background:' + color + ';border:2px solid rgba(255,255,255,.85);box-shadow:0 0 12px ' + color + ';'
-        'display:flex;align-items:center;gap:10px;padding:6px 16px;color:#ffffff;font:800 13px Arial,sans-serif;letter-spacing:.6px;'
-        'text-shadow:0 1px 3px #000;"><span style="font-size:18px;">' + emoji + '</span><span>' + texto + '</span></div>'
-    )
-
-
 def _arco_sub_items(key: str) -> None:
     if key == "guest":
         for _gk, _glabel, _gflag, _gpath in GLASS_ACTIONS:
@@ -414,8 +397,6 @@ def _menu_arco_panel() -> None:
             st.button(label + "  " + arrow, key="arco_btn_" + key, use_container_width=True, on_click=_arco_toggle, args=(key,))
             if sub == key:
                 _arco_sub_items(key)
-        for color, emoji, texto, off in ARCO_STATIC_ROWS:
-            st.markdown(_arco_static_html(color, emoji, texto, off), unsafe_allow_html=True)
         st.button("✕", key="arco_btn_close", on_click=_toggle_menu_arco)
 
 
