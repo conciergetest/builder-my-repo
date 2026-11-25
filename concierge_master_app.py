@@ -381,7 +381,6 @@ def _arco_sub_items(key: str) -> None:
     elif key == "tools":
         st.button("BONUS", key="arco_sub_bonus", use_container_width=True, on_click=_arco_bonus)
         st.button("FRED WAYNE", key="arco_sub_wayne", use_container_width=True, on_click=_arco_wayne)
-        st.markdown('<div style="margin-left:40px;">' + GLASS_BOX_LINK_HTML + '</div>', unsafe_allow_html=True)
     elif key == "qa":
         st.markdown('<div style="margin-left:30px;">' + GLASS_QA_LINKS_HTML + '</div>', unsafe_allow_html=True)
 
@@ -9379,13 +9378,14 @@ def render_dashboard(df: pd.DataFrame) -> None:
         with nav_col:
             _glow_nav_bar()
         with ico_host:
-            ico_calc_col, ico_cal_col, ico_cnt_col, ico_notas_col, ico_dir_col, ico_guest_col = st.columns(6, gap="small")
+            ico_calc_col, ico_cal_col, ico_cnt_col, ico_notas_col, ico_dir_col, ico_box_col, ico_guest_col = st.columns(7, gap="small")
         _top_icons = [
             (ico_calc_col, "🧮", "Calculadora", "top_ico_calc", "open_calculator"),
             (ico_cal_col, "📆", "Almanaque", "top_ico_almanaque", "open_calendar"),
             (ico_cnt_col, "🔢", "Contador", "top_ico_contador", "open_shared_counter"),
             (ico_notas_col, "📝", "Notas", "top_ico_notas", "open_notas"),
             (ico_dir_col, "📇", "Directorio", "top_ico_directorio", "open_directorio"),
+            (ico_box_col, "📁", "BOX FILES", "top_ico_box", None),
             (ico_guest_col, "🛎", "Guest Services", "top_ico_guest", "open_guest_mini"),
         ]
         _top_ico_css = ""
@@ -9404,7 +9404,9 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 _ico = " "
             with _col:
                 with st.container(key=_key):
-                    if st.button(_ico, help=_tip, key="do_" + _key):
+                    if _flag is None:
+                        st.link_button(_ico, BOX_FOLDER_URL, help=_tip, key="do_" + _key)
+                    elif st.button(_ico, help=_tip, key="do_" + _key):
                         st.session_state[_flag] = True
                         st.query_params["skip_splash"] = "1"
                         st.rerun()
@@ -9421,6 +9423,11 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 background:transparent !important; box-shadow:none !important;
                 display:flex !important; align-items:center !important; justify-content:center !important; }
             html body [class*="st-key-top_ico_"] button p { margin:0 !important; font-size:22px !important; line-height:1 !important; }
+            html body [class*="st-key-top_ico_box"] a { width:42px !important; min-width:42px !important; height:42px !important; min-height:42px !important;
+                padding:0 !important; border:none !important; background:transparent !important; box-shadow:none !important; color:#f0faff !important;
+                display:flex !important; align-items:center !important; justify-content:center !important; text-decoration:none !important; }
+            html body [class*="st-key-top_ico_box"] a p { margin:0 !important; font-size:22px !important; line-height:1 !important; }
+            html body [class*="st-key-top_ico_box"] a:hover { filter:drop-shadow(0 0 6px #1e9bff) brightness(1.2) !important; background-color:transparent !important; }
             html body [class*="st-key-top_ico_"] button:hover { filter:drop-shadow(0 0 6px #1e9bff) brightness(1.2) !important; background-color:transparent !important; }
             </style>""",
             unsafe_allow_html=True,
