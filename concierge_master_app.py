@@ -291,59 +291,132 @@ def _glow_nav_select(i: int) -> None:
         st.session_state.glow_nav_open = key
 
 
-MENU_ARCO_ITEMS = [
-    ("#ffc107", "🌟", "POSIBLES VIP", 0),
-    ("#ffa117", "👥", "HUÉSPEDES", 50),
-    ("#0fc70f", "📌", "PENDING", 72),
-    ("#1e9bff", "🔧", "HERRAMIENTAS", 86),
-    ("#a78bfa", "📊", "REPORTES", 94),
-    ("#ff2d3d", "📝", "NOTAS", 100),
+ARCO_ICON_PATHS = {
+    "guest": "%3Ccircle cx='9' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6'/%3E%3Ccircle cx='17' cy='9' r='2.6'/%3E%3Cpath d='M16 14.2c3 .1 5.5 1.9 5.5 5.3'/%3E",
+    "tools": "%3Cpath d='M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z'/%3E",
+    "qa": "%3Cpath d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/%3E",
+    "analytics": "%3Cpath d='M4 20V10M10 20V4M16 20v-8M22 20H2'/%3E",
+}
+ARCO_SVG_OPEN = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E"
+ARCO_SVG_CLOSE = "%3C/svg%3E"
+
+# (key, label, color, offset px). Offsets draw the arc (more to the right going down).
+ARCO_FUNC_ROWS = [
+    ("guest", "GUEST SERVICES", "#22d3ee", 0),
+    ("tools", "HERRAMIENTAS", "#1e9bff", 12),
+    ("qa", "QUICK ACCESS", "#a3e635", 24),
+    ("analytics", "ANALYTICS", "#7c3aed", 36),
+]
+# Visual only, no function yet.
+ARCO_STATIC_ROWS = [
+    ("#ffc107", "🌟", "POSIBLES VIP", 56),
+    ("#ffa117", "👥", "HUÉSPEDES", 68),
+    ("#0fc70f", "📌", "PENDING", 80),
+    ("#a78bfa", "📊", "REPORTES", 90),
+    ("#ff2d3d", "📝", "NOTAS", 98),
 ]
 
 
 def _toggle_menu_arco() -> None:
     st.session_state.menu_arco_open = not st.session_state.get("menu_arco_open", False)
+    st.session_state["arco_sub"] = None
 
 
-def _menu_arco_preview() -> None:
-    """Vista previa visual de un menu tipo arco (solo diseno, sin funciones todavia)."""
-    filas = []
-    for color, icono, texto, desplaza in MENU_ARCO_ITEMS:
-        filas.append(
-            '<div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;'
-            f'margin-left:{desplaza}px;margin-bottom:6px;">'
-            f'<span style="color:#ffffff;font-size:13px;font-weight:800;letter-spacing:.6px;'
-            f'text-shadow:0 1px 3px #000;white-space:nowrap;">{texto}</span>'
-            f'<span style="width:50px;height:50px;border-radius:50%;flex:0 0 50px;display:flex;'
-            f'align-items:center;justify-content:center;font-size:22px;background:{color};'
-            f'border:2px solid rgba(255,255,255,.85);box-shadow:0 0 12px {color};">{icono}</span>'
-            '</div>'
+def _arco_toggle(key: str) -> None:
+    st.session_state["arco_sub"] = None if st.session_state.get("arco_sub") == key else key
+
+
+def _arco_close() -> None:
+    st.session_state["menu_arco_open"] = False
+    st.session_state["arco_sub"] = None
+
+
+def _arco_bonus() -> None:
+    _arco_close()
+    st.query_params["skip_splash"] = "1"
+    st.query_params["action"] = "bonus"
+
+
+def _arco_wayne() -> None:
+    _arco_close()
+    st.session_state["wa_info_open"] = True
+
+
+def _arco_analytics() -> None:
+    _arco_close()
+    st.session_state["analytics_open"] = True
+
+
+def _menu_arco_css() -> str:
+    css = [
+        ".st-key-menu_front { position:relative !important; overflow:visible !important; z-index:2000 !important; }",
+        'div[data-testid="stColumn"]:has(.st-key-menu_front), div[data-testid="stHorizontalBlock"]:has(.st-key-menu_front), div[data-testid="stElementContainer"]:has(.st-key-menu_front) { position:relative !important; z-index:2000 !important; overflow:visible !important; }',
+        ".st-key-menu_front .st-key-arco_overlay { position:absolute !important; top:100%; left:50%; transform:translateX(-50%); z-index:1000 !important; width:400px !important; max-width:400px !important; box-sizing:border-box !important; margin:6px 0 0 0 !important; padding:16px 14px 14px 14px !important; border-radius:18px !important; background:linear-gradient(160deg,rgba(20,20,28,.94),rgba(8,8,12,.96)) !important; border:1px solid rgba(255,215,0,.45) !important; box-shadow:0 0 22px rgba(255,215,0,.18) !important; }",
+        'div[class*="st-key-arco_btn_"] button { min-height:46px !important; border-radius:999px !important; border:2px solid rgba(255,255,255,.85) !important; color:#ffffff !important; background:var(--arco-c) !important; box-shadow:0 0 12px var(--arco-c) !important; padding:6px 16px !important; }',
+        'div[class*="st-key-arco_btn_"] button > div { justify-content:flex-start !important; width:100% !important; }',
+        "div[class*=\"st-key-arco_btn_\"] button p { margin:0 !important; font:800 13px 'Segoe UI',Arial,sans-serif !important; letter-spacing:.6px !important; color:#ffffff !important; text-shadow:0 1px 3px #000 !important; text-align:left !important; }",
+        'div[class*="st-key-arco_btn_"] button:hover { filter:brightness(1.12); }',
+        'div[class*="st-key-arco_btn_"] button:focus, div[class*="st-key-arco_btn_"] button:active { box-shadow:0 0 12px var(--arco-c) !important; }',
+    ]
+    for key, _label, color, off in ARCO_FUNC_ROWS:
+        css.append('div[class*="st-key-arco_btn_' + key + '"] { --arco-c:' + color + '; margin-left:' + str(off) + 'px !important; width:calc(100% - ' + str(off) + 'px) !important; }')
+        css.append(
+            'div[class*="st-key-arco_btn_' + key + '"] button::before { content:""; display:inline-block; width:20px; height:20px; flex:0 0 20px; margin-right:12px; '
+            'background:url("' + ARCO_SVG_OPEN + ARCO_ICON_PATHS[key] + ARCO_SVG_CLOSE + '") center / contain no-repeat; }'
         )
-    html = (
-        '<div class="menu-arco-overlay" style="position:relative;width:400px;max-width:400px;margin:10px auto;padding:18px 14px 14px 14px;'
-        'border-radius:18px;background:linear-gradient(160deg,rgba(20,20,28,.92),rgba(8,8,12,.94));'
-        'border:1px solid rgba(255,215,0,.45);box-shadow:0 0 22px rgba(255,215,0,.18);box-sizing:border-box;">'
-        + "".join(filas)
-        + '<div style="display:flex;justify-content:flex-end;margin-top:8px;margin-right:4px;">'
-        '<span style="width:50px;height:50px;border-radius:50%;display:flex;align-items:center;'
-        'justify-content:center;font-size:24px;font-weight:900;color:#e5e7eb;background:#3a3f4a;'
-        'border:2px solid rgba(255,255,255,.7);box-shadow:0 0 10px rgba(255,255,255,.25);">✕</span>'
-        '</div></div>'
+    css += [
+        'div[class*="st-key-arco_sub_"] { margin-left:40px !important; width:calc(100% - 40px) !important; }',
+        'div[class*="st-key-arco_sub_"] button { min-height:38px !important; border-radius:999px !important; background:rgba(10,14,22,.92) !important; border:1px solid rgba(255,255,255,.35) !important; box-shadow:none !important; padding:4px 14px !important; }',
+        "div[class*=\"st-key-arco_sub_\"] button > div { justify-content:flex-start !important; width:100% !important; }",
+        "div[class*=\"st-key-arco_sub_\"] button p { margin:0 !important; font:700 12px 'Segoe UI',Arial,sans-serif !important; letter-spacing:.4px !important; color:#e9f3ff !important; text-align:left !important; }",
+        'div[class*="st-key-arco_sub_"] button:hover { background:rgba(255,255,255,.14) !important; }',
+        'div[class*="st-key-arco_btn_close"] { margin-left:318px !important; width:50px !important; }',
+        'div[class*="st-key-arco_btn_close"] button { width:50px !important; min-height:50px !important; height:50px !important; padding:0 !important; border-radius:50% !important; background:#3a3f4a !important; border:2px solid rgba(255,255,255,.7) !important; box-shadow:0 0 10px rgba(255,255,255,.25) !important; }',
+        'div[class*="st-key-arco_btn_close"] button > div { justify-content:center !important; }',
+        "div[class*=\"st-key-arco_btn_close\"] button p { font:900 24px 'Segoe UI',Arial,sans-serif !important; color:#e5e7eb !important; text-align:center !important; text-shadow:none !important; }",
+    ]
+    return "<style>" + "\n".join(css) + "</style>"
+
+
+def _arco_static_html(color: str, emoji: str, texto: str, off: int) -> str:
+    return (
+        '<div style="margin:0 0 6px ' + str(off) + 'px;width:calc(100% - ' + str(off) + 'px);box-sizing:border-box;min-height:46px;'
+        'border-radius:999px;background:' + color + ';border:2px solid rgba(255,255,255,.85);box-shadow:0 0 12px ' + color + ';'
+        'display:flex;align-items:center;gap:10px;padding:6px 16px;color:#ffffff;font:800 13px Arial,sans-serif;letter-spacing:.6px;'
+        'text-shadow:0 1px 3px #000;"><span style="font-size:18px;">' + emoji + '</span><span>' + texto + '</span></div>'
     )
-    css = (
-        '<style>'
-        '.st-key-menu_front { position:relative !important; overflow:visible !important; z-index:2000 !important; }'
-        'div[data-testid="stColumn"]:has(.st-key-menu_front), div[data-testid="stHorizontalBlock"]:has(.st-key-menu_front), div[data-testid="stElementContainer"]:has(.st-key-menu_front) { position:relative !important; z-index:2000 !important; overflow:visible !important; }'
-        '.st-key-menu_front [data-testid="stElementContainer"]:has(.menu-arco-overlay) {'
-        '  position:absolute !important; top:100%; left:50%; transform:translateX(-50%);'
-        '  width:400px !important; max-width:400px !important; z-index:1000 !important; margin:0 !important; }'
-        '.menu-arco-overlay { width:400px !important; max-width:400px !important; box-sizing:border-box !important; }'
-        '.st-key-menu_front [data-testid="stMarkdownContainer"]:has(.menu-arco-overlay), .st-key-menu_front [data-testid="stMarkdown"]:has(.menu-arco-overlay) { width:400px !important; }'
-        '.menu-arco-overlay span { white-space:nowrap !important; flex:0 0 auto !important; }'
-        '.menu-arco-overlay { margin:6px 0 0 0 !important; }'
-        '</style>'
-    )
-    st.markdown(css + html, unsafe_allow_html=True)
+
+
+def _arco_sub_items(key: str) -> None:
+    if key == "guest":
+        for _gk, _glabel, _gflag, _gpath in GLASS_ACTIONS:
+            if st.button(_glabel, key="arco_sub_act_" + _gk, use_container_width=True):
+                _arco_close()
+                st.query_params["skip_splash"] = "1"
+                _menu_go(**{_gflag: True})
+    elif key == "tools":
+        st.button("BONUS", key="arco_sub_bonus", use_container_width=True, on_click=_arco_bonus)
+        st.button("FRED WAYNE", key="arco_sub_wayne", use_container_width=True, on_click=_arco_wayne)
+        st.markdown('<div style="margin-left:40px;">' + GLASS_BOX_LINK_HTML + '</div>', unsafe_allow_html=True)
+    elif key == "qa":
+        st.markdown('<div style="margin-left:30px;">' + GLASS_QA_LINKS_HTML + '</div>', unsafe_allow_html=True)
+
+
+def _menu_arco_panel() -> None:
+    st.markdown(_menu_arco_css(), unsafe_allow_html=True)
+    sub = st.session_state.get("arco_sub")
+    with st.container(key="arco_overlay"):
+        for key, label, _color, _off in ARCO_FUNC_ROWS:
+            if key == "analytics":
+                st.button(label, key="arco_btn_analytics", use_container_width=True, on_click=_arco_analytics)
+                continue
+            arrow = "▾" if sub == key else "▸"
+            st.button(label + "  " + arrow, key="arco_btn_" + key, use_container_width=True, on_click=_arco_toggle, args=(key,))
+            if sub == key:
+                _arco_sub_items(key)
+        for color, emoji, texto, off in ARCO_STATIC_ROWS:
+            st.markdown(_arco_static_html(color, emoji, texto, off), unsafe_allow_html=True)
+        st.button("✕", key="arco_btn_close", on_click=_toggle_menu_arco)
 
 
 def _glow_nav_bar() -> None:
@@ -2745,50 +2818,6 @@ def _toggle_glass() -> None:
     st.session_state["glass_qa_open"] = False
 
 
-def _toggle_qa() -> None:
-    """Despliega o pliega Quick Access (antes Projects) dentro del panel."""
-    st.session_state["glass_qa_open"] = not st.session_state.get("glass_qa_open", False)
-
-
-def _toggle_tools() -> None:
-    """Despliega o pliega Herramientas (antes My Profile) dentro del panel."""
-    st.session_state["glass_tools_open"] = not st.session_state.get("glass_tools_open", False)
-
-
-def _tool_bonus() -> None:
-    st.session_state["glass_open"] = False
-    st.session_state["glass_guest_open"] = False
-    st.session_state["glass_tools_open"] = False
-    st.query_params["skip_splash"] = "1"
-    st.query_params["action"] = "bonus"
-
-
-def _tool_wayne() -> None:
-    st.session_state["glass_open"] = False
-    st.session_state["glass_guest_open"] = False
-    st.session_state["glass_tools_open"] = False
-    st.session_state["wa_info_open"] = True
-
-
-def _tool_analytics() -> None:
-    st.session_state["glass_open"] = False
-    st.session_state["glass_guest_open"] = False
-    st.session_state["glass_tools_open"] = False
-    st.session_state["analytics_open"] = True
-
-
-ANALYTICS_ICON_CSS = (
-    "<style>div[class*=\"st-key-glass_act_tool_analytics\"] button::before { background-image:url(\""
-    + _glass_icon_uri("M4 20V10M10 20V4M16 20v-8M22 20H2")
-    + "\"); }</style>"
-)
-
-
-def _toggle_guest_list() -> None:
-    """Despliega o pliega las acciones de Guest Services dentro del panel."""
-    st.session_state["glass_guest_open"] = not st.session_state.get("glass_guest_open", False)
-
-
 def show_header() -> None:
     import streamlit.components.v1 as components
 
@@ -2847,45 +2876,6 @@ def show_header() -> None:
                 st.button("Cerrar panel", key="glass_close_btn", on_click=_toggle_glass)
             with st.container(key="glass_panel"):
                 st.markdown(GLASS_PANEL_TOP_HTML, unsafe_allow_html=True)
-                _guest_open = st.session_state.get("glass_guest_open", False)
-                st.button(
-                    "Guest Services  " + ("▾" if _guest_open else "▸"),
-                    key="glass_guest_toggle",
-                    use_container_width=True,
-                    on_click=_toggle_guest_list,
-                )
-                if _guest_open:
-                    for _gk, _glabel, _gflag, _gpath in GLASS_ACTIONS:
-                        if st.button(_glabel, key="glass_act_" + _gk, use_container_width=True):
-                            st.session_state["glass_open"] = False
-                            st.session_state["glass_guest_open"] = False
-                            st.query_params["skip_splash"] = "1"
-                            _menu_go(**{_gflag: True})
-                st.markdown(GLASS_TOOLS_CSS, unsafe_allow_html=True)
-                _tools_open = st.session_state.get("glass_tools_open", False)
-                st.button(
-                    "Herramientas  " + ("▾" if _tools_open else "▸"),
-                    key="glass_tools_toggle",
-                    use_container_width=True,
-                    on_click=_toggle_tools,
-                )
-                if _tools_open:
-                    st.button("BONUS", key="glass_act_tool_bonus", use_container_width=True, on_click=_tool_bonus)
-                    st.button("FRED WAYNE", key="glass_act_tool_wayne", use_container_width=True, on_click=_tool_wayne)
-                    st.markdown(GLASS_BOX_LINK_HTML, unsafe_allow_html=True)
-                st.markdown(GLASS_QA_CSS, unsafe_allow_html=True)
-                _qa_open = st.session_state.get("glass_qa_open", False)
-                st.button(
-                    "Quick Access  " + ("▾" if _qa_open else "▸"),
-                    key="glass_qa_toggle",
-                    use_container_width=True,
-                    on_click=_toggle_qa,
-                )
-                if _qa_open:
-                    st.markdown(GLASS_QA_LINKS_HTML, unsafe_allow_html=True)
-                st.markdown('<div class="gp-sep"></div>', unsafe_allow_html=True)
-                st.markdown(ANALYTICS_ICON_CSS, unsafe_allow_html=True)
-                st.button("Analytics", key="glass_act_tool_analytics", use_container_width=True, on_click=_tool_analytics)
                 st.markdown(GLASS_PANEL_BOTTOM_HTML, unsafe_allow_html=True)
     st.markdown(
         "<style>.st-key-wa_info_box { display:none !important; }</style>",
@@ -3610,7 +3600,7 @@ def render_menu() -> None:
     with st.container(key="menu_front"):
         st.button("MENÚ »", key="main_menu_btn", on_click=_toggle_menu_arco)
         if st.session_state.get("menu_arco_open", False):
-            _menu_arco_preview()
+            _menu_arco_panel()
     with st.container(key="menu_back"):
         _menu_card_body()
 
