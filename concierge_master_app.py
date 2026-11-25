@@ -368,9 +368,9 @@ def _menu_arco_css() -> str:
         "div[class*=\"st-key-arco_sub_\"] button p { margin:0 !important; font:700 12px 'Segoe UI',Arial,sans-serif !important; letter-spacing:.4px !important; color:#e9f3ff !important; text-align:left !important; }",
         'div[class*="st-key-arco_sub_"] button:hover { background:rgba(255,255,255,.14) !important; }',
         'div[class*="st-key-arco_btn_close"] { margin-left:318px !important; width:50px !important; }',
-        'div[class*="st-key-arco_btn_close"] button { width:50px !important; min-height:50px !important; height:50px !important; padding:0 !important; border-radius:50% !important; background:#3a3f4a !important; border:2px solid rgba(255,255,255,.7) !important; box-shadow:0 0 10px rgba(255,255,255,.25) !important; }',
+        'div[class*="st-key-arco_btn_close"] button { width:50px !important; min-height:50px !important; height:50px !important; padding:0 !important; border-radius:50% !important; background:#d4af37 !important; border:2px solid #f3e3a1 !important; box-shadow:0 0 10px rgba(212,175,55,.45) !important; }',
         'div[class*="st-key-arco_btn_close"] button > div { justify-content:center !important; }',
-        "div[class*=\"st-key-arco_btn_close\"] button p { font:900 24px 'Segoe UI',Arial,sans-serif !important; color:#e5e7eb !important; text-align:center !important; text-shadow:none !important; }",
+        "div[class*=\"st-key-arco_btn_close\"] button p { font:900 24px 'Segoe UI',Arial,sans-serif !important; color:#1a1405 !important; text-align:center !important; text-shadow:none !important; }",
     ]
     css = [c.replace("__ARCO_BG__", GLASS_BG_URL) for c in css]
     return "<style>" + "\n".join(css) + "</style>"
@@ -713,6 +713,12 @@ def check_password() -> bool:
 
 
 INACTIVITY_MINUTES = 20
+
+
+def _sesion_restante() -> int:
+    import time as _time
+    ts = st.session_state.get("last_activity", _time.time())
+    return max(0, int(INACTIVITY_MINUTES * 60 - (_time.time() - ts)))
 
 
 @st.fragment(run_every=60)
@@ -3019,6 +3025,10 @@ def show_header() -> None:
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
   body { margin:0; background:transparent; font-family:Segoe UI,sans-serif; text-align:right; }
+  #sess-row { display:flex; justify-content:flex-end; align-items:center; gap:10px; }
+  #sess-timer { font-family:'Orbitron','Courier New',monospace; font-size:14px; font-weight:700; color:#d4af37; border:1px solid rgba(212,175,55,.75); border-radius:8px; padding:4px 9px 3px 9px; text-shadow:0 0 6px rgba(212,175,55,.7); box-shadow:0 0 8px rgba(212,175,55,.35); white-space:nowrap; }
+  #sess-timer .sess-label { font-size:10px; letter-spacing:1px; margin-right:6px; }
+  #sess-timer.warn { color:#ff3b3b; border-color:#ff3b3b; text-shadow:0 0 6px #ff3b3b; box-shadow:0 0 8px rgba(255,59,59,.55); }
   #digital-box { display:inline-block; padding:4px 14px 3px 14px; border-radius:10px; border:2px solid #00e5ff; background:linear-gradient(180deg,#041a24,#02101a); box-shadow:0 0 10px rgba(0,229,255,.55), inset 0 0 12px rgba(0,229,255,.25); }
   #local-clock { font-family:'Orbitron','Digital-7','Courier New',monospace; color:#7ff6ff; font-size:26px; font-weight:700; line-height:1.1; letter-spacing:2px; text-shadow:0 0 6px #00e5ff, 0 0 16px rgba(0,229,255,.8); white-space:nowrap; }
   #local-ampm { font-size:12px; margin-left:4px; color:#7ff6ff; text-shadow:0 0 6px #00e5ff; }
@@ -3027,7 +3037,7 @@ def show_header() -> None:
 </style>
 </head>
 <body>
-  <div id="digital-box"><span id="local-clock">--:--:--</span><span id="local-ampm"></span></div>
+  <div id="sess-row"><div id="sess-timer" title="Tiempo hasta el cierre de sesión por inactividad"><span class="sess-label">SESIÓN</span><span id="sess-val">--:--</span></div><div id="digital-box"><span id="local-clock">--:--:--</span><span id="local-ampm"></span></div></div>
   <div id="local-date">Loading date…</div>
   <div id="local-online">Online(<span id="local-since" style="color:#ff3b3b;">Mar 1, 2026</span>): <span id="local-elapsed">…</span></div>
 <script>
@@ -3037,6 +3047,17 @@ def show_header() -> None:
   const timeFormatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
   const dateFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   const ONLINE_SINCE = new Date(2026, 2, 1);
+  const SESS_REST = %%REST%%;
+  const sessEnd = Date.now() + SESS_REST * 1000;
+  const sessVal = document.getElementById('sess-val');
+  const sessTimer = document.getElementById('sess-timer');
+  function tickSess() {
+    const l = Math.max(0, Math.round((sessEnd - Date.now()) / 1000));
+    sessVal.textContent = String(Math.floor(l / 60)).padStart(2, '0') + ':' + String(l % 60).padStart(2, '0');
+    sessTimer.classList.toggle('warn', l <= 300);
+  }
+  tickSess();
+  setInterval(tickSess, 1000);
   const elapsed = document.getElementById('local-elapsed');
   function onlineTime(from, to) {
     let y = to.getFullYear() - from.getFullYear();
@@ -3060,7 +3081,7 @@ def show_header() -> None:
 </script>
 </body>
 </html>
-            """,
+            """.replace("%%REST%%", str(_sesion_restante())),
             height=110,
             scrolling=False,
         )
@@ -10207,3 +10228,4 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
