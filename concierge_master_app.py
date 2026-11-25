@@ -323,6 +323,11 @@ def _arco_close() -> None:
     st.session_state["arco_sub"] = None
 
 
+def _top_bonus() -> None:
+    st.query_params["skip_splash"] = "1"
+    st.query_params["action"] = "bonus"
+
+
 def _arco_bonus() -> None:
     _arco_close()
     st.query_params["skip_splash"] = "1"
@@ -379,7 +384,6 @@ def _arco_sub_items(key: str) -> None:
                 st.query_params["skip_splash"] = "1"
                 _menu_go(**{_gflag: True})
     elif key == "tools":
-        st.button("BONUS", key="arco_sub_bonus", use_container_width=True, on_click=_arco_bonus)
         st.button("FRED WAYNE", key="arco_sub_wayne", use_container_width=True, on_click=_arco_wayne)
     elif key == "qa":
         st.markdown('<div style="margin-left:30px;">' + GLASS_QA_LINKS_HTML + '</div>', unsafe_allow_html=True)
@@ -9378,7 +9382,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
         with nav_col:
             _glow_nav_bar()
         with ico_host:
-            ico_calc_col, ico_cal_col, ico_cnt_col, ico_notas_col, ico_dir_col, ico_box_col, ico_guest_col = st.columns(7, gap="small")
+            ico_calc_col, ico_cal_col, ico_cnt_col, ico_notas_col, ico_dir_col, ico_box_col, ico_bonus_col, ico_guest_col = st.columns(8, gap="small")
         _top_icons = [
             (ico_calc_col, "🧮", "Calculadora", "top_ico_calc", "open_calculator"),
             (ico_cal_col, "📆", "Almanaque", "top_ico_almanaque", "open_calendar"),
@@ -9386,6 +9390,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
             (ico_notas_col, "📝", "Notas", "top_ico_notas", "open_notas"),
             (ico_dir_col, "📇", "Directorio", "top_ico_directorio", "open_directorio"),
             (ico_box_col, "📁", "BOX FILES", "top_ico_box", None),
+            (ico_bonus_col, "💰", "BONUS", "top_ico_bonus", "action_bonus"),
             (ico_guest_col, "🛎", "Guest Services", "top_ico_guest", "open_guest_mini"),
         ]
         _top_ico_css = ""
@@ -9406,6 +9411,8 @@ def render_dashboard(df: pd.DataFrame) -> None:
                 with st.container(key=_key):
                     if _flag is None:
                         st.link_button(_ico, BOX_FOLDER_URL, help=_tip, key="do_" + _key)
+                    elif _flag == "action_bonus":
+                        st.button(_ico, help=_tip, key="do_" + _key, on_click=_top_bonus)
                     elif st.button(_ico, help=_tip, key="do_" + _key):
                         st.session_state[_flag] = True
                         st.query_params["skip_splash"] = "1"
