@@ -2809,8 +2809,22 @@ def _toggle_glass() -> None:
     st.session_state["glass_qa_open"] = False
 
 
+def _sess_expire() -> None:
+    # Lo dispara el temporizador SESIÓN al llegar a 00:00: cierra la sesión al instante.
+    st.session_state.auth_ok = False
+    st.session_state.login_expired = True
+    _quitar_token_auth()
+
+
 def show_header() -> None:
     import streamlit.components.v1 as components
+
+    st.markdown(
+        "<style>.st-key-sess_expire_box { display:none !important; }</style>",
+        unsafe_allow_html=True,
+    )
+    with st.container(key="sess_expire_box"):
+        st.button("sess_expire", key="sess_expire_btn", on_click=_sess_expire)
 
     st.markdown(MENU_FMT_CSS, unsafe_allow_html=True)
 
@@ -3051,10 +3065,18 @@ def show_header() -> None:
   const sessEnd = Date.now() + SESS_REST * 1000;
   const sessVal = document.getElementById('sess-val');
   const sessTimer = document.getElementById('sess-timer');
+  let sessFired = false;
   function tickSess() {
     const l = Math.max(0, Math.round((sessEnd - Date.now()) / 1000));
     sessVal.textContent = String(Math.floor(l / 60)).padStart(2, '0') + ':' + String(l % 60).padStart(2, '0');
     sessTimer.classList.toggle('warn', l <= 300);
+    if (l <= 0 && !sessFired) {
+      sessFired = true;
+      try {
+        const b = window.parent.document.querySelector('.st-key-sess_expire_box button');
+        if (b) b.click();
+      } catch (e) {}
+    }
   }
   tickSess();
   setInterval(tickSess, 1000);
@@ -10228,4 +10250,3 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
-
