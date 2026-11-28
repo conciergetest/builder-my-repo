@@ -450,6 +450,85 @@ def _glow_nav_bar() -> None:
                               use_container_width=True, help=lbl)
 
 
+OTP_LOGIN_HTML = r"""
+<!doctype html>
+<html>
+<head>
+<style>
+  body { margin:0; background:transparent; }
+  .otp { display:flex; justify-content:center; gap:7px; padding:6px 0; }
+  .otp input { width:40px; height:50px; box-sizing:border-box; text-align:center; font-size:22px; font-weight:700; color:#e8f0ff; background:#0b0d1a; border:2px solid #2a2f55; border-radius:12px; outline:none; transition:all .3s ease; caret-color:transparent; }
+  .otp input:focus { border-color:#6366f1; box-shadow:0 0 12px #6366f1; transform:scale(1.05); }
+  .otp input.filled { border-color:#4f46e5; }
+</style>
+</head>
+<body>
+<div class="otp">
+  <input type="password" maxlength="1" autocomplete="off">
+  <input type="password" maxlength="1" autocomplete="off">
+  <input type="password" maxlength="1" autocomplete="off">
+  <input type="password" maxlength="1" autocomplete="off">
+  <input type="password" maxlength="1" autocomplete="off">
+  <input type="password" maxlength="1" autocomplete="off">
+  <input type="password" maxlength="1" autocomplete="off">
+  <input type="password" maxlength="1" autocomplete="off">
+</div>
+<script>
+  const boxes = Array.from(document.querySelectorAll('.otp input'));
+  function parentPwd() {
+    try { return window.parent.document.querySelector('.st-key-login_pwd input'); } catch (e) { return null; }
+  }
+  function sync() {
+    const v = boxes.map(b => b.value).join('');
+    const p = parentPwd();
+    boxes.forEach(b => b.classList.toggle('filled', !!b.value));
+    if (!p) return;
+    const setter = Object.getOwnPropertyDescriptor(window.parent.HTMLInputElement.prototype, 'value').set;
+    setter.call(p, v);
+    p.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  function submitLogin() {
+    try {
+      const btn = Array.from(window.parent.document.querySelectorAll('[data-testid="stForm"] button'))
+        .find(b => b.textContent.trim() === 'SIGN IN');
+      if (btn) btn.click();
+    } catch (e) {}
+  }
+  boxes.forEach((b, i) => {
+    b.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !b.value && i > 0) {
+        e.preventDefault();
+        boxes[i - 1].value = '';
+        boxes[i - 1].focus();
+        sync();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        submitLogin();
+      } else if (e.key.length === 1 && /\s/.test(e.key)) {
+        e.preventDefault();
+      }
+    });
+    b.addEventListener('input', () => {
+      if (b.value.length > 1) b.value = b.value.slice(-1);
+      if (b.value && i < boxes.length - 1) boxes[i + 1].focus();
+      sync();
+    });
+    b.addEventListener('paste', e => {
+      e.preventDefault();
+      const txt = (e.clipboardData || window.clipboardData).getData('text').replace(/\s/g, '');
+      Array.from(txt).slice(0, boxes.length - i).forEach((ch, k) => { boxes[i + k].value = ch; });
+      const next = Math.min(i + txt.length, boxes.length - 1);
+      boxes[next].focus();
+      sync();
+    });
+  });
+  setTimeout(() => boxes[0].focus(), 300);
+</script>
+</body>
+</html>
+"""
+
+
 def check_password() -> bool:
     """Muestra el login y devuelve True solo si la clave APP_PASSWORD es correcta."""
     import hmac
@@ -648,6 +727,9 @@ def check_password() -> bool:
             )
         st.button("Login info", key="login_info_btn", on_click=_login_info_toggle)
         with st.form("login_form_inner", clear_on_submit=False, border=False):
+            st.markdown("<style>.st-key-login_pwd { display:none !important; }</style>", unsafe_allow_html=True)
+            import streamlit.components.v1 as _otp_components
+            _otp_components.html(OTP_LOGIN_HTML, height=76)
             pwd = st.text_input("Password", type="password", key="login_pwd")
             submitted = st.form_submit_button("SIGN IN", use_container_width=True)
 
@@ -10250,4 +10332,5 @@ elif action == "cancelar":
     _redirect_to_dialog("open_borrar")
 else:
     render_dashboard(reservations)
+
 
