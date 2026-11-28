@@ -719,7 +719,7 @@ def check_password() -> bool:
         _uri_icono = _login_icon_uri()
         if _uri_icono:
             st.markdown(
-                '<style>.st-key-login_info_btn { position:absolute !important; top:14px !important; right:16px !important; width:auto !important; z-index:5; }'
+                '<style>.st-key-login_info_btn { position:absolute !important; top:152px !important; right:18px !important; width:auto !important; z-index:5; }'
                 '.st-key-login_info_btn button { width:52px !important; height:52px !important; min-height:0 !important; padding:0 !important; '
                 'border:none !important; border-radius:8px !important; box-shadow:none !important; font-size:0 !important; color:transparent !important; '
                 'background:url("' + _uri_icono + '") center/contain no-repeat !important; }'
