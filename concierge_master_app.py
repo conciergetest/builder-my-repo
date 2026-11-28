@@ -8212,58 +8212,110 @@ def guests_detail_dialog() -> None:
         st.rerun()
 
 
+PENDING_ACCENTS = ["#00e5ff", "#ff2d7a", "#d4af37", "#7c5cff", "#1affc8", "#ff8a3d"]
+
+
 @st.dialog("📌 Pending", width="large")
 def pending_dialog() -> None:
-    """Popup: block de notas con 15 líneas numeradas, guardadas en la
-    tabla `block_notas` de Supabase. Cada línea se puede editar y borrar
-    (de la base de datos) por separado."""
+    """Popup Pending: cada nota se guarda en `block_notas` (Supabase) al
+    agregarla y aparece como tarjeta. Máximo 15 (PENDING_LINES)."""
     data = cargar_pending()
-    if "pending_nonce" not in st.session_state:
-        st.session_state["pending_nonce"] = 0
-    nonce = st.session_state["pending_nonce"]
+    usados = sorted(
+        n for n, v in data.items()
+        if 1 <= n <= PENDING_LINES and (v.get("contenido") or "").strip()
+    )
+    total = len(usados)
+    lleno = total >= PENDING_LINES
 
+    segs = "".join(
+        "<div style='flex:1;height:8px;border-radius:4px;background:"
+        + ("#d4af37;box-shadow:0 0 8px rgba(212,175,55,.8)" if i < total else "#1d2140")
+        + ";'></div>"
+        for i in range(PENDING_LINES)
+    )
     st.markdown(
         """
         <style>
+        .pend-card {
+            display:flex; align-items:center; gap:14px; margin:0 0 10px 0; padding:12px 18px;
+            background:linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.01)), #0d1024;
+            border:1px solid #232a55; border-radius:10px; box-shadow:0 4px 14px rgba(0,0,0,.45);
+        }
+        .pend-num { font-family:'Cinzel',Georgia,serif; font-weight:800; font-size:15px; min-width:34px; }
+        .pend-txt { color:#e8f0ff; font-size:16px; line-height:1.35; word-break:break-word; }
         [class*="st-key-pending_del_"] button {
             background:#3a1a1a !important; border:1px solid #E11D48 !important; color:#ff6b81 !important;
-            padding:2px 0 !important; font-size:13px !important; min-height:38px !important;
+            min-height:44px !important; padding:0 !important;
         }
         [class*="st-key-pending_del_"] button:hover { background:#E11D48 !important; color:#fff !important; }
         </style>
         """,
         unsafe_allow_html=True,
     )
+    st.markdown(
+        f"""
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin:0 0 8px 0;">
+          <span style="font-family:'Cinzel',Georgia,serif;color:#ece3c8;font-size:20px;letter-spacing:2px;">NOTAS PENDIENTES</span>
+          <span style="color:{'#ff1744' if total else '#00e5ff'};font-weight:800;font-size:15px;">{total} / {PENDING_LINES}</span>
+        </div>
+        <div style="display:flex;gap:4px;margin:0 0 18px 0;">{segs}</div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    for numero in range(1, PENDING_LINES + 1):
-        valor_actual = data.get(numero, {}).get("contenido", "")
-        col_num, col_text, col_del = st.columns([0.5, 5, 0.6])
-        with col_num:
+    if lleno:
+        st.info("Pending lleno: 15 de 15 guardados. Borra una nota para agregar otra.")
+    else:
+        with st.form("pending_add_form", clear_on_submit=True):
+            nueva = st.text_input(
+                "Nueva nota", key="pending_new_text", max_chars=300,
+                label_visibility="collapsed", placeholder="Escribe una nota y presiona AGREGAR o Enter",
+            )
+            agregar = st.form_submit_button("➕ AGREGAR", type="primary", use_container_width=True)
+        if agregar:
+            texto = (nueva or "").strip()
+            if not texto:
+                st.warning("Escribe algo antes de agregar.")
+            else:
+                libres = [n for n in range(1, PENDING_LINES + 1) if n not in usados]
+                try:
+                    guardar_pending_linea(libres[0], texto)
+                except Exception as exc:
+                    st.error(f"No se pudo guardar: {exc}")
+                st.session_state["open_pending"] = True
+                st.rerun()
+
+    st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+
+    if not usados:
+        st.markdown(
+            "<div style='color:#8a8fb0;text-align:center;padding:24px 0;font-size:14px;'>Aún no hay notas guardadas.</div>",
+            unsafe_allow_html=True,
+        )
+    for n in usados:
+        acento = PENDING_ACCENTS[(n - 1) % len(PENDING_ACCENTS)]
+        texto = html.escape(data[n]["contenido"])
+        col_card, col_del = st.columns([12, 1], vertical_alignment="center")
+        with col_card:
             st.markdown(
-                f"<div style='color:#00e5ff;font-weight:800;font-size:13px;margin-top:10px;text-align:right;'>{numero}.</div>",
+                f"<div class='pend-card' style='border-left:4px solid {acento};'>"
+                f"<span class='pend-num' style='color:{acento};'>{n:02d}</span>"
+                f"<span class='pend-txt'>{texto}</span></div>",
                 unsafe_allow_html=True,
             )
-        with col_text:
-            st.text_input(
-                f"linea_{numero}", value=valor_actual, key=f"pending_line_{numero}_{nonce}",
-                label_visibility="collapsed", placeholder="Escribe aquí...",
-            )
         with col_del:
-            if st.button("🗑", key=f"pending_del_{numero}", use_container_width=True):
+            if st.button("🗑", key=f"pending_del_{n}", use_container_width=True):
                 try:
-                    eliminar_pending_linea(numero)
-                    st.session_state.pop(f"pending_line_{numero}_{nonce}", None)
-                    st.session_state["pending_nonce"] = nonce + 1
-                    st.success(f"Línea {numero} borrada.")
+                    eliminar_pending_linea(n)
                 except Exception as exc:
-                    st.error(f"No se pudo borrar la línea {numero}: {exc}")
+                    st.error(f"No se pudo borrar la nota {n}: {exc}")
                 st.session_state["open_pending"] = True
                 st.rerun()
 
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
     if st.session_state.get("pending_confirm_delete_all"):
-        st.warning("Se borrarán permanentemente las 15 líneas del Pending. Ingresa la clave de autorización para confirmar.")
+        st.warning(f"Se borrarán permanentemente las {total} notas del Pending. Ingresa la clave de autorización para confirmar.")
         with st.form("pending_delete_all_form"):
             pending_password = st.text_input("Clave de autorización", type="password", key="pending_delete_all_password")
             fc1, fc2 = st.columns(2)
@@ -8278,11 +8330,7 @@ def pending_dialog() -> None:
             else:
                 try:
                     eliminar_pending_todo()
-                    for numero in range(1, PENDING_LINES + 1):
-                        st.session_state.pop(f"pending_line_{numero}_{nonce}", None)
-                    st.session_state["pending_nonce"] = nonce + 1
                     st.session_state.pop("pending_confirm_delete_all", None)
-                    st.success("Pending vaciado.")
                 except Exception as exc:
                     st.error(f"No se pudo vaciar: {exc}")
                 st.session_state["open_pending"] = True
@@ -8292,23 +8340,12 @@ def pending_dialog() -> None:
             st.session_state["open_pending"] = True
             st.rerun()
     else:
-        c1, c2, c3 = st.columns(3)
-        if c1.button("💾 GUARDAR TODO", use_container_width=True, type="primary", key="pending_save_all"):
-            try:
-                for numero in range(1, PENDING_LINES + 1):
-                    texto = st.session_state.get(f"pending_line_{numero}_{nonce}", "")
-                    guardar_pending_linea(numero, texto)
-                st.session_state["pending_nonce"] = nonce + 1
-                st.success("Pending guardado correctamente.")
-            except Exception as exc:
-                st.error(f"No se pudo guardar: {exc}")
-            st.session_state["open_pending"] = True
-            st.rerun()
-        if c2.button("🗑 BORRAR TODO", use_container_width=True, key="pending_delete_all"):
+        c1, c2 = st.columns(2)
+        if c1.button("🗑 BORRAR TODO", use_container_width=True, key="pending_delete_all", disabled=total == 0):
             st.session_state["pending_confirm_delete_all"] = True
             st.session_state["open_pending"] = True
             st.rerun()
-        if c3.button("CERRAR", use_container_width=True, key="pending_close"):
+        if c2.button("CERRAR", use_container_width=True, key="pending_close"):
             st.rerun()
 
 
